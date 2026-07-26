@@ -2,13 +2,10 @@
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { useAuthStore } from '~/stores/auth'
 
-defineProps<{
-  collapsed?: boolean
-}>()
-
 const authStore = useAuthStore()
 
 const displayName = computed(() => authStore.user?.fullname || authStore.user?.username || '')
+const darkMode = ref(false)
 
 const items = computed<DropdownMenuItem[][]>(() => [
   [
@@ -20,7 +17,21 @@ const items = computed<DropdownMenuItem[][]>(() => [
   ],
   [
     {
-      label: 'Keluar',
+      label: 'My Profile',
+      icon: 'i-lucide-user',
+      onSelect: () => {},
+    },
+    {
+      label: 'Dark Mode',
+      icon: 'i-lucide-sun',
+      type: 'checkbox',
+      checked: darkMode.value,
+      onUpdateChecked: (v: boolean) => { darkMode.value = v },
+    },
+  ],
+  [
+    {
+      label: 'Logout',
       icon: 'i-lucide-log-out',
       color: 'error',
       onSelect: () => authStore.logout(),
@@ -30,22 +41,9 @@ const items = computed<DropdownMenuItem[][]>(() => [
 </script>
 
 <template>
-  <UDropdownMenu :items="items" :content="{ side: 'top', align: 'start' }" class="w-full">
-    <UButton
-      color="neutral"
-      variant="ghost"
-      block
-      :square="collapsed"
-      class="data-[state=open]:bg-elevated"
-      :ui="{ trailingIcon: collapsed ? 'hidden' : '' }"
-    >
-      <UAvatar :alt="displayName" size="xs" />
-      <template v-if="!collapsed" #default>
-        <span class="truncate text-sm">{{ displayName }}</span>
-      </template>
-      <template #trailing>
-        <UIcon v-if="!collapsed" name="i-lucide-chevrons-up-down" class="ml-auto size-4 shrink-0" />
-      </template>
+  <UDropdownMenu :items="items" :content="{ align: 'end', side: 'bottom' }">
+    <UButton color="neutral" variant="ghost" class="rounded-full p-0">
+      <UAvatar :alt="displayName" size="sm" class="cursor-pointer" />
     </UButton>
   </UDropdownMenu>
 </template>
