@@ -18,3 +18,17 @@ export function parseApiError(err: unknown, fallback = 'Terjadi kesalahan, silak
 
   return error?.data?.message || error?.message || fallback
 }
+
+const PASSWORD_ERROR_MESSAGES: Record<string, string> = {
+  INVALID_CURRENT_PASSWORD: 'Kata sandi saat ini tidak sesuai.',
+  PASSWORD_SAME_AS_CURRENT: 'Kata sandi baru tidak boleh sama dengan kata sandi saat ini.',
+}
+
+export function parsePasswordError(err: unknown, fallback = 'Gagal memperbarui kata sandi.'): string {
+  const error = err as FetchErrorLike
+  const code = error?.data?.errors
+  if (typeof code === 'string' && PASSWORD_ERROR_MESSAGES[code]) {
+    return PASSWORD_ERROR_MESSAGES[code]
+  }
+  return parseApiError(err, fallback)
+}

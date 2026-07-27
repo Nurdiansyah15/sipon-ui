@@ -3,6 +3,7 @@ import { useApi } from '~/composables/useApi'
 import { parseApiError } from '~/utils/errorParser'
 import type { ApiSuccess } from '#shared/types/ApiResponse'
 import type { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from '#shared/types/Auth'
+import type { ProfileData } from '#shared/types/Profile'
 import type { SessionData, SessionPermission, SessionRole } from '#shared/types/Session'
 import type { UserMe } from '#shared/types/User'
 
@@ -89,6 +90,28 @@ export const useAuthStore = defineStore('auth', {
       const res = await api.get<ApiSuccess<UserMe>>('/api/v1/web/auth/me')
       this.user = res.data
       this.saveToStorage()
+    },
+
+    async fetchProfile() {
+      if (!this.token) return
+      const api = useApi()
+      const res = await api.get<ApiSuccess<ProfileData>>('/api/v1/web/auth/profile')
+      const { roles, permissions, ...user } = res.data
+      this.user = user
+      this.roles = roles
+      this.permissions = permissions
+      this.saveToStorage()
+    },
+
+    async changePassword(payload: { current_password: string, new_password: string }) {
+      const api = useApi()
+      await api.post('/api/v1/web/auth/change-password', payload)
+    },
+
+    async setPassword(payload: { new_password: string }) {
+      const api = useApi()
+      await api.post('/api/v1/web/auth/set-password', payload)
+      await this.fetchProfile()
     },
 
     async logout() {

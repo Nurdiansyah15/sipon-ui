@@ -19,7 +19,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
     {
       label: 'My Profile',
       icon: 'i-lucide-user',
-      onSelect: () => {},
+      onSelect: () => navigateTo('/profile'),
     },
     {
       label: 'Dark Mode',
