@@ -152,7 +152,7 @@ export const useRolePermissionStore = defineStore('rolePermission', {
       }
     },
 
-    async fetchUserRoles(query: { user_id?: string; role_id?: string; page?: number; limit?: number; is_active?: string } = {}) {
+    async fetchUserRoles(query: { user_id?: string; role_id?: string; page?: number; limit?: number; is_active?: string } = {}): Promise<UserRoleItem[]> {
       this.isLoading = true
       this.error = null
       try {
@@ -168,6 +168,7 @@ export const useRolePermissionStore = defineStore('rolePermission', {
         })
         this.userRoles = res.data
         this.userRolesMeta = res.meta
+        return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal memuat assignment user-role.')
         throw err

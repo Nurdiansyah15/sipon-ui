@@ -123,6 +123,7 @@ function rowActions(row: UserManagementItem): DropdownMenuItem[] {
 const columns: TableColumn<UserManagementItem>[] = [
   { accessorKey: 'username', header: 'Username' },
   { accessorKey: 'email', header: 'Email' },
+  { accessorKey: 'roles', header: 'Roles' },
   { accessorKey: 'status', header: 'Status' },
   { accessorKey: 'created_at', header: 'Dibuat' },
   { id: 'actions', header: 'Aksi' },
@@ -198,6 +199,17 @@ function statusBadgeColor(status: string) {
         class="w-full"
         :ui="{ th: 'text-gray-900 font-bold' }"
       >
+        <template #roles-cell="{ row }">
+          <div class="flex flex-wrap gap-1">
+            <template v-if="row.original.roles && row.original.roles.length > 0">
+              <UBadge v-for="role in row.original.roles" :key="role.id" variant="subtle" color="neutral" size="sm">
+                {{ role.role_name }}
+              </UBadge>
+            </template>
+            <span v-else class="text-xs text-gray-400">-</span>
+          </div>
+        </template>
+
         <template #status-cell="{ row }">
           <UBadge :color="statusBadgeColor(row.original.status)" variant="subtle" size="sm">
             {{ row.original.status === 'ACTIVE' ? 'Aktif' : 'Nonaktif' }}
@@ -253,7 +265,7 @@ function statusBadgeColor(status: string) {
       v-model:open="assignRoleOpen"
       :target-user-id="assignTargetId"
       :target-user-name="assignTargetName"
-      @assigned="load"
+      @updated="load"
     />
   </div>
 </template>
