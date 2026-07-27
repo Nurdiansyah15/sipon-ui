@@ -2,14 +2,14 @@
 const route = useRoute()
 
 const items = [
-  { label: 'Dasbor', icon: 'i-lucide-home', to: '/dashboard' },
-  { label: 'Aplikasi', icon: 'i-lucide-layout-grid', to: '#' },
-  { label: 'Artikel', icon: 'i-lucide-globe', to: '#' },
-  { label: 'Umpan Balik', icon: 'i-lucide-message-square', to: '#' },
+  { label: 'Dasbor', icon: 'i-lucide-gauge', to: '/system-admin' },
+  { label: 'User', icon: 'i-lucide-users', to: '/system-admin/users' },
+  { label: 'Role', icon: 'i-lucide-shield', to: '/system-admin/roles' },
 ]
 
 function isActive(to: string) {
-  return route.path === to
+  if (to === '/system-admin') return route.path === '/system-admin'
+  return route.path.startsWith(to)
 }
 </script>
 
@@ -18,16 +18,16 @@ function isActive(to: string) {
     <div class="flex items-center justify-around py-2">
       <ULink
         v-for="item in items"
-        :key="item.label"
+        :key="item.to"
         :to="item.to"
         class="flex flex-col items-center gap-0.5 px-3 py-1"
       >
         <UIcon
           :name="item.icon"
-          :class="isActive(item.to) ? 'h-5 w-5 text-teal-600' : 'h-5 w-5 text-gray-400'"
+          :class="isActive(item.to) ? 'h-5 w-5 text-gray-700' : 'h-5 w-5 text-gray-400'"
         />
         <span
-          :class="isActive(item.to) ? 'text-[10px] font-medium text-teal-600' : 'text-[10px] text-gray-400'"
+          :class="isActive(item.to) ? 'text-[10px] font-medium text-gray-700' : 'text-[10px] text-gray-400'"
         >
           {{ item.label }}
         </span>

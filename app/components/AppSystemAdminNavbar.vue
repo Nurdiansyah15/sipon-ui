@@ -2,21 +2,21 @@
 const route = useRoute()
 
 const links = [
-  { label: 'Dasbor', icon: 'i-lucide-home', to: '/dashboard' },
-  { label: 'Aplikasi', icon: 'i-lucide-layout-grid', to: '#' },
-  { label: 'Artikel', icon: 'i-lucide-globe', to: '#' },
-  { label: 'Umpan Balik', icon: 'i-lucide-message-square', to: '#' },
+  { label: 'Dasbor', icon: 'i-lucide-gauge', to: '/system-admin' },
+  { label: 'Kelola User', icon: 'i-lucide-users', to: '/system-admin/users' },
+  { label: 'Kelola Role', icon: 'i-lucide-shield', to: '/system-admin/roles' },
 ]
 
 function isActive(to: string) {
-  return route.path === to
+  if (to === '/system-admin') return route.path === '/system-admin'
+  return route.path.startsWith(to)
 }
 </script>
 
 <template>
   <nav class="sticky top-0 z-50 border-b border-gray-200 bg-white">
     <div class="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3">
-      <div class="flex shrink-0 items-center gap-2">
+      <NuxtLink to="/dashboard" class="flex shrink-0 items-center gap-2">
         <div class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-teal-600">
           <div class="flex flex-col items-center gap-0.5">
             <span class="block h-1.5 w-1.5 rounded-full bg-yellow-400" />
@@ -25,12 +25,12 @@ function isActive(to: string) {
           </div>
         </div>
         <span class="text-lg font-extrabold tracking-tight text-gray-900">Ikhlas</span>
-      </div>
+      </NuxtLink>
 
       <div class="hidden items-center gap-1 md:flex">
         <ULink
           v-for="link in links"
-          :key="link.label"
+          :key="link.to"
           :to="link.to"
           :class="isActive(link.to)
             ? 'flex items-center gap-1.5 rounded-full bg-teal-600 px-4 py-1.5 text-sm font-medium text-white'
@@ -38,7 +38,7 @@ function isActive(to: string) {
         >
           <UIcon :name="link.icon" class="h-4 w-4" />
           {{ link.label }}
-        </ULink>  
+        </ULink>
       </div>
 
       <div class="flex-1" />
