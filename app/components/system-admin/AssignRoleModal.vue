@@ -143,41 +143,41 @@ function formatDate(value?: string | null) {
     <template #content>
       <div class="p-6">
         <div class="mb-4 flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-gray-900">Kelola Role User</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Kelola Role User</h3>
           <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="sm" square @click="close" />
         </div>
 
-        <p class="mb-4 text-sm text-gray-500">
-          Role untuk <strong class="text-gray-900">{{ targetUserName }}</strong>.
+        <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+          Role untuk <strong class="text-gray-900 dark:text-gray-100">{{ targetUserName }}</strong>.
         </p>
 
         <!-- Current roles -->
         <div class="mb-6">
-          <h4 class="mb-2 text-sm font-medium text-gray-700">Role Saat Ini</h4>
-          <div v-if="isLoadingRoles" class="py-4 text-center text-sm text-gray-500">
+          <h4 class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Role Saat Ini</h4>
+          <div v-if="isLoadingRoles" class="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
             Memuat...
           </div>
           <div
             v-else-if="currentRoles.length === 0"
-            class="rounded-lg border border-dashed border-gray-300 py-4 text-center text-sm text-gray-500"
+            class="rounded-lg border border-dashed border-gray-300 py-4 text-center text-sm text-gray-500 dark:border-gray-600/50 dark:text-gray-400"
           >
             Belum ada role.
           </div>
-          <div v-else class="divide-y rounded-lg border border-gray-200">
+          <div v-else class="divide-y rounded-lg border border-gray-200 dark:border-gray-700/50">
             <div
               v-for="assignment in currentRoles"
               :key="assignment.id"
               class="flex items-center justify-between px-3 py-2.5"
             >
               <div class="flex items-center gap-2">
-                <span class="text-sm font-medium text-gray-900">{{ assignment.role.display_name }}</span>
+                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ assignment.role.display_name }}</span>
                 <UBadge :color="assignment.is_active ? 'success' : 'neutral'" variant="subtle" size="xs">
                   {{ assignment.is_active ? 'Aktif' : 'Nonaktif' }}
                 </UBadge>
                 <UBadge :color="scopeBadgeColor(assignment.scope_type)" variant="subtle" size="xs">
                   {{ assignment.scope_type }}
                 </UBadge>
-                <span v-if="assignment.expired_at" class="text-xs text-gray-500">
+                <span v-if="assignment.expired_at" class="text-xs text-gray-500 dark:text-gray-400">
                   s.d. {{ formatDate(assignment.expired_at) }}
                 </span>
               </div>
@@ -195,8 +195,8 @@ function formatDate(value?: string | null) {
         </div>
 
         <!-- Add role form -->
-        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <h4 class="mb-3 text-sm font-medium text-gray-700">Tambah Role</h4>
+        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700/50 dark:bg-gray-800">
+          <h4 class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">Tambah Role</h4>
           <UForm :schema="schema" :state="state" class="space-y-3" @submit="onSubmit">
             <UFormField label="Role" name="role_id" required>
               <USelectMenu

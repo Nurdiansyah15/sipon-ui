@@ -6,6 +6,7 @@ useHead({
 
 <template>
   <UApp>
+    <UColorModeScript />
     <NuxtLoadingIndicator />
     <NuxtLayout>
       <NuxtPage />

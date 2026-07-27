@@ -13,7 +13,7 @@ defineProps<{
       icon="i-lucide-ellipsis-vertical"
       size="sm"
       square
-      class="text-gray-700"
+      class="text-gray-700 dark:text-gray-300"
     />
   </UDropdownMenu>
 </template>

@@ -15,7 +15,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex min-h-screen flex-col bg-gray-50">
+  <div class="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-950">
     <AppSystemAdminNavbar />
     <main class="flex-1 pb-16 md:pb-0">
       <slot />

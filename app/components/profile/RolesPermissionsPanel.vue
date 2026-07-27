@@ -15,9 +15,9 @@ function scopeLabel(scopeType: string, scopeId: string | null) {
 <template>
   <div class="space-y-8">
     <div>
-      <h3 class="text-sm font-semibold text-gray-900">Roles yang dimiliki</h3>
+      <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Roles yang dimiliki</h3>
 
-      <p v-if="!roles.length" class="mt-2 text-sm text-gray-500">
+      <p v-if="!roles.length" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
         Anda tidak memiliki roles.
       </p>
 
@@ -25,38 +25,38 @@ function scopeLabel(scopeType: string, scopeId: string | null) {
         <div
           v-for="role in roles"
           :key="`${role.name}-${role.scope_type}-${role.scope_id ?? 'global'}`"
-          class="rounded-lg border border-gray-200 bg-white p-4"
+          class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700/50 dark:bg-gray-900"
         >
           <div class="flex items-center justify-between gap-2">
-            <p class="text-sm font-medium text-gray-900">{{ role.name }}</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ role.name }}</p>
             <UBadge :color="role.role_type === 'system' ? 'neutral' : 'primary'" variant="subtle" size="sm">
               {{ role.role_type === 'system' ? 'System' : 'Custom' }}
             </UBadge>
           </div>
-          <p class="mt-1 text-xs text-gray-500">{{ scopeLabel(role.scope_type, role.scope_id) }}</p>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ scopeLabel(role.scope_type, role.scope_id) }}</p>
         </div>
       </div>
     </div>
 
     <div>
-      <h3 class="text-sm font-semibold text-gray-900">Permissions efektif</h3>
+      <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Permissions efektif</h3>
 
-      <p v-if="!permissions.length" class="mt-2 text-sm text-gray-500">
+      <p v-if="!permissions.length" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
         Anda tidak memiliki permissions.
       </p>
 
-      <div v-else class="mt-3 overflow-hidden rounded-lg border border-gray-200">
+      <div v-else class="mt-3 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700/50">
         <table class="w-full divide-y divide-gray-200 text-sm">
-          <thead class="bg-gray-50">
+          <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
-              <th class="px-4 py-2 text-left font-semibold text-gray-900">Permission</th>
-              <th class="px-4 py-2 text-left font-semibold text-gray-900">Scope</th>
+              <th class="px-4 py-2 text-left font-semibold text-gray-900 dark:text-gray-100">Permission</th>
+              <th class="px-4 py-2 text-left font-semibold text-gray-900 dark:text-gray-100">Scope</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200 bg-white">
+          <tbody class="divide-y divide-gray-200 bg-white dark:bg-gray-900">
             <tr v-for="perm in permissions" :key="`${perm.key}-${perm.scope}`">
-              <td class="px-4 py-2 text-gray-900">{{ perm.key }}</td>
-              <td class="px-4 py-2 text-gray-500">{{ perm.scope }}</td>
+              <td class="px-4 py-2 text-gray-900 dark:text-gray-100">{{ perm.key }}</td>
+              <td class="px-4 py-2 text-gray-500 dark:text-gray-400">{{ perm.scope }}</td>
             </tr>
           </tbody>
         </table>

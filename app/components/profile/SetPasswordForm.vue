@@ -53,8 +53,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
 <template>
   <div class="max-w-md">
-    <h3 class="text-sm font-semibold text-gray-900">Atur Kata Sandi</h3>
-    <p class="mt-1 text-sm text-gray-500">
+    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Atur Kata Sandi</h3>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
       Akun Anda belum memiliki kata sandi. Atur kata sandi untuk bisa masuk menggunakan username/email.
     </p>
 

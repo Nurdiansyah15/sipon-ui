@@ -46,8 +46,8 @@ function confirm() {
       :description="descriptionText"
     />
 
-    <div class="flex items-center gap-2 rounded-lg border-2 border-dashed border-warning bg-warning-50 p-3">
-      <code class="flex-1 break-all font-mono text-lg font-semibold text-gray-900">{{ password }}</code>
+    <div class="flex items-center gap-2 rounded-lg border-2 border-dashed border-warning bg-warning-50 p-3 dark:border-warning-800 dark:bg-warning-950">
+      <code class="flex-1 break-all font-mono text-lg font-semibold text-gray-900 dark:text-gray-100">{{ password }}</code>
       <UButton
         :icon="copied ? 'i-lucide-check' : 'i-lucide-copy'"
         :color="copied ? 'success' : 'neutral'"

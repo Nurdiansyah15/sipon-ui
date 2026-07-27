@@ -82,14 +82,14 @@ const canEdit = computed(() => can('manage_role_permissions') && !isSystem.value
         Kembali
       </UButton>
       <div v-if="isLoadingRole">
-        <div class="h-6 w-48 animate-pulse rounded bg-gray-200" />
+        <div class="h-6 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
       </div>
       <div v-else-if="role">
-        <h1 class="text-2xl font-bold text-gray-900">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
           {{ role.display_name }}
-          <span class="ml-2 text-sm font-normal text-gray-600">({{ role.name }})</span>
+          <span class="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">({{ role.name }})</span>
         </h1>
-        <p class="mt-1 text-sm text-gray-700">{{ role.description }}</p>
+        <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">{{ role.description }}</p>
         <UBadge
           v-if="isSystem"
           color="warning"
@@ -103,18 +103,18 @@ const canEdit = computed(() => can('manage_role_permissions') && !isSystem.value
     </div>
 
     <div v-if="isLoadingRole" class="space-y-2">
-      <div v-for="i in 5" :key="i" class="h-16 animate-pulse rounded-lg border border-gray-200 bg-gray-50" />
+      <div v-for="i in 5" :key="i" class="h-16 animate-pulse rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700/50 dark:bg-gray-800" />
     </div>
 
     <div v-else class="space-y-2">
       <div
         v-for="perm in store.permissionKeys"
         :key="perm.key"
-        class="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4"
+        class="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700/50 dark:bg-gray-900"
       >
         <div class="flex-1 pr-3">
-          <p class="font-medium text-gray-900">{{ perm.display_name }}</p>
-          <p class="mt-0.5 text-sm text-gray-700">{{ perm.description || perm.key }}</p>
+          <p class="font-medium text-gray-900 dark:text-gray-100">{{ perm.display_name }}</p>
+          <p class="mt-0.5 text-sm text-gray-700 dark:text-gray-300">{{ perm.description || perm.key }}</p>
         </div>
         <div class="flex items-center gap-3">
           <UBadge

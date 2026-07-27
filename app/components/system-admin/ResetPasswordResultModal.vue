@@ -23,7 +23,7 @@ function close() {
       <div class="p-6">
         <div class="mb-4 flex items-center gap-2">
           <UIcon name="i-lucide-key-round" class="h-5 w-5 text-warning" />
-          <h3 class="text-lg font-semibold text-gray-900">Setel Ulang Kata Sandi</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Setel Ulang Kata Sandi</h3>
         </div>
         <SystemAdminOneTimePasswordReveal
           :password="password"

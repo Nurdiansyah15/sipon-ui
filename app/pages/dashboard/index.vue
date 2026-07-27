@@ -12,7 +12,7 @@ const displayName = computed(() => authStore.user?.fullname || authStore.user?.u
   <div>
     <HeroBanner />
     <div class="mx-auto max-w-7xl px-4 py-6">
-      <h2 class="text-lg font-semibold text-gray-900">Selamat datang, {{ displayName }}!</h2>
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Selamat datang, {{ displayName }}!</h2>
     </div>
     <FeatureModuleGrid />
   </div>

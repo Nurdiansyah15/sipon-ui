@@ -99,7 +99,7 @@ function onPasswordConfirmed() {
     <template #content>
       <div class="p-6">
         <div class="mb-4 flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-gray-900">Buat User Baru</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Buat User Baru</h3>
           <UButton
             v-if="stage === 'form'"
             color="neutral"

@@ -22,7 +22,7 @@ const showSystemManagement = computed(() =>
 
 <template>
   <section class="mx-auto max-w-7xl px-4 py-8">
-    <h2 class="mb-6 text-lg font-semibold text-gray-900">Aplikasi</h2>
+    <h2 class="mb-6 text-lg font-semibold text-gray-900 dark:text-gray-100">Aplikasi</h2>
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <template v-for="mod in modules" :key="mod.title">
         <FeatureModuleCard

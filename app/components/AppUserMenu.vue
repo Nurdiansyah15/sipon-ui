@@ -5,7 +5,12 @@ import { useAuthStore } from '~/stores/auth'
 const authStore = useAuthStore()
 
 const displayName = computed(() => authStore.user?.fullname || authStore.user?.username || '')
-const darkMode = ref(false)
+const colorMode = useColorMode()
+const isDark = computed(() => colorMode.value === 'dark')
+
+function toggleDark() {
+  colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+}
 
 const items = computed<DropdownMenuItem[][]>(() => [
   [
@@ -23,10 +28,10 @@ const items = computed<DropdownMenuItem[][]>(() => [
     },
     {
       label: 'Dark Mode',
-      icon: 'i-lucide-sun',
+      icon: isDark.value ? 'i-lucide-moon' : 'i-lucide-sun',
       type: 'checkbox',
-      checked: darkMode.value,
-      onUpdateChecked: (v: boolean) => { darkMode.value = v },
+      checked: isDark.value,
+      onUpdateChecked: () => toggleDark(),
     },
   ],
   [

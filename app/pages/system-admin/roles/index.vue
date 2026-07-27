@@ -61,15 +61,15 @@ const totalItems = computed(() => store.rolesMeta?.total ?? 0)
   <div class="mx-auto max-w-7xl px-4 py-8">
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">Kelola Role</h1>
-        <p class="mt-1 text-sm text-gray-700">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Kelola Role</h1>
+        <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">
           Daftar role sistem &amp; custom. Role custom dapat diatur permission-nya per role.
         </p>
       </div>
       <UButton
         v-if="can('manage_roles')"
         icon="i-lucide-plus"
-        class="bg-teal-600 text-white hover:bg-teal-700"
+        class="bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-400"
         @click="createRoleOpen = true"
       >
         Buat Role
@@ -85,11 +85,11 @@ const totalItems = computed(() => store.rolesMeta?.total ?? 0)
           { label: 'Custom', value: 'custom' },
         ]"
         class="w-40"
-        :ui="{ base: 'bg-gray-50', value: 'text-gray-900' }"
+        :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
       />
     </div>
 
-    <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+    <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900">
       <UTable :data="store.roles" :columns="columns" :loading="store.isLoading" class="w-full" :ui="{ th: 'text-gray-900 font-bold' }">
         <template #role_type-cell="{ row }">
           <UBadge
@@ -104,7 +104,7 @@ const totalItems = computed(() => store.rolesMeta?.total ?? 0)
         <template #assignable-cell="{ row }">
           <UIcon
             :name="row.original.assignable ? 'i-lucide-check' : 'i-lucide-x'"
-            :class="row.original.assignable ? 'text-gray-800' : 'text-gray-500'"
+            :class="row.original.assignable ? 'text-gray-800 dark:text-gray-200' : 'text-gray-500 dark:text-gray-400'"
           />
         </template>
 
@@ -115,7 +115,7 @@ const totalItems = computed(() => store.rolesMeta?.total ?? 0)
     </div>
 
     <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-      <p class="text-sm text-gray-700">
+      <p class="text-sm text-gray-700 dark:text-gray-300">
         Total {{ totalItems }} role · hal. {{ page }} / {{ totalPages }}
       </p>
       <UPagination
@@ -131,7 +131,7 @@ const totalItems = computed(() => store.rolesMeta?.total ?? 0)
             :variant="curPage === item.value ? 'solid' : 'outline'"
             :label="String(item.value)"
             size="sm"
-            :class="curPage === item.value ? 'bg-teal-600 text-white' : ''"
+            :class="curPage === item.value ? 'bg-teal-600 text-white dark:bg-teal-500' : ''"
           />
         </template>
       </UPagination>

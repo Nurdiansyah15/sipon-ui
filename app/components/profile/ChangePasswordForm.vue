@@ -59,8 +59,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
 <template>
   <div class="max-w-4xl">
-    <h3 class="text-sm font-semibold text-gray-900">Ubah Kata Sandi</h3>
-    <p class="mt-1 text-sm text-gray-500">
+    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Ubah Kata Sandi</h3>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
       Masukkan kata sandi saat ini untuk mengonfirmasi perubahan.
     </p>
 

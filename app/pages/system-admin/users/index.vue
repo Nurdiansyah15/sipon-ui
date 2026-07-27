@@ -156,13 +156,13 @@ function statusBadgeColor(status: string) {
   <div class="mx-auto max-w-7xl px-4 py-8">
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">Kelola User</h1>
-        <p class="mt-1 text-sm text-gray-700">Buat user, kelola role, dan status akun.</p>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Kelola User</h1>
+        <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Buat user, kelola role, dan status akun.</p>
       </div>
       <UButton
         v-if="can('manage_users')"
         icon="i-lucide-plus"
-        class="bg-teal-600 text-white hover:bg-teal-700"
+        class="bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-400"
         @click="createUserOpen = true"
       >
         Buat User
@@ -176,7 +176,7 @@ function statusBadgeColor(status: string) {
         icon="i-lucide-search"
         placeholder="Cari username, email, atau nama…"
         class="w-full sm:w-80"
-        :ui="{ base: 'bg-gray-50 text-gray-900 placeholder:text-gray-400' }"
+        :ui="{ base: 'bg-gray-50 text-gray-900 placeholder:text-gray-400 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500' }"
       />
       <USelect
         v-model="statusFilter"
@@ -186,12 +186,12 @@ function statusBadgeColor(status: string) {
           { label: 'Nonaktif', value: 'BANNED' },
         ]"
         class="w-40"
-        :ui="{ base: 'bg-gray-50', value: 'text-gray-900' }"
+        :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
       />
     </div>
 
     <!-- Table -->
-    <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+    <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900">
       <UTable
         :data="store.items"
         :columns="columns"
@@ -206,7 +206,7 @@ function statusBadgeColor(status: string) {
                 {{ role.role_name }}
               </UBadge>
             </template>
-            <span v-else class="text-xs text-gray-400">-</span>
+            <span v-else class="text-xs text-gray-400 dark:text-gray-500">-</span>
           </div>
         </template>
 
@@ -217,7 +217,7 @@ function statusBadgeColor(status: string) {
         </template>
 
         <template #created_at-cell="{ row }">
-          <span class="text-xs text-gray-700">{{ formatDate(row.original.created_at) }}</span>
+          <span class="text-xs text-gray-700 dark:text-gray-300">{{ formatDate(row.original.created_at) }}</span>
         </template>
 
         <template #actions-cell="{ row }">
@@ -228,7 +228,7 @@ function statusBadgeColor(status: string) {
 
     <!-- Pagination -->
     <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-      <p class="text-sm text-gray-700">
+      <p class="text-sm text-gray-700 dark:text-gray-300">
         Total {{ totalItems }} user · hal. {{ page }} / {{ totalPages }}
       </p>
       <UPagination
@@ -244,7 +244,7 @@ function statusBadgeColor(status: string) {
             :variant="curPage === item.value ? 'solid' : 'outline'"
             :label="String(item.value)"
             size="sm"
-            :class="curPage === item.value ? 'bg-teal-600 text-white' : ''"
+            :class="curPage === item.value ? 'bg-teal-600 text-white dark:bg-teal-500' : ''"
           />
         </template>
       </UPagination>

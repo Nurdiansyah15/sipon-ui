@@ -92,7 +92,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     <template #content>
       <div class="p-6">
         <div class="mb-4 flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-gray-900">Buat Role Baru</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Buat Role Baru</h3>
           <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="sm" square @click="close" />
         </div>
 
@@ -125,7 +125,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           <UFormField name="assignable">
             <div class="flex items-center gap-2">
               <USwitch v-model="state.assignable" />
-              <span class="text-sm text-gray-700">Boleh di-assign ke user</span>
+              <span class="text-sm text-gray-700 dark:text-gray-300">Boleh di-assign ke user</span>
             </div>
           </UFormField>
 

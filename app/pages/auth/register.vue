@@ -53,7 +53,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
 <template>
   <div class="flex min-h-screen items-center justify-center bg-[#0b857a] p-0 md:p-12">
-    <div class="relative flex w-full max-w-4xl min-h-screen flex-col rounded-none bg-white shadow-2xl md:min-h-0 md:flex-row md:rounded-2xl">
+    <div class="relative flex w-full max-w-4xl min-h-screen flex-col rounded-none bg-white shadow-2xl md:min-h-0 md:flex-row md:rounded-2xl dark:bg-gray-900">
       <button
         class="absolute left-4 top-4 z-20 flex h-8 w-8 items-center justify-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white"
         @click="navigateTo('/')"
@@ -62,7 +62,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       </button>
 
       <div
-        class="absolute top-12 z-10 hidden h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full bg-white shadow-lg md:flex"
+        class="absolute top-12 z-10 hidden h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full bg-white shadow-lg md:flex dark:bg-gray-800"
         :style="{ left: '45%' }"
       >
         <UIcon name="i-lucide-users" class="h-8 w-8 text-teal-600" />
@@ -99,8 +99,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           </div>
         </div>
 
-        <h1 class="text-center text-2xl font-bold text-gray-900">Daftar</h1>
-        <p class="mt-1 text-center text-sm text-gray-500">Isi data diri anda untuk mendaftar !</p>
+        <h1 class="text-center text-2xl font-bold text-gray-900 dark:text-gray-100">Daftar</h1>
+        <p class="mt-1 text-center text-sm text-gray-500 dark:text-gray-400">Isi data diri anda untuk mendaftar !</p>
 
         <UForm :schema="schema" :state="state" class="mt-6 space-y-4" @submit="onSubmit">
           <UFormField label="Username" name="username">
@@ -125,12 +125,12 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         </UForm>
 
         <div class="my-5 flex items-center gap-3">
-          <div class="h-px flex-1 bg-gray-200" />
-          <span class="text-xs text-gray-400">atau daftar dengan</span>
-          <div class="h-px flex-1 bg-gray-200" />
+          <div class="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+          <span class="text-xs text-gray-400 dark:text-gray-500">atau daftar dengan</span>
+          <div class="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
         </div>
 
-        <UButton variant="outline" block size="lg" class="text-gray-700">
+        <UButton variant="outline" block size="lg" class="text-gray-700 dark:text-gray-300">
           <svg class="h-5 w-5" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -140,12 +140,12 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           Google
         </UButton>
 
-        <p class="mt-4 text-center text-sm text-gray-500">
+        <p class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
           Sudah punya akun?
-          <ULink to="/auth/login" class="font-medium text-teal-600 hover:text-teal-700">Masuk</ULink>
+          <ULink to="/auth/login" class="font-medium text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300">Masuk</ULink>
         </p>
 
-        <div class="mt-6 text-center text-xs text-gray-400">
+        <div class="mt-6 text-center text-xs text-gray-400 dark:text-gray-500">
           <p>Butuh Bantuan?</p>
           <p class="mt-1">&copy; 2024</p>
         </div>

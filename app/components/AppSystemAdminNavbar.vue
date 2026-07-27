@@ -14,7 +14,7 @@ function isActive(to: string) {
 </script>
 
 <template>
-  <nav class="sticky top-0 z-50 border-b border-gray-200 bg-white">
+  <nav class="sticky top-0 z-50 border-b border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900">
     <div class="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3">
       <NuxtLink to="/dashboard" class="flex shrink-0 items-center gap-2">
         <div class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-teal-600">
@@ -24,7 +24,7 @@ function isActive(to: string) {
             <span class="block h-1.5 w-1.5 rounded-full bg-green-500" />
           </div>
         </div>
-        <span class="text-lg font-extrabold tracking-tight text-gray-900">Ikhlas</span>
+        <span class="text-lg font-extrabold tracking-tight text-gray-900 dark:text-gray-100">Ikhlas</span>
       </NuxtLink>
 
       <div class="hidden items-center gap-1 md:flex">
@@ -32,10 +32,10 @@ function isActive(to: string) {
           v-for="link in links"
           :key="link.to"
           :to="link.to"
-          :class="isActive(link.to)
-            ? 'flex items-center gap-1.5 rounded-full bg-teal-600 px-4 py-1.5 text-sm font-medium text-white'
-            : 'flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100'"
-        >
+            :class="isActive(link.to)
+              ? 'flex items-center gap-1.5 rounded-full bg-teal-600 px-4 py-1.5 text-sm font-medium text-white dark:bg-teal-500'
+              : 'flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'"
+          >
           <UIcon :name="link.icon" class="h-4 w-4" />
           {{ link.label }}
         </ULink>
@@ -47,14 +47,14 @@ function isActive(to: string) {
         <UButton
           variant="ghost"
           square
-          class="text-gray-500 hover:bg-gray-100"
+          class="text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
         >
           <UIcon name="i-lucide-bell" class="h-5 w-5" />
         </UButton>
         <UButton
           variant="ghost"
           square
-          class="text-gray-500 hover:bg-gray-100"
+          class="text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
         >
           <UIcon name="i-lucide-grid-3x3" class="h-5 w-5" />
         </UButton>

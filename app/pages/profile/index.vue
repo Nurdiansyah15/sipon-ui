@@ -33,15 +33,15 @@ const activeTab = ref('account')
 
 <template>
   <div class="mx-auto max-w-7xl px-4 py-8">
-    <h1 class="text-2xl font-bold text-gray-900">Profil Saya</h1>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Profil Saya</h1>
 
     <div v-if="isLoading" class="mt-8 flex justify-center">
-      <UIcon name="i-lucide-loader-2" class="h-6 w-6 animate-spin text-gray-400" />
+      <UIcon name="i-lucide-loader-2" class="h-6 w-6 animate-spin text-gray-400 dark:text-gray-500" />
     </div>
 
     <UTabs v-else v-model="activeTab" :items="tabItems" class="mt-6" :ui="{ trigger: 'cursor-pointer' }">
       <template #content="{ item }">
-        <div class="mt-4 rounded-lg border border-gray-200 bg-white p-6">
+        <div class="mt-4 rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">
           <ProfileAccountInfoPanel v-if="item.value === 'account'" />
           <ProfileRolesPermissionsPanel v-else-if="item.value === 'roles'" />
           <template v-else-if="item.value === 'security'">
