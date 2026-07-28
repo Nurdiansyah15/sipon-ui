@@ -30,6 +30,9 @@ async function load() {
 }
 
 const createRoleOpen = ref(false)
+const scopeManageOpen = ref(false)
+const scopeRoleId = ref('')
+const scopeRoleName = ref('')
 
 // Update role terpakai oleh CreateRoleModal ketika klik "Edit" (opsional v1 tidak
 // dibangun, tetapi disediakan ruangnya).
@@ -41,6 +44,17 @@ function rowActions(row: RoleItem): DropdownMenuItem[] {
       icon: 'i-lucide-list-checks',
       onSelect: () => navigateTo(`/system-admin/roles/${row.id}/permissions`),
     })
+    if (row.role_type === 'custom') {
+      items.push({
+        label: 'Kelola Scope',
+        icon: 'i-lucide-filter',
+        onSelect: () => {
+          scopeRoleId.value = row.id
+          scopeRoleName.value = row.display_name
+          scopeManageOpen.value = true
+        },
+      })
+    }
   }
   return items
 }
@@ -138,5 +152,12 @@ const totalItems = computed(() => store.rolesMeta?.total ?? 0)
     </div>
 
     <SystemAdminCreateRoleModal v-model:open="createRoleOpen" @created="load" />
+
+    <SystemAdminRoleScopeManageModal
+      v-model:open="scopeManageOpen"
+      :role-id="scopeRoleId"
+      :role-name="scopeRoleName"
+      @updated="load"
+    />
   </div>
 </template>

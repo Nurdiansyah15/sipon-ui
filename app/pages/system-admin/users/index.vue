@@ -50,20 +50,11 @@ const resetTargetName = ref('')
 const assignRoleOpen = ref(false)
 const assignTargetId = ref('')
 const assignTargetName = ref('')
-const scopeManageOpen = ref(false)
-const scopeTargetId = ref('')
-const scopeTargetName = ref('')
 
 function openAssignRole(row: UserManagementItem) {
   assignTargetId.value = row.id
   assignTargetName.value = row.fullname || row.username
   assignRoleOpen.value = true
-}
-
-function openScopeManage(row: UserManagementItem) {
-  scopeTargetId.value = row.id
-  scopeTargetName.value = row.fullname || row.username
-  scopeManageOpen.value = true
 }
 
 async function openResetPassword(row: UserManagementItem) {
@@ -108,13 +99,6 @@ function rowActions(row: UserManagementItem): DropdownMenuItem[] {
       label: 'Kelola Role',
       icon: 'i-lucide-shield',
       onSelect: () => openAssignRole(row),
-    })
-  }
-  if (can('manage_users')) {
-    items.push({
-      label: 'Kelola Scope',
-      icon: 'i-lucide-filter',
-      onSelect: () => openScopeManage(row),
     })
   }
   if (can('reset_user_password')) {
@@ -281,13 +265,6 @@ function statusBadgeColor(status: string) {
       v-model:open="assignRoleOpen"
       :target-user-id="assignTargetId"
       :target-user-name="assignTargetName"
-      @updated="load"
-    />
-
-    <SystemAdminUserScopeManageModal
-      v-model:open="scopeManageOpen"
-      :target-user-id="scopeTargetId"
-      :target-user-name="scopeTargetName"
       @updated="load"
     />
   </div>

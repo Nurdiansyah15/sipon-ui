@@ -44,14 +44,3 @@ export interface ListUsersQuery {
   role_id?: string
   search?: string
 }
-
-export interface UserScope {
-  id: string
-  scope_type: string
-  scope_value: string
-}
-
-export interface AssignUserScopeRequest {
-  scope_type: string
-  scope_value: string
-}

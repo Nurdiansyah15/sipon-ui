@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useUserManagementStore } from '~/stores/userManagement'
-import type { UserScope } from '#shared/types/UserManagement'
+import { useRolePermissionStore } from '~/stores/rolePermission'
+import type { RoleScope } from '#shared/types/RolePermission'
 
 const props = defineProps<{
   open: boolean
-  targetUserId: string
-  targetUserName: string
+  roleId: string
+  roleName: string
 }>()
 
 const emit = defineEmits<{
@@ -13,11 +13,11 @@ const emit = defineEmits<{
   updated: []
 }>()
 
-const store = useUserManagementStore()
+const store = useRolePermissionStore()
 const toast = useToast()
 
 const isLoading = ref(false)
-const scopes = ref<UserScope[]>([])
+const scopes = ref<RoleScope[]>([])
 const isSubmitting = ref(false)
 
 const scopeTypes = [
@@ -40,7 +40,7 @@ function close() {
 watch(
   () => props.open,
   async (open) => {
-    if (open && props.targetUserId) {
+    if (open && props.roleId) {
       selectedScopeType.value = 'gender'
       selectedScopeValue.value = 'male'
       await loadScopes()
@@ -51,7 +51,7 @@ watch(
 async function loadScopes() {
   isLoading.value = true
   try {
-    scopes.value = await store.fetchUserScopes(props.targetUserId)
+    scopes.value = await store.fetchRoleScopes(props.roleId)
   } catch {
     scopes.value = []
   } finally {
@@ -62,7 +62,7 @@ async function loadScopes() {
 async function addScope() {
   isSubmitting.value = true
   try {
-    await store.assignUserScope(props.targetUserId, selectedScopeType.value, selectedScopeValue.value)
+    await store.assignRoleScope(props.roleId, selectedScopeType.value, selectedScopeValue.value)
     toast.add({ title: 'Scope berhasil ditambahkan', color: 'success' })
     await loadScopes()
     emit('updated')
@@ -80,7 +80,7 @@ async function addScope() {
 async function removeScope(scopeId: string) {
   isSubmitting.value = true
   try {
-    await store.removeUserScope(props.targetUserId, scopeId)
+    await store.removeRoleScope(props.roleId, scopeId)
     toast.add({ title: 'Scope berhasil dihapus', color: 'success' })
     await loadScopes()
     emit('updated')
@@ -107,19 +107,18 @@ function scopeLabel(type: string, value: string): string {
       <div class="p-6">
         <div class="mb-4 flex items-center justify-between">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Kelola Scope — {{ targetUserName }}
+            Kelola Scope — {{ roleName }}
           </h3>
           <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="sm" square @click="close" />
         </div>
 
-        <!-- Current scopes -->
         <div v-if="isLoading" class="flex justify-center py-4">
           <UIcon name="i-lucide-loader-2" class="h-5 w-5 animate-spin text-gray-400" />
         </div>
 
         <div v-else class="space-y-3">
           <div v-if="scopes.length === 0" class="py-2 text-center text-sm text-gray-500 dark:text-gray-400">
-            Belum ada scope yang di-assign.
+            Belum ada scope pada role ini.
           </div>
           <div
             v-for="s in scopes"
@@ -141,17 +140,12 @@ function scopeLabel(type: string, value: string): string {
           </div>
         </div>
 
-        <!-- Add scope form -->
         <div class="mt-5 border-t border-gray-200 pt-4 dark:border-gray-700">
-          <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">Tambah Scope Baru</p>
+          <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">Tambah Scope</p>
           <div class="flex items-end gap-2">
             <div class="flex-1">
               <p class="mb-1 text-xs text-gray-500 dark:text-gray-400">Tipe</p>
-              <USelect
-                v-model="selectedScopeType"
-                :items="scopeTypes"
-                class="w-full"
-              />
+              <USelect v-model="selectedScopeType" :items="scopeTypes" class="w-full" />
             </div>
             <div class="flex-1">
               <p class="mb-1 text-xs text-gray-500 dark:text-gray-400">Nilai</p>
@@ -161,12 +155,7 @@ function scopeLabel(type: string, value: string): string {
                 class="w-full"
               />
             </div>
-            <UButton
-              :loading="isSubmitting"
-              icon="i-lucide-plus"
-              size="sm"
-              @click="addScope"
-            >
+            <UButton :loading="isSubmitting" icon="i-lucide-plus" size="sm" @click="addScope">
               Tambah
             </UButton>
           </div>
