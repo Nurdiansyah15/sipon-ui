@@ -171,6 +171,16 @@ export const useAuthStore = defineStore('auth', {
       await this.fetchProfile()
     },
 
+    async forgotPassword(email: string) {
+      const api = useApi()
+      await api.post('/api/v1/web/auth/password/forgot', { email })
+    },
+
+    async resetPassword(email: string, token: string, password: string) {
+      const api = useApi()
+      await api.post('/api/v1/web/auth/password/reset', { email, token, password })
+    },
+
     async logout() {
       try {
         if (this.token) {
