@@ -55,3 +55,16 @@ export interface ChangeUsernameResponse {
 export interface ChangeIdentityResponse {
   message: string
 }
+
+export interface RequestIdentityOTPRequest {
+  identifier: string
+}
+
+export interface VerifyIdentityOTPRequest {
+  identifier: string
+  otp: string
+}
+
+export interface IdentityOTPResponse {
+  message: string
+}

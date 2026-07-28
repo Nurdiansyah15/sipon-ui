@@ -129,6 +129,7 @@ async function savePhone(_event: FormSubmitEvent<PhoneSchema>) {
 const showChangeUsernameModal = ref(false)
 const showEmailOTPModal = ref(false)
 const showPhoneOTPModal = ref(false)
+const showVerifyEmailModal = ref(false)
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 function formatDate(value?: string | null) {
@@ -202,7 +203,7 @@ function formatDate(value?: string | null) {
           </UBadge>
         </div>
       </div>
-      <div class="shrink-0">
+      <div class="shrink-0 flex items-center gap-1">
         <UButton
           v-if="user?.is_email_verified"
           variant="ghost"
@@ -210,13 +211,23 @@ function formatDate(value?: string | null) {
           icon="i-lucide-pencil"
           @click="showEmailOTPModal = true"
         />
-        <UButton
-          v-else-if="!isEditingEmail"
-          variant="ghost"
-          size="xs"
-          icon="i-lucide-pencil"
-          @click="startEditEmail"
-        />
+        <template v-else-if="!isEditingEmail">
+          <UButton
+            variant="soft"
+            size="xs"
+            color="warning"
+            icon="i-lucide-badge-check"
+            @click="showVerifyEmailModal = true"
+          >
+            Verifikasi
+          </UButton>
+          <UButton
+            variant="ghost"
+            size="xs"
+            icon="i-lucide-pencil"
+            @click="startEditEmail"
+          />
+        </template>
       </div>
     </div>
 
@@ -293,6 +304,9 @@ function formatDate(value?: string | null) {
   </div>
 
   <!-- Modals -->
+  <ProfileVerifyEmailModal
+    v-model:open="showVerifyEmailModal"
+  />
   <ProfileChangeUsernameModal
     v-model:open="showChangeUsernameModal"
   />

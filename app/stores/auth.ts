@@ -122,6 +122,17 @@ export const useAuthStore = defineStore('auth', {
       await this.fetchProfile()
     },
 
+    async requestIdentityOTP(identifier: string) {
+      const api = useApi()
+      await api.post('/api/v1/web/auth/request-otp', { identifier })
+    },
+
+    async verifyIdentityOTP(identifier: string, otp: string) {
+      const api = useApi()
+      await api.post('/api/v1/web/auth/verify-otp', { identifier, otp })
+      await this.fetchProfile()
+    },
+
     async updateProfile(payload: UpdateProfileRequest) {
       const api = useApi()
       await api.put('/api/v1/web/auth/profile', payload)
