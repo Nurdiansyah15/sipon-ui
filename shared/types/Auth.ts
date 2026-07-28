@@ -68,3 +68,17 @@ export interface VerifyIdentityOTPRequest {
 export interface IdentityOTPResponse {
   message: string
 }
+
+export interface AvatarPresignRequest {
+  content_type: string
+}
+
+export interface AvatarPresignResponse {
+  presign_url: string
+  key: string
+  expires_in: number
+}
+
+export interface AvatarConfirmResponse {
+  avatar_url: string
+}

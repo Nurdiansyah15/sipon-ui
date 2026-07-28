@@ -3,6 +3,7 @@ import { useApi } from '~/composables/useApi'
 import { parseApiError } from '~/utils/errorParser'
 import type { ApiSuccess } from '#shared/types/ApiResponse'
 import type {
+  AvatarPresignResponse,
   ChangeUsernameRequest,
   CheckUsernameResponse,
   LoginRequest,
@@ -148,6 +149,25 @@ export const useAuthStore = defineStore('auth', {
     async changeUsername(payload: ChangeUsernameRequest) {
       const api = useApi()
       await api.post('/api/v1/web/auth/change-username', payload)
+      await this.fetchProfile()
+    },
+
+    async requestAvatarPresign(contentType: string): Promise<AvatarPresignResponse> {
+      const api = useApi()
+      const res = await api.post<ApiSuccess<AvatarPresignResponse>>('/api/v1/web/auth/profile/avatar/presign', { content_type: contentType })
+      return res.data
+    },
+
+    async confirmAvatar(key: string): Promise<string> {
+      const api = useApi()
+      const res = await api.post<ApiSuccess<{ avatar_url: string }>>(`/api/v1/web/auth/profile/avatar/confirm?key=${encodeURIComponent(key)}`)
+      await this.fetchProfile()
+      return res.data.avatar_url
+    },
+
+    async deleteAvatar() {
+      const api = useApi()
+      await api.delete('/api/v1/web/auth/profile/avatar')
       await this.fetchProfile()
     },
 

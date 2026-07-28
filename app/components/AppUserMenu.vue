@@ -48,7 +48,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
 <template>
   <UDropdownMenu :items="items" :content="{ align: 'end', side: 'bottom' }">
     <UButton color="neutral" variant="ghost" class="rounded-full p-0">
-      <UAvatar :alt="displayName" size="sm" class="cursor-pointer" />
+      <UAvatar :src="authStore.user?.avatar_url ?? undefined" :alt="displayName" size="sm" class="cursor-pointer" />
     </UButton>
   </UDropdownMenu>
 </template>

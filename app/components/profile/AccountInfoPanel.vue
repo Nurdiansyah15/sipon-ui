@@ -125,6 +125,22 @@ async function savePhone(_event: FormSubmitEvent<PhoneSchema>) {
   }
 }
 
+// ── Avatar ───────────────────────────────────────────────────────────────────
+const showAvatarUploadModal = ref(false)
+const isDeletingAvatar = ref(false)
+
+async function handleDeleteAvatar() {
+  isDeletingAvatar.value = true
+  try {
+    await authStore.deleteAvatar()
+    toast.add({ title: 'Foto profil berhasil dihapus', color: 'success' })
+  } catch (err) {
+    toast.add({ title: 'Gagal menghapus foto profil', description: parseApiError(err, 'Terjadi kesalahan'), color: 'error' })
+  } finally {
+    isDeletingAvatar.value = false
+  }
+}
+
 // ── Modals ──────────────────────────────────────────────────────────────────
 const showChangeUsernameModal = ref(false)
 const showEmailOTPModal = ref(false)
@@ -148,6 +164,38 @@ function formatDate(value?: string | null) {
 
 <template>
   <div class="divide-y divide-gray-100 dark:divide-gray-800">
+    <!-- Foto Profil -->
+    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-4 sm:flex-nowrap">
+      <div class="flex items-center gap-4">
+        <UAvatar :src="user?.avatar_url ?? undefined" :alt="user?.fullname || user?.username || ''" size="xl" />
+        <div class="min-w-0">
+          <p class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Foto Profil</p>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ user?.avatar_url ? 'JPG, PNG, WebP, GIF — Maks 2MB' : 'Belum ada foto profil' }}
+          </p>
+        </div>
+      </div>
+      <div class="shrink-0 flex items-center gap-1">
+        <UButton
+          variant="soft"
+          size="xs"
+          icon="i-lucide-camera"
+          @click="showAvatarUploadModal = true"
+        >
+          {{ user?.avatar_url ? 'Ganti' : 'Upload' }}
+        </UButton>
+        <UButton
+          v-if="user?.avatar_url"
+          variant="ghost"
+          size="xs"
+          icon="i-lucide-trash-2"
+          color="error"
+          :loading="isDeletingAvatar"
+          @click="handleDeleteAvatar"
+        />
+      </div>
+    </div>
+
     <!-- Nama Lengkap -->
     <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-4 sm:flex-nowrap">
       <div class="min-w-0 flex-1">
@@ -304,6 +352,9 @@ function formatDate(value?: string | null) {
   </div>
 
   <!-- Modals -->
+  <ProfileAvatarUploadModal
+    v-model:open="showAvatarUploadModal"
+  />
   <ProfileVerifyEmailModal
     v-model:open="showVerifyEmailModal"
   />
