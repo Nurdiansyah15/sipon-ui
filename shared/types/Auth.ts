@@ -28,3 +28,30 @@ export interface RegisterResponse extends LoginResponse {
 export interface RefreshTokenRequest {
   refresh_token: string
 }
+
+export interface UpdateProfileRequest {
+  fullname?: string
+  email?: string
+  phone?: string
+}
+
+export interface UpdateProfileResponse {
+  message: string
+}
+
+export interface CheckUsernameResponse {
+  available: boolean
+}
+
+export interface ChangeUsernameRequest {
+  username: string
+}
+
+export interface ChangeUsernameResponse {
+  message: string
+  username: string
+}
+
+export interface ChangeIdentityResponse {
+  message: string
+}

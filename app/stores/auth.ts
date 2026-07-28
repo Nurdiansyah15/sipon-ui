@@ -2,7 +2,15 @@ import { defineStore } from 'pinia'
 import { useApi } from '~/composables/useApi'
 import { parseApiError } from '~/utils/errorParser'
 import type { ApiSuccess } from '#shared/types/ApiResponse'
-import type { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from '#shared/types/Auth'
+import type {
+  ChangeUsernameRequest,
+  CheckUsernameResponse,
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
+  RegisterResponse,
+  UpdateProfileRequest,
+} from '#shared/types/Auth'
 import type { ProfileData } from '#shared/types/Profile'
 import type { SessionData, SessionPermission, SessionRole } from '#shared/types/Session'
 import type { UserMe } from '#shared/types/User'
@@ -111,6 +119,24 @@ export const useAuthStore = defineStore('auth', {
     async setPassword(payload: { new_password: string }) {
       const api = useApi()
       await api.post('/api/v1/web/auth/set-password', payload)
+      await this.fetchProfile()
+    },
+
+    async updateProfile(payload: UpdateProfileRequest) {
+      const api = useApi()
+      await api.put('/api/v1/web/auth/profile', payload)
+      await this.fetchProfile()
+    },
+
+    async checkUsername(username: string): Promise<boolean> {
+      const api = useApi()
+      const res = await api.get<ApiSuccess<CheckUsernameResponse>>(`/api/v1/web/auth/check-username?username=${encodeURIComponent(username)}`)
+      return res.data.available
+    },
+
+    async changeUsername(payload: ChangeUsernameRequest) {
+      const api = useApi()
+      await api.post('/api/v1/web/auth/change-username', payload)
       await this.fetchProfile()
     },
 
