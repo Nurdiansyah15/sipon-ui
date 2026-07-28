@@ -5,10 +5,21 @@ const authStore = useAuthStore()
 
 const roles = computed(() => authStore.roles)
 const permissions = computed(() => authStore.permissions)
+const scopes = computed(() => authStore.scopes)
 
 function scopeLabel(scopeType: string, scopeId: string | null) {
   if (scopeType === 'global') return 'Global'
   return scopeId ? `${scopeType} · ${scopeId}` : scopeType
+}
+
+function userScopeLabel(type: string, value: string) {
+  if (type === 'gender') return value === 'male' ? 'Putra' : 'Putri'
+  return value
+}
+
+function userScopeTypeLabel(type: string) {
+  if (type === 'gender') return 'Gender'
+  return type
 }
 </script>
 
@@ -34,6 +45,29 @@ function scopeLabel(scopeType: string, scopeId: string | null) {
             </UBadge>
           </div>
           <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ scopeLabel(role.scope_type, role.scope_id) }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Data Scopes</h3>
+
+      <p v-if="!scopes.length" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+        Tidak ada filter scope yang aktif. Anda dapat melihat semua data.
+      </p>
+
+      <div v-else class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div
+          v-for="(s, idx) in scopes"
+          :key="idx"
+          class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700/50 dark:bg-gray-900"
+        >
+          <p class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            {{ userScopeTypeLabel(s.scope_type) }}
+          </p>
+          <p class="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
+            {{ userScopeLabel(s.scope_type, s.scope_value) }}
+          </p>
         </div>
       </div>
     </div>

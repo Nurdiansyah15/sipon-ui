@@ -1,4 +1,4 @@
-import type { SessionPermission, SessionRole } from './Session'
+import type { SessionPermission, SessionRole, SessionUserScope } from './Session'
 
 export interface ProfileData {
   id: string
@@ -11,6 +11,8 @@ export interface ProfileData {
   status: string
   has_password: boolean
   created_at: string
+  avatar_url?: string | null
   roles: SessionRole[]
   permissions: SessionPermission[]
+  scopes: SessionUserScope[]
 }

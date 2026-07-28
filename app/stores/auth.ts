@@ -13,7 +13,7 @@ import type {
   UpdateProfileRequest,
 } from '#shared/types/Auth'
 import type { ProfileData } from '#shared/types/Profile'
-import type { SessionData, SessionPermission, SessionRole } from '#shared/types/Session'
+import type { SessionData, SessionPermission, SessionRole, SessionUserScope } from '#shared/types/Session'
 import type { UserMe } from '#shared/types/User'
 
 const STORAGE_KEY = 'sipon_auth'
@@ -24,6 +24,7 @@ interface AuthState {
   refreshToken: string | null
   roles: SessionRole[]
   permissions: SessionPermission[]
+  scopes: SessionUserScope[]
   isLoading: boolean
   error: string | null
   isHydrated: boolean
@@ -36,6 +37,7 @@ export const useAuthStore = defineStore('auth', {
     refreshToken: null,
     roles: [],
     permissions: [],
+    scopes: [],
     isLoading: false,
     error: null,
     isHydrated: false,
@@ -90,6 +92,7 @@ export const useAuthStore = defineStore('auth', {
       const res = await api.get<ApiSuccess<SessionData>>('/api/v1/auth/session')
       this.roles = res.data.roles
       this.permissions = res.data.permissions
+      this.scopes = res.data.scopes ?? []
       this.saveToStorage()
     },
 
@@ -105,10 +108,11 @@ export const useAuthStore = defineStore('auth', {
       if (!this.token) return
       const api = useApi()
       const res = await api.get<ApiSuccess<ProfileData>>('/api/v1/web/auth/profile')
-      const { roles, permissions, ...user } = res.data
+      const { roles, permissions, scopes, ...user } = res.data
       this.user = user
       this.roles = roles
       this.permissions = permissions
+      this.scopes = scopes ?? []
       this.saveToStorage()
     },
 
@@ -208,6 +212,7 @@ export const useAuthStore = defineStore('auth', {
       this.refreshToken = null
       this.roles = []
       this.permissions = []
+      this.scopes = []
       if (import.meta.client) {
         localStorage.removeItem(STORAGE_KEY)
       }
@@ -223,6 +228,7 @@ export const useAuthStore = defineStore('auth', {
           refreshToken: this.refreshToken,
           roles: this.roles,
           permissions: this.permissions,
+          scopes: this.scopes,
         }),
       )
     },
@@ -239,6 +245,7 @@ export const useAuthStore = defineStore('auth', {
         this.refreshToken = parsed.refreshToken ?? null
         this.roles = parsed.roles ?? []
         this.permissions = parsed.permissions ?? []
+        this.scopes = parsed.scopes ?? []
       } catch {
         localStorage.removeItem(STORAGE_KEY)
       }

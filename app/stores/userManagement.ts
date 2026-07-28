@@ -8,6 +8,7 @@ import type {
   CreateUserResponse,
   ResetUserPasswordResponse,
   ListUsersQuery,
+  UserScope,
 } from '#shared/types/UserManagement'
 
 interface UserManagementState {
@@ -111,6 +112,26 @@ export const useUserManagementStore = defineStore('userManagement', {
       const api = useApi()
       const res = await api.post<ApiSuccess<UserManagementItem>>(`/api/v1/web/users/${id}/reactivate`)
       return res.data
+    },
+
+    async fetchUserScopes(userId: string): Promise<UserScope[]> {
+      const api = useApi()
+      const res = await api.get<ApiSuccess<UserScope[]>>(`/api/v1/web/users/${userId}/scopes`)
+      return res.data
+    },
+
+    async assignUserScope(userId: string, scopeType: string, scopeValue: string): Promise<UserScope> {
+      const api = useApi()
+      const res = await api.post<ApiSuccess<UserScope>>(`/api/v1/web/users/${userId}/scopes`, {
+        scope_type: scopeType,
+        scope_value: scopeValue,
+      })
+      return res.data
+    },
+
+    async removeUserScope(userId: string, scopeId: string): Promise<void> {
+      const api = useApi()
+      await api.delete(`/api/v1/web/users/${userId}/scopes/${scopeId}`)
     },
 
     clearOneTimePassword() {
