@@ -197,7 +197,7 @@ function statusBadgeColor(status: string) {
         :columns="columns"
         :loading="store.isLoading"
         class="w-full"
-        :ui="{ th: 'text-gray-900 font-bold' }"
+        :ui="{ th: 'text-gray-900 font-bold dark:text-gray-100' }"
       >
         <template #roles-cell="{ row }">
           <div class="flex flex-wrap gap-1">

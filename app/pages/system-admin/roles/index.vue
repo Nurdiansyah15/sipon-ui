@@ -90,7 +90,7 @@ const totalItems = computed(() => store.rolesMeta?.total ?? 0)
     </div>
 
     <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900">
-      <UTable :data="store.roles" :columns="columns" :loading="store.isLoading" class="w-full" :ui="{ th: 'text-gray-900 font-bold' }">
+      <UTable :data="store.roles" :columns="columns" :loading="store.isLoading" class="w-full" :ui="{ th: 'text-gray-900 font-bold dark:text-gray-100' }">
         <template #role_type-cell="{ row }">
           <UBadge
             color="neutral"
