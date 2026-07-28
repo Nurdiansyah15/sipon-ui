@@ -6,6 +6,7 @@ import type {
   RoleItem,
   UserRoleItem,
   PermissionKeyItem,
+  RoleScope,
   CreateRoleRequest,
   UpdateRoleRequest,
   AssignRolePermissionRequest,
@@ -206,6 +207,26 @@ export const useRolePermissionStore = defineStore('rolePermission', {
     async deleteUserRole(id: string): Promise<void> {
       const api = useApi()
       await api.delete(`/api/v1/web/role-permission/user-roles/${id}`)
+    },
+
+    async fetchRoleScopes(roleId: string): Promise<RoleScope[]> {
+      const api = useApi()
+      const res = await api.get<ApiSuccess<RoleScope[]>>(`/api/v1/web/role-permission/roles/${roleId}/scopes`)
+      return res.data
+    },
+
+    async assignRoleScope(roleId: string, scopeType: string, scopeValue: string): Promise<RoleScope> {
+      const api = useApi()
+      const res = await api.post<ApiSuccess<RoleScope>>(`/api/v1/web/role-permission/roles/${roleId}/scopes`, {
+        scope_type: scopeType,
+        scope_value: scopeValue,
+      })
+      return res.data
+    },
+
+    async removeRoleScope(roleId: string, scopeId: string): Promise<void> {
+      const api = useApi()
+      await api.delete(`/api/v1/web/role-permission/roles/${roleId}/scopes/${scopeId}`)
     },
   },
 })

@@ -88,3 +88,9 @@ export interface AssignUserRoleRequest {
 export interface UpdateUserRoleRequest {
   expired_at?: string | null
 }
+
+export interface RoleScope {
+  id: string
+  scope_type: string
+  scope_value: string
+}

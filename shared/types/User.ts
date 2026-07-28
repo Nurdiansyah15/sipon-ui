@@ -6,6 +6,7 @@ export interface UserMe {
   fullname: string | null
   phone?: string | null
   is_phone_verified: boolean
+  avatar_url?: string | null
   status: string
   created_at: string
   has_password: boolean

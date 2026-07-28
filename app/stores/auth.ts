@@ -2,9 +2,18 @@ import { defineStore } from 'pinia'
 import { useApi } from '~/composables/useApi'
 import { parseApiError } from '~/utils/errorParser'
 import type { ApiSuccess } from '#shared/types/ApiResponse'
-import type { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from '#shared/types/Auth'
+import type {
+  AvatarPresignResponse,
+  ChangeUsernameRequest,
+  CheckUsernameResponse,
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
+  RegisterResponse,
+  UpdateProfileRequest,
+} from '#shared/types/Auth'
 import type { ProfileData } from '#shared/types/Profile'
-import type { SessionData, SessionPermission, SessionRole } from '#shared/types/Session'
+import type { SessionData, SessionPermission, SessionRole, SessionUserScope } from '#shared/types/Session'
 import type { UserMe } from '#shared/types/User'
 
 const STORAGE_KEY = 'sipon_auth'
@@ -15,6 +24,7 @@ interface AuthState {
   refreshToken: string | null
   roles: SessionRole[]
   permissions: SessionPermission[]
+  scopes: SessionUserScope[]
   isLoading: boolean
   error: string | null
   isHydrated: boolean
@@ -27,6 +37,7 @@ export const useAuthStore = defineStore('auth', {
     refreshToken: null,
     roles: [],
     permissions: [],
+    scopes: [],
     isLoading: false,
     error: null,
     isHydrated: false,
@@ -81,6 +92,7 @@ export const useAuthStore = defineStore('auth', {
       const res = await api.get<ApiSuccess<SessionData>>('/api/v1/auth/session')
       this.roles = res.data.roles
       this.permissions = res.data.permissions
+      this.scopes = res.data.scopes ?? []
       this.saveToStorage()
     },
 
@@ -96,10 +108,11 @@ export const useAuthStore = defineStore('auth', {
       if (!this.token) return
       const api = useApi()
       const res = await api.get<ApiSuccess<ProfileData>>('/api/v1/web/auth/profile')
-      const { roles, permissions, ...user } = res.data
+      const { roles, permissions, scopes, ...user } = res.data
       this.user = user
       this.roles = roles
       this.permissions = permissions
+      this.scopes = scopes ?? []
       this.saveToStorage()
     },
 
@@ -112,6 +125,64 @@ export const useAuthStore = defineStore('auth', {
       const api = useApi()
       await api.post('/api/v1/web/auth/set-password', payload)
       await this.fetchProfile()
+    },
+
+    async requestIdentityOTP(identifier: string) {
+      const api = useApi()
+      await api.post('/api/v1/web/auth/request-otp', { identifier })
+    },
+
+    async verifyIdentityOTP(identifier: string, otp: string) {
+      const api = useApi()
+      await api.post('/api/v1/web/auth/verify-otp', { identifier, otp })
+      await this.fetchProfile()
+    },
+
+    async updateProfile(payload: UpdateProfileRequest) {
+      const api = useApi()
+      await api.put('/api/v1/web/auth/profile', payload)
+      await this.fetchProfile()
+    },
+
+    async checkUsername(username: string): Promise<boolean> {
+      const api = useApi()
+      const res = await api.get<ApiSuccess<CheckUsernameResponse>>(`/api/v1/web/auth/check-username?username=${encodeURIComponent(username)}`)
+      return res.data.available
+    },
+
+    async changeUsername(payload: ChangeUsernameRequest) {
+      const api = useApi()
+      await api.post('/api/v1/web/auth/change-username', payload)
+      await this.fetchProfile()
+    },
+
+    async requestAvatarPresign(contentType: string): Promise<AvatarPresignResponse> {
+      const api = useApi()
+      const res = await api.post<ApiSuccess<AvatarPresignResponse>>('/api/v1/web/auth/profile/avatar/presign', { content_type: contentType })
+      return res.data
+    },
+
+    async confirmAvatar(key: string): Promise<string> {
+      const api = useApi()
+      const res = await api.post<ApiSuccess<{ avatar_url: string }>>(`/api/v1/web/auth/profile/avatar/confirm?key=${encodeURIComponent(key)}`)
+      await this.fetchProfile()
+      return res.data.avatar_url
+    },
+
+    async deleteAvatar() {
+      const api = useApi()
+      await api.delete('/api/v1/web/auth/profile/avatar')
+      await this.fetchProfile()
+    },
+
+    async forgotPassword(email: string) {
+      const api = useApi()
+      await api.post('/api/v1/web/auth/password/forgot', { email })
+    },
+
+    async resetPassword(email: string, token: string, password: string) {
+      const api = useApi()
+      await api.post('/api/v1/web/auth/password/reset', { email, token, password })
     },
 
     async logout() {
@@ -141,6 +212,7 @@ export const useAuthStore = defineStore('auth', {
       this.refreshToken = null
       this.roles = []
       this.permissions = []
+      this.scopes = []
       if (import.meta.client) {
         localStorage.removeItem(STORAGE_KEY)
       }
@@ -156,6 +228,7 @@ export const useAuthStore = defineStore('auth', {
           refreshToken: this.refreshToken,
           roles: this.roles,
           permissions: this.permissions,
+          scopes: this.scopes,
         }),
       )
     },
@@ -172,6 +245,7 @@ export const useAuthStore = defineStore('auth', {
         this.refreshToken = parsed.refreshToken ?? null
         this.roles = parsed.roles ?? []
         this.permissions = parsed.permissions ?? []
+        this.scopes = parsed.scopes ?? []
       } catch {
         localStorage.removeItem(STORAGE_KEY)
       }

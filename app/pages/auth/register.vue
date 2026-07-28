@@ -38,6 +38,11 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       email: event.data.email,
       password: event.data.password,
     })
+    toast.add({
+      title: 'Pendaftaran berhasil',
+      description: 'Silakan verifikasi email Anda melalui halaman Profil.',
+      color: 'success',
+    })
     await navigateTo('/dashboard')
   } catch {
     toast.add({

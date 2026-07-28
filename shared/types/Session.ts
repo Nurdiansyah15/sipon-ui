@@ -17,8 +17,14 @@ export interface SessionPermission {
   scope: 'global' | 'region' | 'community'
 }
 
+export interface SessionUserScope {
+  scope_type: string
+  scope_value: string
+}
+
 export interface SessionData {
   user: SessionUser
   roles: SessionRole[]
   permissions: SessionPermission[]
+  scopes: SessionUserScope[]
 }
