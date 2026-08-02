@@ -4,6 +4,16 @@ interface FetchErrorLike {
     message?: string
   }
   message?: string
+  statusCode?: number
+  status?: number
+}
+
+// getErrorStatus reads the HTTP status off an ofetch/$fetch error — used to
+// branch on specific status codes (e.g. 404 "belum jadi santri" vs 409
+// "sudah pernah mengajukan") instead of just showing a generic message.
+export function getErrorStatus(err: unknown): number | undefined {
+  const error = err as FetchErrorLike
+  return error?.statusCode ?? error?.status
 }
 
 export function parseApiError(err: unknown, fallback = 'Terjadi kesalahan, silakan coba lagi.'): string {

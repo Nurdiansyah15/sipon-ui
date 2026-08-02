@@ -123,11 +123,11 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="mt-6 space-y-4"
           @submit="onSubmit"
         >
-          <UFormField label="Email" name="identifier">
+          <UFormField label="Email / Username / NIS" name="identifier">
             <UInput
               v-model="state.identifier"
               class="w-full"
-              placeholder="you@example.com"
+              placeholder="Email, username, atau NIS"
               autocomplete="username"
               size="lg"
             />

@@ -4,7 +4,6 @@ import { usePermission } from '~/composables/usePermission'
 const { canAny } = usePermission()
 
 const modules = [
-  { title: 'Kesantrian', description: 'Pengelolaan data santri dan kegiatan pondok pesantren', icon: 'i-lucide-users' },
   { title: 'Keuangan', description: 'Manajemen keuangan, pembayaran, dan laporan keuangan', icon: 'i-lucide-wallet' },
   { title: 'Keamanan', description: 'Sistem keamanan, akses kontrol, dan monitoring', icon: 'i-lucide-shield' },
   { title: 'Akademik', description: 'Nilai, jadwal, dan kurikulum pembelajaran', icon: 'i-lucide-book-open' },
@@ -18,12 +17,25 @@ const modules = [
 const showSystemManagement = computed(() =>
   canAny(['manage_users', 'manage_roles', 'manage_role_permissions']),
 )
+
+// Kesantrian dikelola sepenuhnya dari sisi system-admin (bukan aplikasi
+// self-service santri) — tile ini hanya tampil & terhubung untuk admin yang
+// punya permission manage_santri, sama seperti pola tile "Manajemen Sistem".
+const showKesantrian = computed(() => canAny(['manage_santri']))
 </script>
 
 <template>
   <section class="mx-auto max-w-7xl px-4 py-8">
     <h2 class="mb-6 text-lg font-semibold text-gray-900 dark:text-gray-100">Aplikasi</h2>
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <FeatureModuleCard
+        v-if="showKesantrian"
+        title="Kesantrian"
+        description="Pengelolaan data santri dan kegiatan pondok pesantren"
+        icon="i-lucide-users"
+        to="/system-admin/kesantrian"
+      />
+
       <template v-for="mod in modules" :key="mod.title">
         <FeatureModuleCard
           :title="mod.title"

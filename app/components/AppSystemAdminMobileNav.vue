@@ -5,6 +5,7 @@ const items = [
   { label: 'Dasbor', icon: 'i-lucide-gauge', to: '/system-admin' },
   { label: 'User', icon: 'i-lucide-users', to: '/system-admin/users' },
   { label: 'Role', icon: 'i-lucide-shield', to: '/system-admin/roles' },
+  { label: 'Santri', icon: 'i-lucide-graduation-cap', to: '/system-admin/kesantrian' },
 ]
 
 function isActive(to: string) {

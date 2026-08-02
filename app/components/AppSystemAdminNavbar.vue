@@ -5,6 +5,7 @@ const links = [
   { label: 'Dasbor', icon: 'i-lucide-gauge', to: '/system-admin' },
   { label: 'Kelola User', icon: 'i-lucide-users', to: '/system-admin/users' },
   { label: 'Kelola Role', icon: 'i-lucide-shield', to: '/system-admin/roles' },
+  { label: 'Kesantrian', icon: 'i-lucide-graduation-cap', to: '/system-admin/kesantrian' },
 ]
 
 function isActive(to: string) {

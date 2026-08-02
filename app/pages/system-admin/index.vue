@@ -7,6 +7,7 @@ const { can, canAny } = usePermission()
 
 const canManageUsers = computed(() => can('manage_users'))
 const canManageRoles = computed(() => canAny(['manage_roles', 'manage_role_permissions']))
+const canManageSantri = computed(() => can('manage_santri'))
 
 const shortcuts = computed(() => [
   {
@@ -29,6 +30,13 @@ const shortcuts = computed(() => [
     icon: 'i-lucide-shield',
     to: '/system-admin/roles',
     shown: canManageRoles.value,
+  },
+  {
+    title: 'Kesantrian',
+    description: 'Buat profil santri, tinjau permintaan menjadi santri, dan verifikasi dokumen persyaratan.',
+    icon: 'i-lucide-graduation-cap',
+    to: '/system-admin/kesantrian',
+    shown: canManageSantri.value,
   },
 ])
 </script>
