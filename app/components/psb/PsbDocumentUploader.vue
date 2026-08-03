@@ -27,9 +27,34 @@ const kinds: DokumenKind[] = ['surat_pernyataan', 'ktp', 'kk', 'mutasi', 'pembay
 
 const uploading = ref<Record<string, boolean>>({})
 const deleting = ref<Record<string, boolean>>({})
+const previewing = ref<Record<string, boolean>>({})
 
-function docByKind(kind: DokumenKind): DokumenItemResponse | undefined {
-  return store.dokumen.find(d => d.stage === props.stage && d.kind === kind)
+type LocalDoc = Pick<DokumenItemResponse, 'kind' | 'stage' | 'status' | 'id' | 'original_filename' | 'notes' | 'size' | 'mime_type'> & { source: 'confirmed' | 'local'; previewUrl?: string }
+
+function combinedDoc(kind: DokumenKind): LocalDoc | undefined {
+  const confirmed = store.dokumen.find(d => d.stage === props.stage && d.kind === kind)
+  const pending = store.pendingDokumen[`${props.stage}:${kind}`]
+
+  if (pending) {
+    return {
+      kind,
+      stage: props.stage,
+      status: confirmed?.status ?? 'pending' as any,
+      id: confirmed?.id ?? '',
+      source: 'local',
+      original_filename: pending.filename,
+      notes: null,
+      size: null,
+      mime_type: null,
+      previewUrl: pending.previewUrl,
+    }
+  }
+
+  if (confirmed) {
+    return { source: 'confirmed', ...confirmed }
+  }
+
+  return undefined
 }
 
 const fileInputs = ref<Record<string, HTMLInputElement | null>>({})
@@ -68,26 +93,55 @@ async function handleFileSelect(kind: DokumenKind, event: Event) {
     })
     if (!uploadRes.ok) throw new Error(`Upload gagal: ${uploadRes.status}`)
 
-    await store.confirmDokumen({ stage: props.stage, kind, key })
-    await store.fetchDokumen()
-    toast.add({ title: `${kindLabel[kind]} berhasil diupload`, color: 'success' })
+    store.setPendingDokumen({ stage: props.stage, kind, key, filename: file.name, previewUrl: URL.createObjectURL(file) })
+    toast.add({ title: `${kindLabel[kind]} siap disimpan`, color: 'success' })
   } catch (err) {
     toast.add({ title: 'Gagal upload', description: parseApiError(err, 'Terjadi kesalahan'), color: 'error' })
   } finally {
     uploading.value[kind] = false
+    if (target) target.value = ''
   }
 }
 
-async function removeDoc(id: string) {
-  deleting.value[id] = true
+async function removeDoc(kind: DokumenKind) {
+  const doc = combinedDoc(kind)
+  if (!doc) return
+
+  if (doc.source === 'local') {
+    store.removePendingDokumen(props.stage, kind)
+    toast.add({ title: 'File lokal dihapus', color: 'success' })
+    return
+  }
+
+  deleting.value[doc.id] = true
   try {
-    await store.deleteDokumen(id)
+    await store.deleteDokumen(doc.id)
     await store.fetchDokumen()
     toast.add({ title: 'Dokumen berhasil dihapus', color: 'success' })
   } catch (err) {
     toast.add({ title: 'Gagal menghapus', description: parseApiError(err, 'Terjadi kesalahan'), color: 'error' })
   } finally {
-    deleting.value[id] = false
+    deleting.value[doc.id] = false
+  }
+}
+
+async function previewDoc(kind: DokumenKind) {
+  const doc = combinedDoc(kind)
+  if (!doc) return
+
+  if (doc.source === 'local') {
+    window.open(doc.previewUrl, '_blank')
+    return
+  }
+
+  previewing.value[doc.id] = true
+  try {
+    const res = await store.requestDokumenAccess(doc.id)
+    window.open(res.access_url, '_blank')
+  } catch (err) {
+    toast.add({ title: 'Gagal membuka dokumen', description: parseApiError(err, 'Terjadi kesalahan'), color: 'error' })
+  } finally {
+    previewing.value[doc.id] = false
   }
 }
 
@@ -107,23 +161,40 @@ function statusColor(status: string): string {
             </div>
             <div class="min-w-0">
               <p class="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{{ kindLabel[kind] }}</p>
-              <UBadge v-if="docByKind(kind)" :color="statusColor(docByKind(kind)!.status)" variant="subtle" size="xs" class="mt-1">
-                {{ docByKind(kind)!.status === 'verified' ? 'Diverifikasi' : docByKind(kind)!.status === 'rejected' ? 'Ditolak' : 'Menunggu' }}
-              </UBadge>
+              <template v-if="combinedDoc(kind)?.source === 'confirmed'">
+                <UBadge :color="statusColor(combinedDoc(kind)!.status)" variant="subtle" size="xs" class="mt-1">
+                  {{ combinedDoc(kind)!.status === 'verified' ? 'Diverifikasi' : combinedDoc(kind)!.status === 'rejected' ? 'Ditolak' : 'Menunggu' }}
+                </UBadge>
+              </template>
+              <template v-else-if="combinedDoc(kind)?.source === 'local'">
+                <UBadge color="info" variant="subtle" size="xs" class="mt-1">
+                  Siap disimpan
+                </UBadge>
+              </template>
               <p v-else class="text-xs text-gray-400">Belum diupload</p>
             </div>
           </div>
 
           <div class="flex shrink-0 items-center gap-2">
             <UButton
-              v-if="docByKind(kind)"
+              v-if="combinedDoc(kind)"
+              variant="ghost"
+              size="xs"
+              icon="i-lucide-eye"
+              :loading="previewing[combinedDoc(kind)!.id]"
+              @click="previewDoc(kind)"
+            >
+              Lihat
+            </UButton>
+            <UButton
+              v-if="combinedDoc(kind)"
               variant="ghost"
               size="xs"
               color="error"
               icon="i-lucide-trash-2"
-              :loading="deleting[docByKind(kind)!.id]"
+              :loading="deleting[combinedDoc(kind)!.id]"
               :disabled="readonly"
-              @click="removeDoc(docByKind(kind)!.id)"
+              @click="removeDoc(kind)"
             />
             <UButton
               variant="soft"
@@ -132,12 +203,12 @@ function statusColor(status: string): string {
               :disabled="readonly"
               @click="selectFile(kind)"
             >
-              {{ docByKind(kind) ? 'Ulang' : 'Upload' }}
+              {{ combinedDoc(kind) ? 'Ganti' : 'Upload' }}
             </UButton>
           </div>
         </div>
 
-        <p v-if="docByKind(kind)?.notes" class="mt-2 text-xs text-red-500">{{ docByKind(kind)!.notes }}</p>
+        <p v-if="combinedDoc(kind)?.notes" class="mt-2 text-xs text-red-500">{{ combinedDoc(kind)!.notes }}</p>
 
         <input
           :ref="(el: any) => fileInputs[kind] = el"
@@ -149,6 +220,6 @@ function statusColor(status: string): string {
       </div>
     </div>
 
-    <p class="text-xs text-gray-400">JPG, PNG, PDF — Maks 5MB</p>
+    <p class="text-xs text-gray-400">JPG, PNG, PDF — Maks 5MB. File akan disimpan bersamaan dengan formulir.</p>
   </div>
 </template>

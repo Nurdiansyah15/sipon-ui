@@ -15,51 +15,150 @@ function fmt(val: string | null): string {
   <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
     <div>
       <h4 class="mb-2 font-semibold text-sm text-gray-700 dark:text-gray-300">Data Pribadi</h4>
-      <dl class="space-y-1 text-sm">
-        <div><span class="text-gray-400">Nama Panggilan:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.nickname) }}</span></div>
-        <div><span class="text-gray-400">Program:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.program) }}</span></div>
-        <div v-if="gender"><span class="text-gray-400">Gender:</span> <span class="text-gray-900 dark:text-gray-100">{{ gender === '1' ? 'Laki-laki' : 'Perempuan' }}</span></div>
-        <div><span class="text-gray-400">Hobi:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.hobby) }}</span></div>
-        <div><span class="text-gray-400">Cita-cita:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.purpose) }}</span></div>
-        <div><span class="text-gray-400">Motivasi:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.motivation_entry) }}</span></div>
-        <div><span class="text-gray-400">Tempat Lahir:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.pob) }}</span></div>
-        <div><span class="text-gray-400">Tanggal Lahir:</span> <span class="text-gray-900 dark:text-gray-100">{{ profile.dob ? new Date(profile.dob).toLocaleDateString('id-ID') : '—' }}</span></div>
-        <div><span class="text-gray-400">Golongan Darah:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.blood) }}</span></div>
-      </dl>
+      <table class="w-full text-sm">
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Nama Panggilan</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.nickname) }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Program</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.program) }}</td>
+          </tr>
+          <tr v-if="gender">
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Gender</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ gender === '1' ? 'Laki-laki' : 'Perempuan' }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Hobi</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.hobby) }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Cita-cita</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.purpose) }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Motivasi</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.motivation_entry) }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Tempat Lahir</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.pob) }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Tanggal Lahir</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ profile.dob ? new Date(profile.dob).toLocaleDateString('id-ID') : '—' }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Golongan Darah</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.blood) }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <div>
       <h4 class="mb-2 font-semibold text-sm text-gray-700 dark:text-gray-300">Alamat & Sekolah</h4>
-      <dl class="space-y-1 text-sm">
-        <div><span class="text-gray-400">Alamat:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.address) }}</span></div>
-        <div><span class="text-gray-400">Kelurahan:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.sub_district) }}</span></div>
-        <div><span class="text-gray-400">Kecamatan:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.district) }}</span></div>
-        <div><span class="text-gray-400">Provinsi:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.province) }}</span></div>
-        <div><span class="text-gray-400">Kode Pos:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.postal_code) }}</span></div>
-        <div v-if="profile.previous_pondok_name"><span class="text-gray-400">Pondok Sebelumnya:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.previous_pondok_name) }}</span></div>
-      </dl>
+      <table class="w-full text-sm">
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Alamat</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.address) }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Kelurahan</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.sub_district) }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Kecamatan</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.district) }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Provinsi</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.province) }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Kode Pos</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.postal_code) }}</td>
+          </tr>
+          <tr v-if="profile.previous_pondok_name">
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Pondok Sebelumnya</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.previous_pondok_name) }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <div>
       <h4 class="mb-2 font-semibold text-sm text-gray-700 dark:text-gray-300">Data Kependudukan</h4>
-      <dl class="space-y-1 text-sm">
-        <div><span class="text-gray-400">NIK:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.nik) }}</span></div>
-        <div><span class="text-gray-400">No. KK:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.no_kk) }}</span></div>
-        <div><span class="text-gray-400">NISN:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.nisn) }}</span></div>
-        <div v-if="profile.no_kip"><span class="text-gray-400">No. KIP:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.no_kip) }}</span></div>
-        <div v-if="profile.no_kks"><span class="text-gray-400">No. KKS:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.no_kks) }}</span></div>
-        <div v-if="profile.no_pkh"><span class="text-gray-400">No. PKH:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.no_pkh) }}</span></div>
-      </dl>
+      <table class="w-full text-sm">
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">NIK</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.nik) }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">No. KK</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.no_kk) }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">NISN</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.nisn) }}</td>
+          </tr>
+          <tr v-if="profile.no_kip">
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">No. KIP</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.no_kip) }}</td>
+          </tr>
+          <tr v-if="profile.no_kks">
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">No. KKS</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.no_kks) }}</td>
+          </tr>
+          <tr v-if="profile.no_pkh">
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">No. PKH</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.no_pkh) }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <div>
       <h4 class="mb-2 font-semibold text-sm text-gray-700 dark:text-gray-300">Orang Tua / Wali</h4>
-      <dl class="space-y-1 text-sm">
-        <div><span class="text-gray-400">Ayah:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.father) }}</span></div>
-        <div><span class="text-gray-400">Ibu:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.mother) }}</span></div>
-        <div v-if="profile.guardian"><span class="text-gray-400">Wali:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.guardian) }}</span></div>
-        <div><span class="text-gray-400">Pekerjaan:</span> <span class="text-gray-900 dark:text-gray-100">{{ fmt(profile.workplace) }} — {{ fmt(profile.department) }}</span></div>
-      </dl>
+      <table class="w-full text-sm">
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Ayah</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.father) }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Ibu</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.mother) }}</td>
+          </tr>
+          <tr v-if="profile.guardian">
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Wali</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.guardian) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <h4 class="mb-2 font-semibold text-sm text-gray-700 dark:text-gray-300">Informasi Tambahan</h4>
+      <table class="w-full text-sm">
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Pekerjaan / Instansi</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.workplace) }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Jurusan / Bagian</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.department) }}</td>
+          </tr>
+          <tr>
+            <td class="py-1 pr-3 text-gray-400 whitespace-nowrap align-top">Status Tempat Tinggal</td>
+            <td class="py-1 text-gray-900 dark:text-gray-100">{{ fmt(profile.home_status) }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>

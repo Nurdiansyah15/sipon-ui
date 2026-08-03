@@ -19,8 +19,9 @@ const steps = [
   { label: 'Alamat & Sekolah', icon: 'i-lucide-map-pin', value: 1 },
   { label: 'Kependudukan', icon: 'i-lucide-id-card', value: 2 },
   { label: 'Orang Tua / Wali', icon: 'i-lucide-users', value: 3 },
-  { label: 'Dokumen', icon: 'i-lucide-file-text', value: 4 },
-  { label: 'Review', icon: 'i-lucide-clipboard-check', value: 5 },
+  { label: 'Info Tambahan', icon: 'i-lucide-briefcase', value: 4 },
+  { label: 'Dokumen', icon: 'i-lucide-file-text', value: 5 },
+  { label: 'Review', icon: 'i-lucide-clipboard-check', value: 6 },
 ]
 
 const formState = reactive<UpsertFormulirRequest>({
@@ -40,7 +41,9 @@ function loadFormFromStore() {
     const s = store.pendaftar
     Object.assign(formState, {
       nickname: s.nickname, program: s.program, hobby: s.hobby, purpose: s.purpose,
-      motivation_entry: s.motivation_entry, pob: s.pob, dob: s.dob, blood: s.blood,
+      motivation_entry: s.motivation_entry, pob: s.pob,
+      dob: s.dob ? s.dob.split('T')[0] : null,
+      blood: s.blood,
       address: s.address, sub_district: s.sub_district, district: s.district,
       province: s.province, postal_code: s.postal_code,
       previous_pondok_name: s.previous_pondok_name, previous_pondok_address: s.previous_pondok_address,
@@ -65,7 +68,13 @@ onMounted(() => {
 async function handleSave() {
   isSaving.value = true
   try {
-    await store.upsertFormulir({ ...formState })
+    const payload: UpsertFormulirRequest = { ...formState }
+    if (store.pendingDokumenList.length > 0) {
+      payload.dokumen = store.pendingDokumenList
+    }
+    await store.upsertFormulir(payload)
+    store.clearPendingDokumen()
+    await store.fetchDokumen()
     emit('saved')
   } catch (err) {
     toast.add({ title: 'Gagal menyimpan', description: parseApiError(err, 'Terjadi kesalahan'), color: 'error' })
@@ -79,7 +88,7 @@ const maxStepReached = ref(0)
 async function next() {
   if (currentStep.value < steps.length - 1) {
     const nextStep = currentStep.value + 1
-    if (nextStep === 4) {
+    if (nextStep === 5) {
       isFetchingDocs.value = true
       try {
         await store.fetchDokumen()
@@ -151,8 +160,9 @@ function goToStep(index: number) {
         <PsbStepAlamatSekolah v-if="currentStep === 1" v-model="formState" @next="next" @prev="prev" />
         <PsbStepDataKependudukan v-if="currentStep === 2" v-model="formState" @next="next" @prev="prev" />
         <PsbStepOrangTuaWali v-if="currentStep === 3" v-model="formState" @next="next" @prev="prev" />
-        <PsbStepDokumen v-if="currentStep === 4" :loading="isFetchingDocs" @next="next" @prev="prev" />
-        <PsbStepReview v-if="currentStep === 5" :form="formState" :saving="isSaving" @save="handleSave" @prev="prev" />
+        <PsbStepInformasiTambahan v-if="currentStep === 4" v-model="formState" @next="next" @prev="prev" />
+        <PsbStepDokumen v-if="currentStep === 5" :loading="isFetchingDocs" @next="next" @prev="prev" />
+        <PsbStepReview v-if="currentStep === 6" :form="formState" :saving="isSaving" @save="handleSave" @prev="prev" />
       </div>
     </div>
   </div>

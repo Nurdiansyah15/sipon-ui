@@ -17,6 +17,8 @@ const emit = defineEmits<{
 const store = usePsbAdminStore()
 const toast = useToast()
 
+const previewing = ref<Record<string, boolean>>({})
+
 const kindLabel: Record<string, string> = {
   surat_pernyataan: 'Surat Pernyataan',
   ktp: 'KTP',
@@ -39,6 +41,18 @@ const grouped = computed(() => {
   }
   return groups
 })
+
+async function previewDoc(dokumenID: string) {
+  previewing.value[dokumenID] = true
+  try {
+    const res = await store.accessDokumen(props.pendaftarId, dokumenID)
+    window.open(res.access_url, '_blank')
+  } catch (err) {
+    toast.add({ title: 'Gagal membuka dokumen', description: parseApiError(err), color: 'error' })
+  } finally {
+    previewing.value[dokumenID] = false
+  }
+}
 
 async function verifyDoc(dokumenID: string) {
   try {
@@ -92,7 +106,15 @@ function statusColor(s: string): string {
             </div>
           </div>
 
-          <div v-if="!readonly" class="flex gap-1">
+          <div class="flex shrink-0 gap-1">
+            <UButton
+              icon="i-lucide-eye"
+              size="xs"
+              variant="ghost"
+              :loading="previewing[doc.id]"
+              @click="previewDoc(doc.id)"
+            />
+            <template v-if="!readonly">
             <UButton
               v-if="doc.status !== 'verified'"
               icon="i-lucide-check"
@@ -109,6 +131,7 @@ function statusColor(s: string): string {
               variant="soft"
               @click="rejectDoc(doc.id)"
             />
+            </template>
           </div>
         </div>
       </div>

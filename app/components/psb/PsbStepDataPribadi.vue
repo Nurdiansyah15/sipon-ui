@@ -12,6 +12,10 @@ const schema = z.object({
 
 const state = reactive({ nickname: form.value.nickname || '' })
 
+watch(() => form.value.nickname, (val) => {
+  state.nickname = val || ''
+})
+
 const programOptions = [
   { label: 'Tahfidz Putra', value: 'tahfidh_pa' },
   { label: 'Tahfidz Putri', value: 'tahfidh_pi' },

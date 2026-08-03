@@ -16,7 +16,7 @@ const emit = defineEmits<{ next: [], prev: [] }>()
         </div>
         <div>
           <h3 class="font-semibold text-gray-900 dark:text-gray-100">Upload Dokumen Pendaftaran</h3>
-          <p class="text-sm text-gray-500">Upload dokumen pendukung pendaftaran. Format: JPG, PNG, atau PDF (maks 5MB).</p>
+          <p class="text-sm text-gray-500">Upload dokumen pendukung pendaftaran. Format: JPG, PNG, atau PDF (maks 5MB). File akan disimpan bersamaan dengan formulir.</p>
         </div>
       </div>
 

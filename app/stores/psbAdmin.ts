@@ -7,6 +7,7 @@ import type {
   ListPendaftarQuery,
   PendaftarResponse,
   DokumenItemResponse,
+  DokumenAccessResponse,
   ReviewResponse,
   MessageResponse,
 } from '#shared/types/Psb'
@@ -90,6 +91,17 @@ export const usePsbAdminStore = defineStore('psbAdmin', {
         this.selectedReviews = res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal memuat riwayat.')
+      }
+    },
+
+    async accessDokumen(pendaftarID: string, dokumenID: string): Promise<DokumenAccessResponse> {
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<DokumenAccessResponse>>(`/api/v1/web/psb/admin/pendaftaran/${pendaftarID}/dokumen/${dokumenID}/access`)
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal membuat tautan pratinjau.')
+        throw err
       }
     },
 

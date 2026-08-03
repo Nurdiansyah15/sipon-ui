@@ -81,9 +81,17 @@ export interface PendaftarProfileFields {
   guardian_income: string | null
 }
 
+export interface FormulirDokumenItem {
+  stage: DokumenStage
+  kind: DokumenKind
+  key: string
+}
+
 // ===== Pendaftaran =====
 
-export type UpsertFormulirRequest = PendaftarProfileFields
+export type UpsertFormulirRequest = PendaftarProfileFields & {
+  dokumen?: FormulirDokumenItem[]
+}
 
 export interface PendaftarResponse extends PendaftarProfileFields {
   id: string
@@ -154,6 +162,11 @@ export interface DokumenItemResponse {
   verified_by: string | null
   verified_at: string | null
   created_at: string
+}
+
+export interface DokumenAccessResponse {
+  access_url: string
+  expires_in: number
 }
 
 // ===== Review =====

@@ -10,6 +10,26 @@ const toast = useToast()
 
 const isSubmitting = ref(false)
 
+const dokumenPendaftaran = computed(() =>
+  psbStore.dokumen.filter(d => d.stage === 'pendaftaran')
+)
+
+const kindLabel: Record<string, string> = {
+  surat_pernyataan: 'Surat Pernyataan',
+  ktp: 'KTP',
+  kk: 'Kartu Keluarga',
+  mutasi: 'Surat Mutasi',
+  pembayaran: 'Bukti Pembayaran',
+}
+
+function statusColor(status: string): string {
+  return status === 'verified' ? 'success' : status === 'rejected' ? 'error' : 'neutral'
+}
+
+function statusLabel(status: string): string {
+  return status === 'verified' ? 'Diverifikasi' : status === 'rejected' ? 'Ditolak' : 'Menunggu'
+}
+
 onMounted(async () => {
   await psbStore.fetchActiveSetting()
   if (psbStore.noActiveSetting) {
@@ -29,7 +49,13 @@ onMounted(async () => {
 async function handleSubmit() {
   isSubmitting.value = true
   try {
-    await psbStore.submitDaftarUlang()
+    const body: any = {}
+    const pending = psbStore.pendingDokumenList.filter(d => d.stage === 'daftar_ulang')
+    if (pending.length > 0) {
+      body.dokumen = pending
+    }
+    await psbStore.submitDaftarUlang(body)
+    psbStore.clearPendingDokumen()
     await psbStore.fetchPendaftaran()
     toast.add({ title: 'Daftar ulang berhasil diajukan!', color: 'success' })
     router.replace('/psb')
@@ -57,7 +83,6 @@ async function handleSubmit() {
 
     <div v-else-if="psbStore.pendaftar" class="lg:grid lg:grid-cols-3 lg:items-start lg:gap-8">
       <div class="space-y-6 lg:col-span-2">
-        <!-- Profile read-only -->
         <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">
           <div class="mb-5 flex items-center gap-3">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 dark:bg-teal-950">
@@ -71,7 +96,40 @@ async function handleSubmit() {
           <PsbProfileSummary :profile="psbStore.pendaftar" />
         </div>
 
-        <!-- Dokumen daftar ulang -->
+        <!-- Dokumen pendaftaran (referensi read-only) -->
+        <div
+          v-if="dokumenPendaftaran.length > 0"
+          class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900"
+        >
+          <div class="mb-5 flex items-center gap-3">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 dark:bg-teal-950">
+              <UIcon name="i-lucide-folder-check" class="h-5 w-5 text-teal-600 dark:text-teal-400" />
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-900 dark:text-gray-100">Dokumen Pendaftaran</h3>
+              <p class="text-sm text-gray-500">Dokumen yang telah diupload saat pendaftaran.</p>
+            </div>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div
+              v-for="doc in dokumenPendaftaran"
+              :key="doc.id"
+              class="flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-700/50"
+            >
+              <div class="flex min-w-0 items-center gap-3">
+                <UIcon name="i-lucide-file-text" class="h-5 w-5 shrink-0 text-gray-400" />
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{{ kindLabel[doc.kind] ?? doc.kind }}</p>
+                  <p class="truncate text-xs text-gray-400">{{ doc.original_filename }}</p>
+                </div>
+              </div>
+              <UBadge :color="statusColor(doc.status)" variant="subtle" size="xs">
+                {{ statusLabel(doc.status) }}
+              </UBadge>
+            </div>
+          </div>
+        </div>
+
         <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">
           <div class="mb-5 flex items-center gap-3">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 dark:bg-teal-950">
@@ -79,14 +137,13 @@ async function handleSubmit() {
             </div>
             <div>
               <h3 class="font-semibold text-gray-900 dark:text-gray-100">Upload Dokumen Daftar Ulang</h3>
-              <p class="text-sm text-gray-500">Upload bukti pembayaran administrasi awal dan dokumen pendukung lainnya.</p>
+              <p class="text-sm text-gray-500">Upload bukti pembayaran administrasi awal dan dokumen pendukung lainnya. Dokumen akan disimpan bersamaan dengan pengajuan.</p>
             </div>
           </div>
           <PsbDocumentUploader stage="daftar_ulang" />
         </div>
       </div>
 
-      <!-- Submit sidebar -->
       <div class="mt-6 lg:sticky lg:top-24 lg:mt-0">
         <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">
           <h3 class="font-semibold text-gray-900 dark:text-gray-100">Ajukan Daftar Ulang</h3>

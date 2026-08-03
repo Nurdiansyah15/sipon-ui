@@ -55,13 +55,25 @@ async function handleMarkNotReregistered() {
   }
 }
 
+const allPendaftaranDocsVerified = computed(() => {
+  const pendaftaran = docs.value.filter(d => d.stage === 'pendaftaran')
+  if (pendaftaran.length === 0) return false
+  return pendaftaran.every(d => d.status === 'verified')
+})
+
+const allDaftarUlangDocsVerified = computed(() => {
+  const daftarUlang = docs.value.filter(d => d.stage === 'daftar_ulang')
+  if (daftarUlang.length === 0) return false
+  return daftarUlang.every(d => d.status === 'verified')
+})
+
 function canShow(status: string): boolean {
   return p.value?.status === status
 }
 </script>
 
 <template>
-  <div class="mx-auto max-w-5xl px-4 py-8">
+  <div class="mx-auto max-w-7xl px-4 py-8">
     <div class="mb-6">
       <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" @click="router.push('/admin/psb/pendaftaran')" />
     </div>
@@ -90,7 +102,9 @@ function canShow(status: string): boolean {
           <template v-if="canShow('diajukan')">
             <UButton size="sm" color="warning" variant="soft" @click="openReview('request-revision')">Minta Revisi</UButton>
             <UButton size="sm" color="error" variant="soft" @click="openReview('reject')">Tolak</UButton>
-            <UButton size="sm" color="success" @click="acceptModalOpen = true">Terima</UButton>
+            <UTooltip text="Semua dokumen pendaftaran harus diverifikasi terlebih dahulu" :disabled="allPendaftaranDocsVerified">
+              <UButton size="sm" color="success" :disabled="!allPendaftaranDocsVerified" @click="acceptModalOpen = true">Terima</UButton>
+            </UTooltip>
           </template>
 
           <template v-if="canShow('diterima')">
@@ -99,34 +113,35 @@ function canShow(status: string): boolean {
 
           <template v-if="canShow('daftar_ulang')">
             <UButton size="sm" color="warning" variant="soft" @click="openReview('request-revision-daftar-ulang')">Minta Revisi</UButton>
-            <UButton size="sm" color="primary" @click="generateNisModalOpen = true">Generate NIS</UButton>
+            <UTooltip text="Semua dokumen daftar ulang harus diverifikasi terlebih dahulu" :disabled="allDaftarUlangDocsVerified">
+              <UButton size="sm" color="primary" :disabled="!allDaftarUlangDocsVerified" @click="generateNisModalOpen = true">Generate NIS</UButton>
+            </UTooltip>
           </template>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <!-- Dokumen panel -->
-        <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900 lg:col-span-2">
+      <div class="space-y-6">
+        <!-- Profile -->
+        <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
+          <PsbProfileSummary :profile="p" :gender="p.gender" />
+        </div>
+
+        <!-- Dokumen -->
+        <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
           <h2 class="mb-4 font-semibold text-gray-900 dark:text-gray-100">Dokumen</h2>
           <AdminPsbDokumenReviewPanel
             :pendaftar-id="id"
             :dokumen="docs"
             :loading="store.isLoading"
-            :readonly="!canShow('diajukan')"
+            :readonly="!canShow('diajukan') && !canShow('daftar_ulang') && !canShow('perlu_revisi_daftar_ulang')"
             @updated="loadDetail"
           />
         </div>
 
-        <!-- Sidebar: Profile + Timeline -->
-        <div class="space-y-6">
-          <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
-            <PsbProfileSummary :profile="p" :gender="p.gender" />
-          </div>
-
-          <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
-            <h3 class="mb-3 font-semibold text-gray-900 dark:text-gray-100">Riwayat</h3>
-            <PsbReviewTimeline :items="store.selectedReviews" />
-          </div>
+        <!-- Riwayat -->
+        <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
+          <h3 class="mb-3 font-semibold text-gray-900 dark:text-gray-100">Riwayat</h3>
+          <PsbReviewTimeline :items="store.selectedReviews" />
         </div>
       </div>
 

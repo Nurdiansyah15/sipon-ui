@@ -6,19 +6,34 @@ import type {
   SettingResponse,
   PendaftarResponse,
   UpsertFormulirRequest,
+  DokumenStage,
+  DokumenKind,
   DokumenPresignRequest,
   DokumenPresignResponse,
-  DokumenConfirmRequest,
-  DokumenConfirmResponse,
   DokumenItemResponse,
+  DokumenAccessResponse,
+  FormulirDokumenItem,
   ReviewResponse,
   MessageResponse,
 } from '#shared/types/Psb'
+
+export interface PendingDokumenEntry {
+  stage: DokumenStage
+  kind: DokumenKind
+  key: string
+  filename: string
+  previewUrl: string
+}
+
+function pendingDokumenKey(stage: DokumenStage, kind: DokumenKind): string {
+  return `${stage}:${kind}`
+}
 
 interface PsbState {
   setting: SettingResponse | null
   pendaftar: PendaftarResponse | null
   dokumen: DokumenItemResponse[]
+  pendingDokumen: Record<string, PendingDokumenEntry>
   reviews: ReviewResponse[]
   isLoading: boolean
   isSubmitting: boolean
@@ -32,6 +47,7 @@ export const usePsbStore = defineStore('psb', {
     setting: null,
     pendaftar: null,
     dokumen: [],
+    pendingDokumen: {},
     reviews: [],
     isLoading: false,
     isSubmitting: false,
@@ -55,6 +71,8 @@ export const usePsbStore = defineStore('psb', {
     canSubmitDaftarUlang: (state) => ['diterima', 'perlu_revisi_daftar_ulang'].includes(state.pendaftar?.status ?? ''),
     hasPendaftaran: (state) => state.pendaftar !== null,
     settingActive: (state) => state.setting !== null && state.setting.status === 'active',
+    pendingDokumenList: (state): FormulirDokumenItem[] =>
+      Object.values(state.pendingDokumen).map(({ stage, kind, key }) => ({ stage, kind, key })),
   },
 
   actions: {
@@ -133,12 +151,12 @@ export const usePsbStore = defineStore('psb', {
       }
     },
 
-    async submitDaftarUlang() {
+    async submitDaftarUlang(body?: Record<string, any>) {
       this.isSubmitting = true
       this.error = null
       try {
         const api = useApi()
-        const res = await api.post<ApiSuccess<MessageResponse>>('/api/v1/web/psb/daftar-ulang/submit')
+        const res = await api.post<ApiSuccess<MessageResponse>>('/api/v1/web/psb/daftar-ulang/submit', body || {})
         return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal mengajukan daftar ulang.')
@@ -184,17 +202,6 @@ export const usePsbStore = defineStore('psb', {
       }
     },
 
-    async confirmDokumen(payload: DokumenConfirmRequest): Promise<DokumenConfirmResponse> {
-      try {
-        const api = useApi()
-        const res = await api.post<ApiSuccess<DokumenConfirmResponse>>('/api/v1/web/psb/dokumen/confirm', payload)
-        return res.data
-      } catch (err) {
-        this.error = parseApiError(err, 'Gagal mengonfirmasi dokumen.')
-        throw err
-      }
-    },
-
     async deleteDokumen(id: string) {
       this.isSubmitting = true
       this.error = null
@@ -208,6 +215,41 @@ export const usePsbStore = defineStore('psb', {
       } finally {
         this.isSubmitting = false
       }
+    },
+
+    async requestDokumenAccess(id: string): Promise<DokumenAccessResponse> {
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<DokumenAccessResponse>>(`/api/v1/web/psb/dokumen/${id}/access`)
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal membuat tautan pratinjau.')
+        throw err
+      }
+    },
+
+    // Tracks locally-uploaded documents that haven't been confirmed yet
+    // (confirmation happens when the formulir is saved). Kept in the store
+    // instead of component-local state so it survives step navigation.
+    setPendingDokumen(entry: PendingDokumenEntry) {
+      const key = pendingDokumenKey(entry.stage, entry.kind)
+      const existing = this.pendingDokumen[key]
+      if (existing?.previewUrl) URL.revokeObjectURL(existing.previewUrl)
+      this.pendingDokumen[key] = entry
+    },
+
+    removePendingDokumen(stage: DokumenStage, kind: DokumenKind) {
+      const key = pendingDokumenKey(stage, kind)
+      const existing = this.pendingDokumen[key]
+      if (existing?.previewUrl) URL.revokeObjectURL(existing.previewUrl)
+      delete this.pendingDokumen[key]
+    },
+
+    clearPendingDokumen() {
+      for (const entry of Object.values(this.pendingDokumen)) {
+        URL.revokeObjectURL(entry.previewUrl)
+      }
+      this.pendingDokumen = {}
     },
   },
 })
