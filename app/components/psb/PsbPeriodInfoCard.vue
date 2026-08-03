@@ -11,7 +11,7 @@ function formatDate(iso: string) {
 </script>
 
 <template>
-  <div class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
+  <div class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700/50 dark:bg-gray-900">
     <div class="mb-3 flex items-center gap-3">
       <UIcon name="i-lucide-calendar-range" class="h-5 w-5 text-teal-600" />
       <div>

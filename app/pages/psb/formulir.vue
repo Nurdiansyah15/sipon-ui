@@ -59,16 +59,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="mx-auto max-w-3xl px-4 py-8">
-    <div class="mb-6 flex items-center justify-between">
-      <div>
-        <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" @click="router.push('/psb')" />
-        <h1 class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">Formulir Pendaftaran</h1>
-        <p class="text-sm text-gray-500">
-          {{ psbStore.isPerluRevisi ? 'Admin meminta revisi. Silakan periksa dan lengkapi data Anda.' : 'Isi data diri calon santri dengan lengkap.' }}
-        </p>
-      </div>
-    </div>
+  <div class="mx-auto max-w-7xl px-4 py-8">
 
     <!-- Email verification gate -->
     <div v-if="!userEmailVerified" class="rounded-lg border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-800 dark:bg-amber-950">
@@ -87,15 +78,31 @@ async function handleSubmit() {
       <USkeleton class="h-64 w-full" />
     </div>
 
-    <div v-else class="space-y-6">
+    <div v-else>
+      <!-- Header -->
+      <div class="mb-8">
+        <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" class="mb-3" @click="router.push('/psb')" />
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Formulir Pendaftaran</h1>
+        <p v-if="psbStore.isPerluRevisi" class="mt-1 text-sm text-amber-600 dark:text-amber-400">
+          Admin meminta revisi. Silakan periksa dan lengkapi data Anda.
+        </p>
+        <p v-else class="mt-1 text-sm text-gray-500">Isi data diri calon santri dengan lengkap.</p>
+      </div>
+
+      <!-- Wizard -->
       <PsbFormWizard @saved="handleSaved" />
 
-      <div v-if="psbStore.pendaftar" class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
-        <div class="flex items-center justify-between">
-          <p class="text-sm text-gray-500">Setelah formulir lengkap, klik tombol di bawah untuk mengajukan pendaftaran.</p>
+      <!-- Submit action -->
+      <div class="mt-8 rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">
+        <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="font-medium text-gray-900 dark:text-gray-100">Ajukan Pendaftaran</p>
+            <p class="text-sm text-gray-500">Setelah semua data lengkap dan dokumen terupload, klik tombol ajukan untuk mengirim pendaftaran ke admin.</p>
+          </div>
           <UButton
             :loading="isSubmitting"
             size="lg"
+            color="primary"
             icon="i-lucide-send"
             @click="handleSubmit"
           >

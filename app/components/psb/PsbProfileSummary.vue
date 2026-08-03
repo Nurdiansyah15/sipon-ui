@@ -12,7 +12,7 @@ function fmt(val: string | null): string {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
     <div>
       <h4 class="mb-2 font-semibold text-sm text-gray-700 dark:text-gray-300">Data Pribadi</h4>
       <dl class="space-y-1 text-sm">

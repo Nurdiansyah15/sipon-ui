@@ -163,7 +163,6 @@ export const usePsbStore = defineStore('psb', {
     },
 
     async fetchDokumen() {
-      this.isLoading = true
       this.error = null
       try {
         const api = useApi()
@@ -171,8 +170,6 @@ export const usePsbStore = defineStore('psb', {
         this.dokumen = res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal memuat dokumen.')
-      } finally {
-        this.isLoading = false
       }
     },
 

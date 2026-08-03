@@ -12,14 +12,15 @@ const toast = useToast()
 
 const currentStep = ref(0)
 const isSaving = ref(false)
+const isFetchingDocs = ref(false)
 
 const steps = [
-  { label: 'Data Pribadi', icon: 'i-lucide-user' },
-  { label: 'Alamat & Sekolah', icon: 'i-lucide-map-pin' },
-  { label: 'Kependudukan', icon: 'i-lucide-id-card' },
-  { label: 'Orang Tua / Wali', icon: 'i-lucide-users' },
-  { label: 'Dokumen', icon: 'i-lucide-file-text' },
-  { label: 'Review', icon: 'i-lucide-clipboard-check' },
+  { label: 'Data Pribadi', icon: 'i-lucide-user', value: 0 },
+  { label: 'Alamat & Sekolah', icon: 'i-lucide-map-pin', value: 1 },
+  { label: 'Kependudukan', icon: 'i-lucide-id-card', value: 2 },
+  { label: 'Orang Tua / Wali', icon: 'i-lucide-users', value: 3 },
+  { label: 'Dokumen', icon: 'i-lucide-file-text', value: 4 },
+  { label: 'Review', icon: 'i-lucide-clipboard-check', value: 5 },
 ]
 
 const formState = reactive<UpsertFormulirRequest>({
@@ -34,56 +35,31 @@ const formState = reactive<UpsertFormulirRequest>({
   guardian_relationship: null, guardian: null, guardian_pn: null, guardian_nik: null, guardian_job: null, guardian_graduate: null, guardian_income: null,
 })
 
-onMounted(() => {
+function loadFormFromStore() {
   if (store.pendaftar) {
+    const s = store.pendaftar
     Object.assign(formState, {
-      nickname: store.pendaftar.nickname,
-      program: store.pendaftar.program,
-      hobby: store.pendaftar.hobby,
-      purpose: store.pendaftar.purpose,
-      motivation_entry: store.pendaftar.motivation_entry,
-      pob: store.pendaftar.pob,
-      dob: store.pendaftar.dob,
-      blood: store.pendaftar.blood,
-      address: store.pendaftar.address,
-      sub_district: store.pendaftar.sub_district,
-      district: store.pendaftar.district,
-      province: store.pendaftar.province,
-      postal_code: store.pendaftar.postal_code,
-      previous_pondok_name: store.pendaftar.previous_pondok_name,
-      previous_pondok_address: store.pendaftar.previous_pondok_address,
-      previous_pondok_div: store.pendaftar.previous_pondok_div,
-      previous_pondok_time: store.pendaftar.previous_pondok_time,
-      nik: store.pendaftar.nik,
-      no_kk: store.pendaftar.no_kk,
-      nisn: store.pendaftar.nisn,
-      no_kip: store.pendaftar.no_kip,
-      no_kks: store.pendaftar.no_kks,
-      no_pkh: store.pendaftar.no_pkh,
-      workplace: store.pendaftar.workplace,
-      department: store.pendaftar.department,
-      home_status: store.pendaftar.home_status,
-      father: store.pendaftar.father,
-      father_pn: store.pendaftar.father_pn,
-      father_nik: store.pendaftar.father_nik,
-      father_job: store.pendaftar.father_job,
-      father_graduate: store.pendaftar.father_graduate,
-      father_income: store.pendaftar.father_income,
-      mother: store.pendaftar.mother,
-      mother_pn: store.pendaftar.mother_pn,
-      mother_nik: store.pendaftar.mother_nik,
-      mother_job: store.pendaftar.mother_job,
-      mother_graduate: store.pendaftar.mother_graduate,
-      mother_income: store.pendaftar.mother_income,
-      guardian_relationship: store.pendaftar.guardian_relationship,
-      guardian: store.pendaftar.guardian,
-      guardian_pn: store.pendaftar.guardian_pn,
-      guardian_nik: store.pendaftar.guardian_nik,
-      guardian_job: store.pendaftar.guardian_job,
-      guardian_graduate: store.pendaftar.guardian_graduate,
-      guardian_income: store.pendaftar.guardian_income,
+      nickname: s.nickname, program: s.program, hobby: s.hobby, purpose: s.purpose,
+      motivation_entry: s.motivation_entry, pob: s.pob, dob: s.dob, blood: s.blood,
+      address: s.address, sub_district: s.sub_district, district: s.district,
+      province: s.province, postal_code: s.postal_code,
+      previous_pondok_name: s.previous_pondok_name, previous_pondok_address: s.previous_pondok_address,
+      previous_pondok_div: s.previous_pondok_div, previous_pondok_time: s.previous_pondok_time,
+      nik: s.nik, no_kk: s.no_kk, nisn: s.nisn, no_kip: s.no_kip, no_kks: s.no_kks, no_pkh: s.no_pkh,
+      workplace: s.workplace, department: s.department, home_status: s.home_status,
+      father: s.father, father_pn: s.father_pn, father_nik: s.father_nik,
+      father_job: s.father_job, father_graduate: s.father_graduate, father_income: s.father_income,
+      mother: s.mother, mother_pn: s.mother_pn, mother_nik: s.mother_nik,
+      mother_job: s.mother_job, mother_graduate: s.mother_graduate, mother_income: s.mother_income,
+      guardian_relationship: s.guardian_relationship, guardian: s.guardian,
+      guardian_pn: s.guardian_pn, guardian_nik: s.guardian_nik,
+      guardian_job: s.guardian_job, guardian_graduate: s.guardian_graduate, guardian_income: s.guardian_income,
     })
   }
+}
+
+onMounted(() => {
+  loadFormFromStore()
 })
 
 async function handleSave() {
@@ -98,9 +74,20 @@ async function handleSave() {
   }
 }
 
-function next() {
+const maxStepReached = ref(0)
+
+async function next() {
   if (currentStep.value < steps.length - 1) {
-    currentStep.value++
+    const nextStep = currentStep.value + 1
+    if (nextStep === 4) {
+      isFetchingDocs.value = true
+      try {
+        await store.fetchDokumen()
+      } catch { /* non-blocking */ }
+      isFetchingDocs.value = false
+    }
+    currentStep.value = nextStep
+    maxStepReached.value = Math.max(maxStepReached.value, nextStep)
   }
 }
 
@@ -109,19 +96,64 @@ function prev() {
     currentStep.value--
   }
 }
+
+function goToStep(index: number) {
+  if (index <= maxStepReached.value) {
+    currentStep.value = index
+  }
+}
 </script>
 
 <template>
-  <div class="mx-auto max-w-3xl">
-    <UStepper v-model="currentStep" :items="steps" orientation="horizontal" class="mb-8" />
+  <div class="lg:grid lg:grid-cols-[260px_1fr] lg:gap-8">
+    <!-- Desktop sidebar stepper -->
+    <aside class="hidden lg:block">
+      <nav class="sticky top-24 space-y-1 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700/50 dark:bg-gray-900">
+        <button
+          v-for="(step, i) in steps"
+          :key="step.value"
+          type="button"
+          class="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors"
+          :class="[
+            i === currentStep
+              ? 'bg-teal-50 font-medium text-teal-700 dark:bg-teal-950 dark:text-teal-400'
+              : i <= maxStepReached
+                ? 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'
+                : 'cursor-not-allowed text-gray-400 dark:text-gray-600',
+          ]"
+          :disabled="i > maxStepReached"
+          @click="goToStep(i)"
+        >
+          <span
+            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+            :class="[
+              i < currentStep
+                ? 'bg-teal-600 text-white'
+                : i === currentStep
+                  ? 'bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300'
+                  : 'bg-gray-100 text-gray-400 dark:bg-gray-800',
+            ]"
+          >
+            <UIcon v-if="i < currentStep" name="i-lucide-check" class="h-4 w-4" />
+            <template v-else>{{ i + 1 }}</template>
+          </span>
+          {{ step.label }}
+        </button>
+      </nav>
+    </aside>
 
-    <div class="min-h-[400px]">
-      <PsbStepDataPribadi v-if="currentStep === 0" v-model="formState" @next="next" />
-      <PsbStepAlamatSekolah v-if="currentStep === 1" v-model="formState" @next="next" @prev="prev" />
-      <PsbStepDataKependudukan v-if="currentStep === 2" v-model="formState" @next="next" @prev="prev" />
-      <PsbStepOrangTuaWali v-if="currentStep === 3" v-model="formState" @next="next" @prev="prev" />
-      <PsbStepDokumen v-if="currentStep === 4" @next="next" @prev="prev" />
-      <PsbStepReview v-if="currentStep === 5" :form="formState" :saving="isSaving" @save="handleSave" @prev="prev" />
+    <div class="min-w-0">
+      <!-- Mobile / tablet stepper -->
+      <UStepper v-model="currentStep" :items="steps" orientation="horizontal" class="mb-8 lg:hidden" />
+
+      <div class="min-h-[400px]">
+        <PsbStepDataPribadi v-if="currentStep === 0" v-model="formState" @next="next" />
+        <PsbStepAlamatSekolah v-if="currentStep === 1" v-model="formState" @next="next" @prev="prev" />
+        <PsbStepDataKependudukan v-if="currentStep === 2" v-model="formState" @next="next" @prev="prev" />
+        <PsbStepOrangTuaWali v-if="currentStep === 3" v-model="formState" @next="next" @prev="prev" />
+        <PsbStepDokumen v-if="currentStep === 4" :loading="isFetchingDocs" @next="next" @prev="prev" />
+        <PsbStepReview v-if="currentStep === 5" :form="formState" :saving="isSaving" @save="handleSave" @prev="prev" />
+      </div>
     </div>
   </div>
 </template>

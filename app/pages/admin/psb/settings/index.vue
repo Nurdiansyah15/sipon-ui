@@ -63,10 +63,20 @@ async function afterMutate() {
   await store.fetchSettings();
 }
 
+const PROGRAM_LABELS: Record<string, string> = {
+  tahfidh_pa: "Tahfidz Putra",
+  tahfidh_pi: "Tahfidz Putri",
+  reguler_pa: "Reguler Putra",
+  reguler_pi: "Reguler Putri",
+  smp: "SMP",
+  mts: "MTs",
+  ma: "MA",
+}
+
 function quotaSummary(q: Record<string, number> | undefined): string {
   if (!q || Object.keys(q).length === 0) return "—";
   return Object.entries(q)
-    .map(([k, v]) => `${k}:${v}`)
+    .map(([k, v]) => `${PROGRAM_LABELS[k] ?? k}: ${v}`)
     .join(", ");
 }
 </script>
@@ -177,13 +187,13 @@ function quotaSummary(q: Record<string, number> | undefined): string {
       </div>
     </div>
 
-    <SettingFormModal
+    <AdminPsbSettingFormModal
       v-model:open="formOpen"
       :edit="editTarget"
       @done="afterMutate"
     />
 
-    <PurgeConfirmModal
+    <AdminPsbPurgeConfirmModal
       v-model:open="purgeOpen"
       :setting-id="purgeTarget?.id ?? ''"
       :setting-name="purgeTarget?.name ?? ''"

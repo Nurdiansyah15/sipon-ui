@@ -108,7 +108,7 @@ function canShow(status: string): boolean {
         <!-- Dokumen panel -->
         <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900 lg:col-span-2">
           <h2 class="mb-4 font-semibold text-gray-900 dark:text-gray-100">Dokumen</h2>
-          <DokumenReviewPanel
+          <AdminPsbDokumenReviewPanel
             :pendaftar-id="id"
             :dokumen="docs"
             :loading="store.isLoading"
@@ -131,13 +131,13 @@ function canShow(status: string): boolean {
       </div>
 
       <!-- Modals -->
-      <ReviewActionModal
+      <AdminPsbReviewActionModal
         v-model:open="reviewModalOpen"
         :pendaftar-id="id"
         :mode="reviewMode"
         @done="afterAction"
       />
-      <AcceptConfirmModal
+      <AdminPsbAcceptConfirmModal
         v-model:open="acceptModalOpen"
         :pendaftar-id="id"
         :pendaftar-name="p.nickname || p.user_id"
@@ -145,7 +145,7 @@ function canShow(status: string): boolean {
         :quota="activeQuota"
         @done="afterAction"
       />
-      <GenerateNisConfirmModal
+      <AdminPsbGenerateNisConfirmModal
         v-model:open="generateNisModalOpen"
         :pendaftar-id="id"
         :pendaftar-name="p.nickname || p.user_id"

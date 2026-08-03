@@ -32,7 +32,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-3xl px-4 py-8">
+  <div class="mx-auto max-w-7xl px-4 py-8">
     <h1 class="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">Pendaftaran Santri Baru</h1>
 
     <!-- Loading -->
@@ -49,7 +49,7 @@ onMounted(async () => {
     </div>
 
     <!-- No Active Period -->
-    <div v-else-if="psbStore.noActiveSetting" class="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-900">
+    <div v-else-if="psbStore.noActiveSetting" class="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-gray-700/50 dark:bg-gray-900">
       <UIcon name="i-lucide-calendar-off" class="mx-auto mb-3 h-12 w-12 text-gray-300" />
       <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Pendaftaran Belum Dibuka</h2>
       <p class="mt-2 text-gray-500 dark:text-gray-400">Saat ini belum ada periode pendaftaran yang aktif. Silakan periksa kembali nanti.</p>
@@ -70,7 +70,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div v-else class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
+      <div v-else class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Mulai Pendaftaran</h2>
         <p class="mt-2 text-gray-500 dark:text-gray-400">Anda belum mendaftar di periode ini. Klik tombol di bawah untuk memulai.</p>
         <UButton class="mt-4" size="lg" icon="i-lucide-pencil" to="/psb/formulir">Isi Formulir Pendaftaran</UButton>
@@ -95,7 +95,7 @@ onMounted(async () => {
       <PsbPeriodInfoCard v-if="psbStore.setting" :setting="psbStore.setting" />
 
       <!-- Status header -->
-      <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
+      <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Status Pendaftaran</h2>
@@ -186,7 +186,7 @@ onMounted(async () => {
       </div>
 
       <!-- Riwayat (always show if exists) -->
-      <div v-if="psbStore.reviews.length > 0" class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
+      <div v-if="psbStore.reviews.length > 0" class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">
         <h3 class="mb-4 font-semibold text-gray-900 dark:text-gray-100">Riwayat Review</h3>
         <PsbReviewTimeline :items="psbStore.reviews" />
       </div>
