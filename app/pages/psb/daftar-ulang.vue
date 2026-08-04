@@ -69,12 +69,14 @@ async function handleSubmit() {
 
 <template>
   <div class="mx-auto max-w-7xl px-4 py-8">
-    <div class="mb-8">
-      <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" class="mb-3" @click="router.push('/psb')" />
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Daftar Ulang</h1>
-      <p class="mt-1 text-sm text-gray-500">
-        {{ psbStore.isPerluRevisiDaftarUlang ? 'Admin meminta revisi daftar ulang. Periksa dan lengkapi kembali.' : 'Upload dokumen daftar ulang dan submit.' }}
-      </p>
+    <div class="mb-8 flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Daftar Ulang</h1>
+        <p class="mt-1 text-sm text-gray-500">
+          {{ psbStore.isPerluRevisiDaftarUlang ? 'Admin meminta revisi daftar ulang. Periksa dan lengkapi kembali.' : 'Upload dokumen daftar ulang dan submit.' }}
+        </p>
+      </div>
+      <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" class="shrink-0" @click="router.push('/psb')">Kembali</UButton>
     </div>
 
     <div v-if="psbStore.isLoading" class="space-y-4">

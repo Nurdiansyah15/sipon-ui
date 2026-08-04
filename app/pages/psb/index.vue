@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth'
 import { usePsbStore } from '~/stores/psb'
+import { parseApiError } from '~/utils/errorParser'
 
 definePageMeta({ layout: 'default' })
 
 const authStore = useAuthStore()
 const psbStore = usePsbStore()
+const toast = useToast()
 
+const isSubmitting = ref(false)
 const showVerifyEmail = ref(false)
 
 const pageLoading = computed(() => psbStore.isLoading)
@@ -29,6 +32,20 @@ onMounted(async () => {
     await psbStore.fetchRiwayat()
   }
 })
+
+async function handleSubmit() {
+  isSubmitting.value = true
+  try {
+    await psbStore.submitPendaftaran()
+    await psbStore.fetchPendaftaran()
+    await psbStore.fetchRiwayat()
+    toast.add({ title: 'Pendaftaran berhasil diajukan!', color: 'success' })
+  } catch (err) {
+    toast.add({ title: 'Gagal mengajukan', description: parseApiError(err, 'Terjadi kesalahan'), color: 'error' })
+  } finally {
+    isSubmitting.value = false
+  }
+}
 </script>
 
 <template>
@@ -123,6 +140,15 @@ onMounted(async () => {
                 icon="i-lucide-mail-warning"
                 @click="showVerifyEmail = true"
               >Verifikasi Email untuk Melanjutkan</UButton>
+              <UButton
+                v-if="userEmailVerified"
+                :loading="isSubmitting"
+                color="primary"
+                icon="i-lucide-send"
+                @click="handleSubmit"
+              >
+                {{ psbStore.isPerluRevisi ? 'Ajukan Ulang' : 'Ajukan Pendaftaran' }}
+              </UButton>
               <UButton color="neutral" variant="ghost" to="/psb/riwayat">Lihat Riwayat</UButton>
             </div>
           </template>

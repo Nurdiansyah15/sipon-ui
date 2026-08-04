@@ -69,37 +69,39 @@ const canEdit = computed(() => can('manage_role_permissions') && !isSystem.value
 </script>
 
 <template>
-  <div class="mx-auto max-w-4xl px-4 py-8">
-    <div class="mb-6">
+  <div class="mx-auto max-w-7xl px-4 py-8">
+    <div class="mb-6 flex items-start justify-between gap-4">
+      <div>
+        <div v-if="isLoadingRole">
+          <div class="h-6 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+        </div>
+        <div v-else-if="role">
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {{ role.display_name }}
+            <span class="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">({{ role.name }})</span>
+          </h1>
+          <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">{{ role.description }}</p>
+          <UBadge
+            v-if="isSystem"
+            color="warning"
+            variant="subtle"
+            size="sm"
+            class="mt-2"
+          >
+            Role system — permission fixed di kode, tidak bisa diubah via UI
+          </UBadge>
+        </div>
+      </div>
       <UButton
         color="neutral"
         variant="ghost"
         icon="i-lucide-arrow-left"
         size="sm"
-        class="mb-2"
+        class="shrink-0"
         @click="navigateTo('/admin/roles')"
       >
         Kembali
       </UButton>
-      <div v-if="isLoadingRole">
-        <div class="h-6 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-      </div>
-      <div v-else-if="role">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          {{ role.display_name }}
-          <span class="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">({{ role.name }})</span>
-        </h1>
-        <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">{{ role.description }}</p>
-        <UBadge
-          v-if="isSystem"
-          color="warning"
-          variant="subtle"
-          size="sm"
-          class="mt-2"
-        >
-          Role system — permission fixed di kode, tidak bisa diubah via UI
-        </UBadge>
-      </div>
     </div>
 
     <div v-if="isLoadingRole" class="space-y-2">

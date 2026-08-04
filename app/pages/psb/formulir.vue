@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth'
 import { usePsbStore } from '~/stores/psb'
-import { parseApiError } from '~/utils/errorParser'
 
 definePageMeta({ layout: 'default' })
 
@@ -10,7 +9,6 @@ const psbStore = usePsbStore()
 const router = useRouter()
 const toast = useToast()
 
-const isSubmitting = ref(false)
 const showVerifyEmail = ref(false)
 
 const userEmailVerified = computed(() => authStore.user?.is_email_verified ?? false)
@@ -42,20 +40,6 @@ async function handleSaved() {
   await psbStore.fetchPendaftaran()
   toast.add({ title: 'Formulir tersimpan', color: 'success' })
 }
-
-async function handleSubmit() {
-  isSubmitting.value = true
-  try {
-    await psbStore.submitPendaftaran()
-    await psbStore.fetchPendaftaran()
-    toast.add({ title: 'Pendaftaran berhasil diajukan!', color: 'success' })
-    router.replace('/psb')
-  } catch (err) {
-    toast.add({ title: 'Gagal mengajukan', description: parseApiError(err, 'Terjadi kesalahan'), color: 'error' })
-  } finally {
-    isSubmitting.value = false
-  }
-}
 </script>
 
 <template>
@@ -80,36 +64,19 @@ async function handleSubmit() {
 
     <div v-else>
       <!-- Header -->
-      <div class="mb-8">
-        <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" class="mb-3" @click="router.push('/psb')" />
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Formulir Pendaftaran</h1>
-        <p v-if="psbStore.isPerluRevisi" class="mt-1 text-sm text-amber-600 dark:text-amber-400">
-          Admin meminta revisi. Silakan periksa dan lengkapi data Anda.
-        </p>
-        <p v-else class="mt-1 text-sm text-gray-500">Isi data diri calon santri dengan lengkap.</p>
+      <div class="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Formulir Pendaftaran</h1>
+          <p v-if="psbStore.isPerluRevisi" class="mt-1 text-sm text-amber-600 dark:text-amber-400">
+            Admin meminta revisi. Silakan periksa dan lengkapi data Anda.
+          </p>
+          <p v-else class="mt-1 text-sm text-gray-500">Isi data diri calon santri dengan lengkap.</p>
+        </div>
+        <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" class="shrink-0" @click="router.push('/psb')">Kembali</UButton>
       </div>
 
       <!-- Wizard -->
       <PsbFormWizard @saved="handleSaved" />
-
-      <!-- Submit action -->
-      <div class="mt-8 rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">
-        <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p class="font-medium text-gray-900 dark:text-gray-100">Ajukan Pendaftaran</p>
-            <p class="text-sm text-gray-500">Setelah semua data lengkap dan dokumen terupload, klik tombol ajukan untuk mengirim pendaftaran ke admin.</p>
-          </div>
-          <UButton
-            :loading="isSubmitting"
-            size="lg"
-            color="primary"
-            icon="i-lucide-send"
-            @click="handleSubmit"
-          >
-            {{ psbStore.isPerluRevisi ? 'Ajukan Ulang' : 'Ajukan Pendaftaran' }}
-          </UButton>
-        </div>
-      </div>
     </div>
 
     <ProfileVerifyEmailModal :open="showVerifyEmail" @update:open="showVerifyEmail = $event" />

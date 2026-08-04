@@ -74,10 +74,6 @@ function canShow(status: string): boolean {
 
 <template>
   <div class="mx-auto max-w-7xl px-4 py-8">
-    <div class="mb-6">
-      <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" @click="router.push('/admin/psb/pendaftaran')" />
-    </div>
-
     <div v-if="store.isLoading && !p" class="space-y-4">
       <USkeleton class="h-48 w-full" />
       <USkeleton class="h-32 w-full" />
@@ -85,20 +81,23 @@ function canShow(status: string): boolean {
 
     <template v-else-if="p">
       <!-- Header -->
-      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div class="flex items-center gap-3">
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ p.nickname || 'Pendaftar' }}</h1>
-            <PsbStatusBadge :status="p.status" size="md" />
+      <div class="mb-6">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-3">
+              <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ p.nickname || 'Pendaftar' }}</h1>
+              <PsbStatusBadge :status="p.status" size="md" />
+            </div>
+            <p class="mt-1 text-sm text-gray-500">
+              {{ p.program || '—' }} · {{ p.gender === '1' ? 'Laki-laki' : 'Perempuan' }}
+              <span v-if="p.nis" class="ml-4">NIS: <code>{{ p.nis }}</code></span>
+            </p>
           </div>
-          <p class="mt-1 text-sm text-gray-500">
-            {{ p.program || '—' }} · {{ p.gender === '1' ? 'Laki-laki' : 'Perempuan' }}
-            <span v-if="p.nis" class="ml-4">NIS: <code>{{ p.nis }}</code></span>
-          </p>
+          <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" class="shrink-0" @click="router.push('/admin/psb/pendaftaran')">Kembali</UButton>
         </div>
 
         <!-- Action buttons status-driven -->
-        <div class="flex flex-wrap gap-2">
+        <div class="mt-3 flex flex-wrap gap-2">
           <template v-if="canShow('diajukan')">
             <UButton size="sm" color="warning" variant="soft" @click="openReview('request-revision')">Minta Revisi</UButton>
             <UButton size="sm" color="error" variant="soft" @click="openReview('reject')">Tolak</UButton>

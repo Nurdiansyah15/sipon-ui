@@ -38,6 +38,7 @@ const formState = reactive<UpsertFormulirRequest>({
 
 function loadFormFromStore() {
   if (store.pendaftar) {
+    maxStepReached.value = steps.length - 1
     const s = store.pendaftar
     Object.assign(formState, {
       nickname: s.nickname, program: s.program, hobby: s.hobby, purpose: s.purpose,
@@ -109,6 +110,12 @@ function prev() {
 function goToStep(index: number) {
   if (index <= maxStepReached.value) {
     currentStep.value = index
+    if (index === 5) {
+      isFetchingDocs.value = true
+      store.fetchDokumen().finally(() => {
+        isFetchingDocs.value = false
+      })
+    }
   }
 }
 </script>
