@@ -116,7 +116,11 @@ async function handleSubmit() {
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Status Pendaftaran</h2>
-            <p class="text-sm text-gray-500">NIS: {{ psbStore.pendaftar.nis || '—' }}</p>
+            <p class="text-sm text-gray-500">
+              <span v-if="psbStore.pendaftar.no_regis">No. Registrasi: <code class="text-gray-900 dark:text-gray-100">{{ psbStore.pendaftar.no_regis }}</code></span>
+              <span v-if="psbStore.pendaftar.no_regis && psbStore.pendaftar.nis" class="mx-2">|</span>
+              <span> NIS: {{ psbStore.pendaftar.nis || '—' }}</span>
+            </p>
           </div>
           <PsbStatusBadge :status="psbStore.pendaftar.status" size="md" />
         </div>
@@ -204,7 +208,9 @@ async function handleSubmit() {
               <UIcon name="i-lucide-check-circle" class="mx-auto h-10 w-10 text-green-500" />
               <h3 class="mt-2 font-semibold text-green-700 dark:text-green-300">Pendaftaran Selesai</h3>
               <p class="mt-1 text-sm text-green-600 dark:text-green-400">
-                Selamat! Anda resmi menjadi santri. NIS: <span class="font-mono font-bold">{{ psbStore.pendaftar.nis }}</span>
+                Selamat! Anda resmi menjadi santri.
+                <span v-if="psbStore.pendaftar.no_regis" class="block">No. Registrasi: <span class="font-mono font-bold">{{ psbStore.pendaftar.no_regis }}</span></span>
+                <span>NIS: <span class="font-mono font-bold">{{ psbStore.pendaftar.nis }}</span></span>
               </p>
             </div>
           </template>

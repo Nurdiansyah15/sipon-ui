@@ -90,7 +90,8 @@ function canShow(status: string): boolean {
             </div>
             <p class="mt-1 text-sm text-gray-500">
               {{ p.program || '—' }} · {{ p.gender === '1' ? 'Laki-laki' : 'Perempuan' }}
-              <span v-if="p.nis" class="ml-4">NIS: <code>{{ p.nis }}</code></span>
+              <span v-if="p.no_regis" class="ml-2">No. Registrasi: <code>{{ p.no_regis }}</code></span> 
+              <span v-if="p.nis" class="ml-4"> NIS: <code>{{ p.nis }}</code></span>
             </p>
           </div>
           <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" class="shrink-0" @click="router.push('/admin/psb/pendaftaran')">Kembali</UButton>

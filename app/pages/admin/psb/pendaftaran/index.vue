@@ -31,6 +31,7 @@ async function load() {
 onMounted(load)
 
 const columns: TableColumn<ListPendaftarItem>[] = [
+  { accessorKey: 'no_regis', header: 'No. Registrasi' },
   { accessorKey: 'program', header: 'Program' },
   { accessorKey: 'gender', header: 'L/P' },
   { accessorKey: 'status', header: 'Status' },
@@ -83,6 +84,11 @@ const statusOptions = [
         class="w-full"
         :ui="{ th: 'text-gray-900 font-bold dark:text-gray-100' }"
       >
+        <template #no_regis-cell="{ row }">
+          <code v-if="row.original.no_regis" class="text-sm font-medium">{{ row.original.no_regis }}</code>
+          <span v-else class="text-xs text-gray-400">—</span>
+        </template>
+
         <template #program-cell="{ row }">
           <span class="text-sm text-gray-700 dark:text-gray-300">{{ row.original.program || '—' }}</span>
         </template>

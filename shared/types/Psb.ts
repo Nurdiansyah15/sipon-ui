@@ -103,6 +103,7 @@ export interface PendaftarResponse extends PendaftarProfileFields {
   accepted_at: string | null
   santri_id: string | null
   nis: string | null
+  no_regis: string | null
   created_at: string
   updated_at: string
 }
@@ -115,6 +116,7 @@ export interface ListPendaftarItem {
   program: string | null
   status: PendaftarStatus
   nis: string | null
+  no_regis: string | null
   created_at: string
 }
 
