@@ -5,6 +5,7 @@ const items = [
   { label: 'Dasbor', icon: 'i-lucide-gauge', to: '/admin/artikel' },
   { label: 'Artikel', icon: 'i-lucide-file-text', to: '/admin/artikel/artikel' },
   { label: 'Kategori', icon: 'i-lucide-tags', to: '/admin/artikel/kategori' },
+  { label: 'Sumber', icon: 'i-lucide-rss', to: '/admin/artikel/sumber' },
 ]
 
 function isActive(to: string) {

@@ -7,6 +7,7 @@ const { can } = usePermission()
 
 const canCreateArticle = computed(() => can('create_article'))
 const canManageCategory = computed(() => can('manage_article_category'))
+const canManageSources = computed(() => can('manage_article_sources'))
 </script>
 
 <template>
@@ -32,6 +33,13 @@ const canManageCategory = computed(() => can('manage_article_category'))
         description="Kelola kategori artikel untuk mengorganisir konten berdasarkan topik."
         icon="i-lucide-tags"
         to="/admin/artikel/kategori"
+      />
+      <FeatureModuleCard
+        v-if="canManageSources"
+        title="Sumber RSS"
+        description="Kelola sumber RSS feed untuk scraping artikel otomatis dari portal berita."
+        icon="i-lucide-rss"
+        to="/admin/artikel/sumber"
       />
     </div>
   </div>

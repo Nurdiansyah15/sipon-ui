@@ -22,6 +22,7 @@ export interface ArticleDetail {
   status: string
   author: string
   thumbnail_url: string | null
+  original_url: string | null
   view_count: number
   is_featured: boolean
   created_by: string | null
@@ -109,4 +110,87 @@ export const STATUS_LABELS: Record<string, string> = {
   draft: 'Draft',
   published: 'Dipublikasi',
   archived: 'Diarsipkan',
+}
+
+export interface SourceSelectorItem {
+  content_selector: string | null
+  author_selector: string | null
+  tags_selector: string | null
+}
+
+export interface SourceCategoryItem {
+  id: string
+  category_key: string
+  url_suffix: string | null
+  url_override: string | null
+  article_limit: number
+  is_active: boolean
+  article_category_id: string | null
+  keywords: string[]
+  last_scraped_at: string | null
+}
+
+export interface SourceListItem {
+  id: string
+  key: string
+  name: string
+  base_url: string
+  auto_publish: boolean
+  is_active: boolean
+  last_scraped_at: string | null
+  selectors: SourceSelectorItem | null
+  categories: SourceCategoryItem[]
+  created_at: string
+}
+
+export interface CreateSourceRequest {
+  key: string
+  name: string
+  base_url: string
+  auto_publish: boolean
+  is_active: boolean
+  selectors?: SourceSelectorItem
+}
+
+export interface UpdateSourceRequest {
+  key?: string
+  name?: string
+  base_url?: string
+  auto_publish?: boolean
+  is_active?: boolean
+  selectors?: SourceSelectorItem
+}
+
+export interface CreateSourceCategoryRequest {
+  category_key: string
+  url_suffix?: string | null
+  url_override?: string | null
+  article_limit: number
+  is_active: boolean
+  article_category_id?: string | null
+  keywords?: string[]
+}
+
+export interface UpdateSourceCategoryRequest {
+  category_key?: string
+  url_suffix?: string | null
+  url_override?: string | null
+  article_limit?: number
+  is_active?: boolean
+  article_category_id?: string | null
+  keywords?: string[]
+}
+
+export interface ScrapeResult {
+  scraped: number
+  skipped: number
+  categories: ScrapeCategoryItem[]
+}
+
+export interface ScrapeCategoryItem {
+  category_key: string
+  fetched: number
+  saved: number
+  skipped: number
+  error?: string
 }

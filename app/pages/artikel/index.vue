@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useArticleStore } from '~/stores/article'
 import type { ArticleListItem, ArticleDetail } from '#shared/types/Article'
-import type { ApiSuccess, ApiMeta } from '#shared/types/ApiResponse'
+import type { ApiSuccess } from '#shared/types/ApiResponse'
 import { useApi } from '~/composables/useApi'
 
 definePageMeta({ layout: 'default' })
@@ -40,15 +40,18 @@ async function load() {
 
 async function loadFeatured() {
   try {
-    await store.fetchList({
-      page: 1,
-      limit: 1,
-      status: 'published',
-      sort_by: 'published_at',
-      sort_type: 'DESC',
+    const api = useApi()
+    const res = await api.get<ApiSuccess<ArticleListItem[]>>('/api/v1/web/articles', {
+      query: {
+        page: 1,
+        limit: 1,
+        status: 'published',
+        sort_by: 'published_at',
+        sort_type: 'DESC',
+      },
     })
-    if (store.items.length > 0) {
-      featuredArticle.value = await store.fetchDetail(store.items[0].id)
+    if (res.data && res.data.length > 0) {
+      featuredArticle.value = await store.fetchDetail(res.data[0].id)
     }
   } catch {
     // ignore
@@ -61,6 +64,11 @@ onMounted(async () => {
 
 const totalPages = computed(() => store.meta?.total_pages ?? 1)
 const totalItems = computed(() => store.meta?.total ?? 0)
+
+const listItems = computed(() => {
+  if (!featuredArticle.value) return store.items
+  return store.items.filter(a => a.id !== featuredArticle.value?.id)
+})
 
 function formatDate(value?: string | null) {
   if (!value) return '-'
@@ -142,7 +150,7 @@ function truncate(text: string, maxLength: number) {
 
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <NuxtLink
-        v-for="article in store.items"
+        v-for="article in listItems"
         :key="article.id"
         :to="`/artikel/${article.id}`"
         class="group overflow-hidden rounded-lg border border-gray-200 bg-white transition hover:shadow-md dark:border-gray-700/50 dark:bg-gray-900"
@@ -179,7 +187,7 @@ function truncate(text: string, maxLength: number) {
       </NuxtLink>
     </div>
 
-    <div v-if="store.items.length === 0 && !store.isLoading" class="py-12 text-center">
+    <div v-if="listItems.length === 0 && !store.isLoading" class="py-12 text-center">
       <UIcon name="i-lucide-file-text" class="mx-auto h-12 w-12 text-gray-400" />
       <p class="mt-4 text-gray-500 dark:text-gray-400">Belum ada artikel yang dipublikasikan.</p>
     </div>

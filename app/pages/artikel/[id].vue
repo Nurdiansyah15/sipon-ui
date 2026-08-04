@@ -109,6 +109,16 @@ useHead(() => ({
             <UIcon name="i-lucide-eye" class="h-4 w-4" />
             {{ article.view_count }} views
           </span>
+          <a
+            v-if="article.original_url"
+            :href="article.original_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-1.5 text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
+          >
+            <UIcon name="i-lucide-external-link" class="h-4 w-4" />
+            Artikel Asli
+          </a>
         </div>
       </header>
 
@@ -127,9 +137,7 @@ useHead(() => ({
       </div>
 
       <div class="prose prose-lg max-w-none dark:prose-invert">
-        <div class="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-          {{ article.content }}
-        </div>
+        <div class="article-content text-gray-700 dark:text-gray-300" v-html="article.content" />
       </div>
 
       <footer class="border-t border-gray-200 pt-6 dark:border-gray-700/50">

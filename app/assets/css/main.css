@@ -4,3 +4,121 @@
 html {
   color-scheme: light dark;
 }
+
+/* Article Content Styles */
+.article-content {
+  text-align: justify;
+  line-height: 1.8;
+}
+
+.article-content p {
+  margin-bottom: 1.5rem;
+}
+
+.article-content h1,
+.article-content h2,
+.article-content h3,
+.article-content h4,
+.article-content h5,
+.article-content h6 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.article-content h1 {
+  font-size: 2rem;
+}
+
+.article-content h2 {
+  font-size: 1.75rem;
+}
+
+.article-content h3 {
+  font-size: 1.5rem;
+}
+
+.article-content h4 {
+  font-size: 1.25rem;
+}
+
+.article-content img {
+  max-width: 100%;
+  height: auto;
+  margin: 1.5rem auto;
+  display: block;
+  border-radius: 0.5rem;
+}
+
+.article-content figure {
+  margin: 1.5rem 0;
+}
+
+.article-content figcaption {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+}
+
+.article-content blockquote {
+  border-left: 4px solid #0d9488;
+  padding-left: 1.5rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  color: #4b5563;
+}
+
+.article-content ul,
+.article-content ol {
+  margin: 1.5rem 0;
+  padding-left: 2rem;
+}
+
+.article-content li {
+  margin-bottom: 0.5rem;
+}
+
+.article-content a {
+  color: #0d9488;
+  text-decoration: underline;
+}
+
+.article-content a:hover {
+  color: #0f766e;
+}
+
+.article-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.article-content th,
+.article-content td {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.article-content th {
+  background-color: #f9fafb;
+  font-weight: 600;
+}
+
+/* Dark mode adjustments */
+.dark .article-content blockquote {
+  color: #d1d5db;
+  border-left-color: #14b8a6;
+}
+
+.dark .article-content th {
+  background-color: #374151;
+}
+
+.dark .article-content th,
+.dark .article-content td {
+  border-color: #4b5563;
+}
+

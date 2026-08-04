@@ -12,6 +12,12 @@ import type {
   CreateCategoryRequest,
   UpdateCategoryRequest,
   PresignResponse,
+  SourceListItem,
+  CreateSourceRequest,
+  UpdateSourceRequest,
+  CreateSourceCategoryRequest,
+  UpdateSourceCategoryRequest,
+  ScrapeResult,
 } from '#shared/types/Article'
 
 interface ArticleState {
@@ -212,6 +218,117 @@ export const useArticleStore = defineStore('article', {
         await api.post('/api/v1/web/articles/media/confirm', { key })
       } catch (err) {
         throw err
+      }
+    },
+
+    async fetchSources(): Promise<SourceListItem[]> {
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<SourceListItem[]>>('/api/v1/web/article-sources')
+        return res?.data || []
+      } catch (err) {
+        throw err
+      }
+    },
+
+    async createSource(payload: CreateSourceRequest): Promise<{ id: string; key: string }> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<{ id: string; key: string }>>('/api/v1/web/article-sources', payload)
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal membuat sumber.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async updateSource(id: string, payload: UpdateSourceRequest) {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        await api.put(`/api/v1/web/article-sources/${id}`, payload)
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memperbarui sumber.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async deleteSource(id: string) {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        await api.delete(`/api/v1/web/article-sources/${id}`)
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal menghapus sumber.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async createSourceCategory(sourceId: string, payload: CreateSourceCategoryRequest): Promise<{ id: string }> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<{ id: string }>>(`/api/v1/web/article-sources/${sourceId}/categories`, payload)
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal membuat kategori sumber.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async updateSourceCategory(categoryId: string, payload: UpdateSourceCategoryRequest) {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        await api.put(`/api/v1/web/article-sources/categories/${categoryId}`, payload)
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memperbarui kategori sumber.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async deleteSourceCategory(categoryId: string) {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        await api.delete(`/api/v1/web/article-sources/categories/${categoryId}`)
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal menghapus kategori sumber.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async triggerScrape(sourceId: string): Promise<ScrapeResult> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<ScrapeResult>>(`/api/v1/web/article-sources/${sourceId}/scrape`)
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal menjalankan scrape.')
+        throw err
+      } finally {
+        this.isSubmitting = false
       }
     },
   },
