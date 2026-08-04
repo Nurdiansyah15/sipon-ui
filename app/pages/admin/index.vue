@@ -7,6 +7,7 @@ const { can, canAny } = usePermission()
 
 const canManagePSB = computed(() => canAny(['manage_psb', 'manage_psb_settings']))
 const canManageSantri = computed(() => can('manage_santri'))
+const canManageArticle = computed(() => canAny(['create_article', 'edit_article', 'manage_article_category']))
 
 const shortcuts = computed(() => [
   {
@@ -29,6 +30,13 @@ const shortcuts = computed(() => [
     icon: 'i-lucide-user-plus',
     to: '/admin/psb',
     shown: canManagePSB.value,
+  },
+  {
+    title: 'Artikel',
+    description: 'Kelola artikel berita, informasi, dan konten publikasi pesantren.',
+    icon: 'i-lucide-file-text',
+    to: '/admin/artikel',
+    shown: canManageArticle.value,
   },
 ])
 </script>

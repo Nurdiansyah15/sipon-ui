@@ -4,7 +4,7 @@ const route = useRoute()
 const links = [
   { label: 'Dasbor', icon: 'i-lucide-home', to: '/dashboard' },
   { label: 'Aplikasi', icon: 'i-lucide-layout-grid', to: '#' },
-  { label: 'Artikel', icon: 'i-lucide-globe', to: '#' },
+  { label: 'Artikel', icon: 'i-lucide-globe', to: '/artikel' },
   { label: 'Umpan Balik', icon: 'i-lucide-message-square', to: '#' },
 ]
 
