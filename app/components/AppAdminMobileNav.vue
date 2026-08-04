@@ -6,6 +6,7 @@ const items = [
   { label: 'User', icon: 'i-lucide-users', to: '/admin/users' },
   { label: 'Role', icon: 'i-lucide-shield', to: '/admin/roles' },
   { label: 'Santri', icon: 'i-lucide-graduation-cap', to: '/admin/kesantrian' },
+  { label: 'Aset', icon: 'i-lucide-folder-open', to: '/admin/dokumen-aset' },
 ]
 
 function isActive(to: string) {
