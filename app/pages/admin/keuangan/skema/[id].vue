@@ -20,11 +20,11 @@ const allComponents = ref<FeeComponent[]>([])
 async function load() {
   loading.value = true
   try {
-    await Promise.all([
-      store.fetchBillingSchemes({ limit: 100 }),
+    const [schemeData] = await Promise.all([
+      store.fetchBillingScheme(schemeId),
       store.fetchFeeComponents({ limit: 100 }),
     ])
-    scheme.value = store.billingSchemes.find((s) => s.id === schemeId) ?? null
+    scheme.value = schemeData
     allComponents.value = store.feeComponents
   } catch {
     toast.add({ title: 'Gagal memuat data skema', color: 'error' })

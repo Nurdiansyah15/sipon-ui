@@ -216,6 +216,21 @@ export const useKeuanganStore = defineStore('keuangan', {
       }
     },
 
+    async fetchBillingScheme(id: string): Promise<BillingScheme> {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<BillingScheme>>(`/api/v1/web/keuangan/admin/schemes/${id}`)
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat detail skema tagihan.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
     async createBillingScheme(payload: CreateBillingSchemeRequest): Promise<BillingScheme> {
       this.isSubmitting = true
       this.error = null
