@@ -261,7 +261,7 @@ const statusOptions = [
       </UPagination>
     </div>
 
-    <AdminInvoiceFormModal
+    <AdminKeuanganAdminInvoiceFormModal
       v-model:open="createInvoiceOpen"
       @success="load"
     />

@@ -275,7 +275,7 @@ function outstandingAmount(inv: Invoice): number {
       </div>
     </template>
 
-    <AdminAdjustmentFormModal
+    <AdminKeuanganAdminAdjustmentFormModal
       v-model:open="adjustmentOpen"
       :invoice-id="invoiceId"
       @success="load"

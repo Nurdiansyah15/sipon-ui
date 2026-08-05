@@ -246,7 +246,7 @@ const statusOptions = [
       </UPagination>
     </div>
 
-    <AdminPaymentVerificationModal
+    <AdminKeuanganAdminPaymentVerificationModal
       v-model:open="verificationOpen"
       :payment="verificationTarget"
       @verified="load"

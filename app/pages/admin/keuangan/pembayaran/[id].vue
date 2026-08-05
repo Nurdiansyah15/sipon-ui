@@ -245,7 +245,7 @@ const canVerify = computed(() =>
       </div>
     </template>
 
-    <AdminPaymentVerificationModal
+    <AdminKeuanganAdminPaymentVerificationModal
       v-model:open="verificationOpen"
       :payment="verificationTarget"
       @verified="load"

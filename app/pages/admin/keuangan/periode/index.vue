@@ -200,7 +200,7 @@ function onPeriodSuccess() {
       />
     </div>
 
-    <AdminPeriodFormModal
+    <AdminKeuanganAdminPeriodFormModal
       v-model:open="createModalOpen"
       @success="onPeriodSuccess"
     />

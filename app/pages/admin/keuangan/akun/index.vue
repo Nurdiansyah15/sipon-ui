@@ -256,13 +256,13 @@ function formatNormalBalance(v: string) {
       </div>
     </div>
 
-    <AdminAccountFormModal
+    <AdminKeuanganAdminAccountFormModal
       v-model:open="createModalOpen"
       mode="create"
       @success="onAccountSuccess"
     />
 
-    <AdminAccountFormModal
+    <AdminKeuanganAdminAccountFormModal
       v-model:open="editModalOpen"
       mode="edit"
       :account="selectedAccount"
