@@ -84,8 +84,8 @@ export const useKesantrianStore = defineStore('kesantrian', {
         const api = useApi()
         const res = await api.get<ApiSuccess<SantriItem[]>>('/api/v1/web/santri/admin', {
           query: {
-            page: query.page,
-            limit: query.limit,
+            page: query.page ?? 1,
+            limit: query.limit ?? 10,
             sort_by: query.sort_by,
             sort_type: query.sort_type,
             nis: query.nis,

@@ -1,0 +1,208 @@
+<script setup lang="ts">
+import { usePermission } from '~/composables/usePermission'
+
+const route = useRoute()
+const { can } = usePermission()
+
+const sidebarOpen = ref(false)
+
+interface NavItem {
+  label: string
+  icon: string
+  to: string
+}
+
+interface NavSection {
+  title: string
+  items: NavItem[]
+}
+
+const dashboardItem: NavItem = { label: 'Dashboard', icon: 'i-lucide-gauge', to: '/admin/keuangan' }
+
+const masterDataItems: NavItem[] = [
+  { label: 'Komponen Biaya', icon: 'i-lucide-coins', to: '/admin/keuangan/komponen' },
+  { label: 'Skema Tagihan', icon: 'i-lucide-package', to: '/admin/keuangan/skema' },
+  { label: 'Skema Santri', icon: 'i-lucide-users', to: '/admin/keuangan/santri' },
+]
+
+const transaksiItems: NavItem[] = [
+  { label: 'Tagihan', icon: 'i-lucide-receipt', to: '/admin/keuangan/tagihan' },
+  { label: 'Pembayaran', icon: 'i-lucide-credit-card', to: '/admin/keuangan/pembayaran' },
+]
+
+const akuntansiItems: NavItem[] = [
+  { label: 'Chart of Accounts', icon: 'i-lucide-list-tree', to: '/admin/keuangan/akun' },
+  { label: 'Jurnal', icon: 'i-lucide-book-open', to: '/admin/keuangan/jurnal' },
+  { label: 'Periode', icon: 'i-lucide-calendar', to: '/admin/keuangan/periode' },
+]
+
+const laporanItems: NavItem[] = [
+  { label: 'Rekap Tagihan', icon: 'i-lucide-bar-chart-3', to: '/admin/keuangan/laporan/rekap' },
+  { label: 'Tunggakan', icon: 'i-lucide-alert-circle', to: '/admin/keuangan/laporan/tunggakan' },
+  { label: 'Buku Besar', icon: 'i-lucide-book', to: '/admin/keuangan/laporan/buku-besar' },
+  { label: 'Neraca Saldo', icon: 'i-lucide-scale', to: '/admin/keuangan/laporan/neraca-saldo' },
+  { label: 'Neraca', icon: 'i-lucide-file-text', to: '/admin/keuangan/laporan/neraca' },
+  { label: 'Laba Rugi', icon: 'i-lucide-trending-up', to: '/admin/keuangan/laporan/laba-rugi' },
+]
+
+const sections = computed<NavSection[]>(() => {
+  const result: NavSection[] = []
+  if (can('manage_keuangan')) {
+    result.push({ title: 'Master Data', items: masterDataItems })
+    result.push({ title: 'Transaksi', items: transaksiItems })
+  }
+  if (can('manage_accounts') || can('manage_journal') || can('close_period')) {
+    const filtered = akuntansiItems.filter((item) => {
+      if (item.to.includes('/akun')) return can('manage_accounts')
+      if (item.to.includes('/jurnal')) return can('manage_journal')
+      if (item.to.includes('/periode')) return can('close_period')
+      return false
+    })
+    if (filtered.length) {
+      result.push({ title: 'Akuntansi', items: filtered })
+    }
+  }
+  if (can('view_keuangan_reports')) {
+    result.push({ title: 'Laporan', items: laporanItems })
+  }
+  return result
+})
+
+function isActive(to: string) {
+  if (to === '/admin/keuangan') return route.path === '/admin/keuangan'
+  // Exact match or proper sub-path (with trailing slash)
+  return route.path === to || route.path.startsWith(to + '/')
+}
+
+watch(() => route.path, () => {
+  sidebarOpen.value = false
+})
+</script>
+
+<template>
+  <div>
+    <nav class="sticky top-0 z-50 border-b border-gray-200 bg-white md:ml-64 dark:border-gray-700/50 dark:bg-gray-900">
+      <div class="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
+        <NuxtLink to="/dashboard" class="flex shrink-0 items-center gap-2">
+          <div class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-teal-600">
+            <div class="flex flex-col items-center gap-0.5">
+              <span class="block h-1.5 w-1.5 rounded-full bg-yellow-400" />
+              <span class="block h-1.5 w-1.5 rounded-full bg-teal-500" />
+              <span class="block h-1.5 w-1.5 rounded-full bg-green-500" />
+            </div>
+          </div>
+        </NuxtLink>
+
+        <NuxtLink to="/admin" class="flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800">
+          <UIcon name="i-lucide-arrow-left" class="h-4 w-4" />
+          <span class="hidden md:inline">Portal</span>
+        </NuxtLink>
+
+        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Keuangan</span>
+
+        <div class="flex-1" />
+
+        <button
+          class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 md:hidden dark:text-gray-400 dark:hover:bg-gray-800"
+          @click="sidebarOpen = !sidebarOpen"
+        >
+          <UIcon :name="sidebarOpen ? 'i-lucide-x' : 'i-lucide-menu'" class="h-4 w-4" />
+          <span>Menu</span>
+        </button>
+
+        <AppUserMenu />
+      </div>
+    </nav>
+
+    <div class="hidden md:fixed md:inset-y-0 md:left-0 md:z-40 md:flex md:w-64 md:flex-col md:border-r md:border-gray-200 md:bg-white md:dark:border-gray-700/50 md:dark:bg-gray-900">
+      <div class="sticky top-0 flex h-14 items-center gap-2 border-b border-gray-200 px-4 dark:border-gray-700/50">
+        <NuxtLink to="/dashboard" class="flex shrink-0 items-center gap-2">
+          <div class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-teal-600">
+            <div class="flex flex-col items-center gap-0.5">
+              <span class="block h-1.5 w-1.5 rounded-full bg-yellow-400" />
+              <span class="block h-1.5 w-1.5 rounded-full bg-teal-500" />
+              <span class="block h-1.5 w-1.5 rounded-full bg-green-500" />
+            </div>
+          </div>
+        </NuxtLink>
+        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Keuangan</span>
+      </div>
+      <div class="flex flex-1 flex-col gap-6 overflow-y-auto px-4 py-4">
+        <NuxtLink
+          :to="dashboardItem.to"
+          :class="isActive(dashboardItem.to)
+            ? 'flex items-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-sm font-medium text-white dark:bg-teal-500'
+            : 'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'"
+        >
+          <UIcon :name="dashboardItem.icon" class="h-4 w-4" />
+          {{ dashboardItem.label }}
+        </NuxtLink>
+
+        <div v-for="section in sections" :key="section.title" class="flex flex-col gap-1">
+          <span class="px-3 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">{{ section.title }}</span>
+          <NuxtLink
+            v-for="item in section.items"
+            :key="item.to"
+            :to="item.to"
+            :class="isActive(item.to)
+              ? 'flex items-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-sm font-medium text-white dark:bg-teal-500'
+              : 'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'"
+          >
+            <UIcon :name="item.icon" class="h-4 w-4" />
+            {{ item.label }}
+          </NuxtLink>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="sidebarOpen"
+      class="fixed inset-0 z-40 bg-black/50 md:hidden"
+      @click="sidebarOpen = false"
+    />
+
+    <aside
+      :class="[
+        'fixed inset-y-0 left-0 z-40 w-64 transform overflow-y-auto border-r border-gray-200 bg-white transition-transform duration-200 ease-in-out md:hidden dark:border-gray-700/50 dark:bg-gray-900',
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+      ]"
+    >
+      <div class="flex h-14 items-center gap-2 border-b border-gray-200 px-4 dark:border-gray-700/50">
+        <div class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-teal-600">
+          <div class="flex flex-col items-center gap-0.5">
+            <span class="block h-1.5 w-1.5 rounded-full bg-yellow-400" />
+            <span class="block h-1.5 w-1.5 rounded-full bg-teal-500" />
+            <span class="block h-1.5 w-1.5 rounded-full bg-green-500" />
+          </div>
+        </div>
+        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Keuangan</span>
+      </div>
+      <div class="flex flex-col gap-6 px-4 py-4">
+        <NuxtLink
+          :to="dashboardItem.to"
+          :class="isActive(dashboardItem.to)
+            ? 'flex items-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-sm font-medium text-white dark:bg-teal-500'
+            : 'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'"
+        >
+          <UIcon :name="dashboardItem.icon" class="h-4 w-4" />
+          {{ dashboardItem.label }}
+        </NuxtLink>
+
+        <div v-for="section in sections" :key="section.title" class="flex flex-col gap-1">
+          <span class="px-3 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">{{ section.title }}</span>
+          <NuxtLink
+            v-for="item in section.items"
+            :key="item.to"
+            :to="item.to"
+            :class="isActive(item.to)
+              ? 'flex items-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-sm font-medium text-white dark:bg-teal-500'
+              : 'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'"
+          >
+            <UIcon :name="item.icon" class="h-4 w-4" />
+            {{ item.label }}
+          </NuxtLink>
+        </div>
+      </div>
+    </aside>
+  </div>
+</template>

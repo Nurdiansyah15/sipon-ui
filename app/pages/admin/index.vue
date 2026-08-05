@@ -8,6 +8,7 @@ const { can, canAny } = usePermission()
 const canManagePSB = computed(() => canAny(['manage_psb', 'manage_psb_settings']))
 const canManageSantri = computed(() => can('manage_santri'))
 const canManageArticle = computed(() => canAny(['create_article', 'edit_article', 'manage_article_category']))
+const canManageKeuangan = computed(() => canAny(['manage_keuangan', 'verify_payment', 'view_keuangan_reports', 'manage_accounts', 'manage_journal', 'close_period']))
 
 const shortcuts = computed(() => [
   {
@@ -37,6 +38,13 @@ const shortcuts = computed(() => [
     icon: 'i-lucide-file-text',
     to: '/admin/artikel',
     shown: canManageArticle.value,
+  },
+  {
+    title: 'Keuangan',
+    description: 'Kelola komponen biaya, tagihan, pembayaran, jurnal, dan laporan keuangan pesantren.',
+    icon: 'i-lucide-wallet',
+    to: '/admin/keuangan',
+    shown: canManageKeuangan.value,
   },
 ])
 </script>
