@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useKeuanganStore } from '~/stores/keuangan'
+import { useKesantrianStore } from '~/stores/kesantrian'
 import { usePermission } from '~/composables/usePermission'
 import type { Invoice, InvoiceAdjustment, Payment } from '#shared/types/Keuangan'
 
@@ -7,6 +8,7 @@ definePageMeta({ layout: 'keuangan' })
 
 const route = useRoute()
 const store = useKeuanganStore()
+const santriStore = useKesantrianStore()
 const toast = useToast()
 const { can } = usePermission()
 
@@ -14,9 +16,19 @@ const invoiceId = computed(() => String(route.params.id))
 
 const invoice = computed<Invoice | null>(() => store.currentInvoice)
 
+const santriLabel = computed(() => {
+  if (!invoice.value) return '-'
+  const s = santriStore.santriList.find((s) => s.id === invoice.value!.santri_id)
+  if (!s) return invoice.value.santri_id
+  return s.fullname ? `${s.fullname}${s.nis ? ` (${s.nis})` : ''}` : s.nis ?? s.username
+})
+
 async function load() {
   try {
-    await store.fetchInvoice(invoiceId.value)
+    await Promise.all([
+      store.fetchInvoice(invoiceId.value),
+      santriStore.fetchSantriList({ limit: 100 }),
+    ])
   } catch {
     toast.add({
       title: 'Gagal memuat detail tagihan',
@@ -88,11 +100,11 @@ function formatDateShort(value?: string | null) {
 }
 
 const adjustments = computed<InvoiceAdjustment[]>(() => {
-  return (invoice.value as any)?.adjustments ?? []
+  return invoice.value?.adjustments ?? []
 })
 
 const payments = computed<Payment[]>(() => {
-  return (invoice.value as any)?.payments ?? []
+  return invoice.value?.payments ?? []
 })
 
 const canApplyAdjustment = computed(() =>
@@ -145,8 +157,8 @@ function outstandingAmount(inv: Invoice): number {
             <p class="font-medium text-gray-900 dark:text-gray-100">{{ invoice.invoice_number }}</p>
           </div>
           <div>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Santri ID</p>
-            <p class="font-medium text-gray-900 dark:text-gray-100">{{ invoice.santri_id }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Santri</p>
+            <p class="font-medium text-gray-900 dark:text-gray-100">{{ santriLabel }}</p>
           </div>
           <div>
             <p class="text-xs text-gray-500 dark:text-gray-400">Komponen</p>
@@ -205,7 +217,7 @@ function outstandingAmount(inv: Invoice): number {
         <div v-else class="space-y-3">
           <div
             v-for="payment in payments"
-            ::key="payment.id"
+            :key="payment.id"
             class="flex items-center justify-between rounded border border-gray-200 p-3 dark:border-gray-700"
           >
             <div>

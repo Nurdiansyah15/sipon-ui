@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BillingScheme } from '#shared/types/Keuangan'
+import type { BillingScheme, SantriBillingAssignment } from '#shared/types/Keuangan'
 import type { SantriItem } from '#shared/types/Kesantrian'
 import { useKeuanganStore } from '~/stores/keuangan'
 
@@ -7,6 +7,8 @@ const props = defineProps<{
   open: boolean
   schemes: BillingScheme[]
   santriList: SantriItem[]
+  selectedSantri?: SantriItem | null
+  currentAssignment?: SantriBillingAssignment | null
 }>()
 
 const emit = defineEmits<{
@@ -30,6 +32,15 @@ const schemeOptions = computed(() =>
     .map((s) => ({ label: s.name, value: s.id })),
 )
 
+const currentSchemeName = computed(() => {
+  if (!props.currentAssignment) return null
+  return props.schemes.find((s) => s.id === props.currentAssignment!.billing_scheme_id)?.name ?? 'skema tidak ditemukan'
+})
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
 const form = reactive({
   santri_id: '',
   billing_scheme_id: '',
@@ -39,9 +50,9 @@ const form = reactive({
 
 watch(() => props.open, (val) => {
   if (val) {
-    form.santri_id = ''
+    form.santri_id = props.selectedSantri?.id ?? ''
     form.billing_scheme_id = ''
-    form.effective_from = ''
+    form.effective_from = props.currentAssignment ? new Date().toISOString().slice(0, 10) : ''
     form.effective_until = ''
   }
 })
@@ -70,7 +81,7 @@ async function save() {
       effective_from: form.effective_from,
       effective_until: form.effective_until || undefined,
     })
-    toast.add({ title: 'Skema ditetapkan ke santri', color: 'success' })
+    toast.add({ title: props.currentAssignment ? 'Skema santri berhasil diganti' : 'Skema ditetapkan ke santri', color: 'success' })
     emit('update:open', false)
     emit('success')
   } catch {
@@ -91,8 +102,18 @@ function close() {
     <template #content>
       <div class="p-6">
         <div class="mb-4 flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Tetapkan Skema ke Santri</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            {{ currentAssignment ? 'Ganti Skema Santri' : 'Tetapkan Skema ke Santri' }}
+          </h3>
           <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="sm" square :disabled="saving" @click="close" />
+        </div>
+
+        <div
+          v-if="currentAssignment"
+          class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-300"
+        >
+          Santri ini sedang memiliki skema <strong>{{ currentSchemeName }}</strong> (berlaku sejak {{ formatDate(currentAssignment.effective_from) }}).
+          Menyimpan skema baru akan mengakhiri skema ini pada tanggal sebelum tanggal berlaku baru.
         </div>
 
         <div class="space-y-4">
@@ -103,6 +124,7 @@ function close() {
               value-key="value"
               placeholder="Cari nama atau NIS santri..."
               searchable
+              :disabled="!!selectedSantri"
               class="w-full"
             />
           </UFormField>

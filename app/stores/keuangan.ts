@@ -288,7 +288,7 @@ export const useKeuanganStore = defineStore('keuangan', {
           `/api/v1/web/keuangan/admin/schemes/${schemeId}/items`,
           payload,
         )
-        const idx = this.billingSchemes.findIndex((s) => s.id === schemeId)
+        const idx = this.billingSchemes.findIndex((s) => s?.id === schemeId)
         if (idx !== -1) this.billingSchemes[idx] = res.data
         return res.data
       } catch (err) {
@@ -307,7 +307,7 @@ export const useKeuanganStore = defineStore('keuangan', {
         const res = await api.delete<ApiSuccess<BillingScheme>>(
           `/api/v1/web/keuangan/admin/schemes/${schemeId}/items/${itemId}`,
         )
-        const idx = this.billingSchemes.findIndex((s) => s.id === schemeId)
+        const idx = this.billingSchemes.findIndex((s) => s?.id === schemeId)
         if (idx !== -1) this.billingSchemes[idx] = res.data
         return res.data
       } catch (err) {

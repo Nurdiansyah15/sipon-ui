@@ -43,7 +43,7 @@ const totalPaid = computed(() => {
 
 onMounted(async () => {
   try {
-    await keuanganStore.fetchMyInvoices()
+    await keuanganStore.fetchMyInvoices({ limit: 100 })
   } catch (err) {
     toast.add({ title: 'Gagal memuat data', description: parseApiError(err), color: 'error' })
   }
@@ -76,7 +76,7 @@ function getStatusColor(status: string): string {
     <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">
         <p class="text-sm text-gray-500">Total Tagihan</p>
-        <p class="mt-2 text-2xl font-bold text-gray-900 dark:text-gray-100">{{ keuanganStore.invoices.length }}</p>
+        <p class="mt-2 text-2xl font-bold text-gray-900 dark:text-gray-100">{{ keuanganStore.invoicesMeta?.total ?? keuanganStore.invoices.length }}</p>
       </div>
       <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">
         <p class="text-sm text-gray-500">Total Dibayar</p>
@@ -115,7 +115,7 @@ function getStatusColor(status: string): string {
     <div v-else-if="keuanganStore.error" class="rounded-lg border border-red-200 bg-red-50 p-6 text-center dark:border-red-800 dark:bg-red-950">
       <UIcon name="i-lucide-alert-circle" class="mx-auto mb-2 h-8 w-8 text-red-500" />
       <p class="text-red-700 dark:text-red-300">{{ keuanganStore.error }}</p>
-      <UButton class="mt-4" variant="soft" @click="keuanganStore.fetchMyInvoices()">Coba Lagi</UButton>
+      <UButton class="mt-4" variant="soft" @click="keuanganStore.fetchMyInvoices({ limit: 100 })">Coba Lagi</UButton>
     </div>
 
     <!-- Empty -->

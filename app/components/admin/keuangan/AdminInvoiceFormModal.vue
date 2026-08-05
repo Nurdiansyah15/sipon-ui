@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useKeuanganStore } from '~/stores/keuangan'
+import { useKesantrianStore } from '~/stores/kesantrian'
 
 const props = defineProps<{
   open: boolean
@@ -13,7 +14,15 @@ const emit = defineEmits<{
 }>()
 
 const store = useKeuanganStore()
+const santriStore = useKesantrianStore()
 const toast = useToast()
+
+const santriOptions = computed(() =>
+  santriStore.santriList.map((s) => ({
+    label: s.fullname ? `${s.fullname}${s.nis ? ` (${s.nis})` : ''}` : s.nis ?? s.username,
+    value: s.id,
+  })),
+)
 
 const schema = z.object({
   santri_id: z.string().min(1, 'Santri wajib dipilih'),
@@ -64,7 +73,10 @@ watch(
     if (open) {
       resetState()
       try {
-        await store.fetchFeeComponents({ is_active: true, limit: 100 })
+        await Promise.all([
+          store.fetchFeeComponents({ is_active: true, limit: 100 }),
+          santriStore.fetchSantriList({ limit: 100 }),
+        ])
       } catch {
         /* error in store */
       }
@@ -122,11 +134,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           @submit="onSubmit"
         >
           <UFormField label="Santri" name="santri_id" required>
-            <UInput
+            <USelectMenu
               v-model="state.santri_id"
+              :items="santriOptions"
+              value-key="value"
+              placeholder="Cari nama atau NIS santri..."
+              searchable
               class="w-full"
-              variant="subtle"
-              placeholder="ID Santri"
             />
           </UFormField>
 

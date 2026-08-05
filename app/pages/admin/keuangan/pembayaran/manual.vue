@@ -55,7 +55,7 @@ watch(
 
 onMounted(async () => {
   try {
-    await store.fetchInvoices({ limit: 100, status: 'issued' })
+    await store.fetchInvoices({ limit: 100 })
   } catch {
     /* error in store */
   }
@@ -63,7 +63,7 @@ onMounted(async () => {
 
 const invoiceOptions = computed(() =>
   store.invoices
-    .filter((inv) => inv.status !== 'paid' && inv.status !== 'cancelled')
+    .filter((inv) => inv.status === 'issued' || inv.status === 'partial')
     .map((inv) => ({
       label: `${inv.invoice_number} - ${inv.fee_component?.name ?? inv.fee_component_id} (Sisa: ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(inv.amount - inv.discount_amount - inv.paid_amount).replace('Rp', 'Rp ')})`,
       value: inv.id,

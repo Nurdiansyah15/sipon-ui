@@ -20,6 +20,7 @@ async function load() {
   try {
     await Promise.all([
       store.fetchBillingSchemes({ limit: 100 }),
+      store.fetchAssignments(),
       santriStore.fetchSantriList({ limit: 100 }),
     ])
     santriList.value = santriStore.santriList
@@ -32,15 +33,37 @@ async function load() {
 
 onMounted(load)
 
+const assignmentBySantriId = computed(() => {
+  const map = new Map<string, typeof store.assignments[number]>()
+  for (const a of store.assignments) {
+    map.set(a.santri_id, a)
+  }
+  return map
+})
+
+function assignmentFor(santriId: string) {
+  return assignmentBySantriId.value.get(santriId) ?? null
+}
+
+function schemeName(schemeId: string) {
+  return store.billingSchemes.find((s) => s.id === schemeId)?.name ?? 'Skema tidak ditemukan'
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
 const columns: TableColumn<SantriItem>[] = [
   { accessorKey: 'nis', header: 'NIS' },
   { accessorKey: 'fullname', header: 'Nama' },
   { accessorKey: 'status', header: 'Status' },
+  { id: 'current_scheme', header: 'Skema Aktif' },
   { id: 'actions', header: 'Aksi' },
 ]
 
 const assignOpen = ref(false)
 const selectedSantri = ref<SantriItem | null>(null)
+const selectedAssignment = computed(() => selectedSantri.value ? assignmentFor(selectedSantri.value.id) : null)
 
 function openAssign(santri?: SantriItem) {
   selectedSantri.value = santri || null
@@ -95,16 +118,33 @@ function statusBadgeColor(status: string) {
           </UBadge>
         </template>
 
+        <template #current_scheme-cell="{ row }">
+          <template v-if="assignmentFor(row.original.id)">
+            <div class="flex flex-col gap-0.5">
+              <UBadge color="success" variant="subtle" size="sm" class="w-fit">
+                {{ schemeName(assignmentFor(row.original.id)!.billing_scheme_id) }}
+              </UBadge>
+              <span class="text-xs text-gray-500 dark:text-gray-400">
+                sejak {{ formatDate(assignmentFor(row.original.id)!.effective_from) }}
+                <template v-if="assignmentFor(row.original.id)!.effective_until">
+                  – {{ formatDate(assignmentFor(row.original.id)!.effective_until!) }}
+                </template>
+              </span>
+            </div>
+          </template>
+          <UBadge v-else color="neutral" variant="subtle" size="sm">Belum ada skema</UBadge>
+        </template>
+
         <template #actions-cell="{ row }">
           <UButton
             v-if="can('manage_keuangan')"
             variant="ghost"
             size="sm"
-            icon="i-lucide-user-check"
+            :icon="assignmentFor(row.original.id) ? 'i-lucide-repeat' : 'i-lucide-user-check'"
             color="neutral"
             @click="openAssign(row.original)"
           >
-            Tetapkan Skema
+            {{ assignmentFor(row.original.id) ? 'Ganti Skema' : 'Tetapkan Skema' }}
           </UButton>
         </template>
       </UTable>
@@ -115,6 +155,7 @@ function statusBadgeColor(status: string) {
       :schemes="store.billingSchemes"
       :santri-list="santriList"
       :selected-santri="selectedSantri"
+      :current-assignment="selectedAssignment"
       @success="load"
     />
   </div>

@@ -27,7 +27,7 @@ const state = reactive<Partial<Schema>>({
 
 const confirmOpen = ref(false)
 const isGenerating = ref(false)
-const batchResult = ref<any>(null)
+const batchResult = ref<{ message: string } | null>(null)
 
 const schemeOptions = computed(() =>
   store.billingSchemes
@@ -107,9 +107,12 @@ function resetForm() {
     </div>
 
     <div v-if="batchResult" class="mb-6 rounded-lg border border-green-200 bg-green-50 p-6 dark:border-green-800 dark:bg-green-900/20">
-      <h2 class="mb-3 text-lg font-semibold text-green-800 dark:text-green-300">Hasil Generate</h2>
-      <div class="space-y-2 text-sm text-green-700 dark:text-green-400">
-        <pre class="whitespace-pre-wrap rounded bg-green-100 p-3 text-xs dark:bg-green-900/30">{{ JSON.stringify(batchResult, null, 2) }}</pre>
+      <div class="flex items-start gap-3">
+        <UIcon name="i-lucide-check-circle-2" class="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
+        <div>
+          <h2 class="mb-1 text-lg font-semibold text-green-800 dark:text-green-300">Hasil Generate</h2>
+          <p class="text-sm text-green-700 dark:text-green-400">{{ batchResult.message }}</p>
+        </div>
       </div>
       <div class="mt-4 flex gap-2">
         <UButton

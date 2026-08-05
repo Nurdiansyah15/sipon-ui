@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useKeuanganStore } from '~/stores/keuangan'
 import { parseApiError } from '~/utils/errorParser'
-import type { Invoice, Payment, InvoiceAdjustment } from '#shared/types/Keuangan'
+import type { Invoice } from '#shared/types/Keuangan'
 
 definePageMeta({ layout: 'default' })
 
@@ -11,8 +11,8 @@ const keuanganStore = useKeuanganStore()
 const toast = useToast()
 
 const invoice = ref<Invoice | null>(null)
-const payments = ref<Payment[]>([])
-const adjustments = ref<InvoiceAdjustment[]>([])
+const payments = computed(() => invoice.value?.payments ?? [])
+const adjustments = computed(() => invoice.value?.adjustments ?? [])
 
 function formatRupiah(value: number): string {
   return new Intl.NumberFormat('id-ID', {
@@ -60,10 +60,6 @@ onMounted(async () => {
   try {
     const invoiceId = route.params.id as string
     invoice.value = await keuanganStore.fetchMyInvoice(invoiceId)
-    
-    await keuanganStore.fetchMyPayments()
-    payments.value = keuanganStore.payments.filter(p => p.invoice_id === invoiceId)
-    
   } catch (err) {
     toast.add({ title: 'Gagal memuat data', description: parseApiError(err), color: 'error' })
     router.push('/keuangan/tagihan')

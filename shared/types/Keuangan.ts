@@ -74,6 +74,8 @@ export interface Invoice {
   notes: string | null
   created_at: string
   updated_at: string
+  payments?: Payment[]
+  adjustments?: InvoiceAdjustment[]
 }
 
 export interface Payment {

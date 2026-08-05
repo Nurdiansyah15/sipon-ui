@@ -29,6 +29,8 @@ async function load() {
 
 onMounted(load)
 
+const billingSchemes = computed(() => store.billingSchemes.filter((s) => s != null))
+
 const totalPages = computed(() => store.billingSchemesMeta?.total_pages ?? 1)
 const totalItems = computed(() => store.billingSchemesMeta?.total ?? 0)
 
@@ -105,7 +107,7 @@ function rowActions(row: BillingScheme): DropdownMenuItem[] {
 
     <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900">
       <UTable
-        :data="store.billingSchemes"
+        :data="billingSchemes"
         :columns="columns"
         :loading="store.isLoading"
         class="w-full"

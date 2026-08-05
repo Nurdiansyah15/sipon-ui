@@ -167,8 +167,8 @@ const statusOptions = [
     <div class="mb-4 flex flex-wrap items-center gap-2">
       <UInput
         v-model="invoiceSearch"
-        icon="i-lucide-search"
-        placeholder="Cari invoice ID…"
+        icon="i-lucide-filter"
+        placeholder="Filter berdasarkan ID Invoice (persis)"
         class="w-full sm:w-80"
         :ui="{ base: 'bg-gray-50 text-gray-900 placeholder:text-gray-400 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500' }"
       />

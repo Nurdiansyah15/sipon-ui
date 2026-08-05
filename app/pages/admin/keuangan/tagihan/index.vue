@@ -1,14 +1,37 @@
 <script setup lang="ts">
 import type { TableColumn, DropdownMenuItem } from '@nuxt/ui'
 import { useKeuanganStore } from '~/stores/keuangan'
+import { useKesantrianStore } from '~/stores/kesantrian'
 import { usePermission } from '~/composables/usePermission'
 import type { Invoice, InvoiceStatus } from '#shared/types/Keuangan'
 
 definePageMeta({ layout: 'keuangan' })
 
 const store = useKeuanganStore()
+const santriStore = useKesantrianStore()
 const toast = useToast()
 const { can } = usePermission()
+
+const santriNameById = computed(() => {
+  const map = new Map<string, string>()
+  for (const s of santriStore.santriList) {
+    map.set(s.id, s.fullname ? `${s.fullname}${s.nis ? ` (${s.nis})` : ''}` : s.nis ?? s.username)
+  }
+  return map
+})
+
+function santriLabel(santriId: string) {
+  return santriNameById.value.get(santriId) ?? santriId
+}
+
+const matchedSantriId = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  if (!q) return undefined
+  const match = santriStore.santriList.find((s) =>
+    s.fullname?.toLowerCase().includes(q) || s.nis?.toLowerCase().includes(q) || s.username?.toLowerCase().includes(q),
+  )
+  return match?.id
+})
 
 const page = ref(1)
 const limit = ref(10)
@@ -35,13 +58,16 @@ async function load() {
       status: statusFilter.value && statusFilter.value !== 'all' ? (statusFilter.value as InvoiceStatus) : undefined,
       periode: periodeFilter.value || undefined,
       tahun_ajaran: tahunAjaranFilter.value || undefined,
+      santri_id: matchedSantriId.value,
     })
   } catch {
     /* error in store */
   }
 }
 
-onMounted(load)
+onMounted(async () => {
+  await Promise.all([load(), santriStore.fetchSantriList({ limit: 100 })])
+})
 
 const createInvoiceOpen = ref(false)
 const cancelOpen = ref(false)
@@ -91,7 +117,7 @@ function rowActions(row: Invoice): DropdownMenuItem[] {
 
 const columns: TableColumn<Invoice>[] = [
   { accessorKey: 'invoice_number', header: 'No. Invoice' },
-  { accessorKey: 'santri_id', header: 'Santri' },
+  { id: 'santri_id', header: 'Santri' },
   { accessorKey: 'fee_component', header: 'Komponen' },
   { accessorKey: 'periode', header: 'Periode' },
   { accessorKey: 'tahun_ajaran', header: 'Tahun Ajaran' },
@@ -204,6 +230,10 @@ const statusOptions = [
       >
         <template #invoice_number-cell="{ row }">
           <code class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ row.original.invoice_number }}</code>
+        </template>
+
+        <template #santri_id-cell="{ row }">
+          <span class="text-sm text-gray-700 dark:text-gray-300">{{ santriLabel(row.original.santri_id) }}</span>
         </template>
 
         <template #fee_component-cell="{ row }">
