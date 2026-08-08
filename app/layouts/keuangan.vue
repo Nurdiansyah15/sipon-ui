@@ -13,7 +13,7 @@ onMounted(async () => {
 <template>
   <div class="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-950">
     <AppKeuanganNavbar />
-    <div class="md:pl-64">
+    <div class="flex flex-1 flex-col md:pl-64">
       <main class="flex-1 pb-16 md:pb-0">
         <slot />
       </main>
