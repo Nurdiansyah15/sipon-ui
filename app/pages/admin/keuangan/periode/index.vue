@@ -208,7 +208,7 @@ function onPeriodSuccess() {
     <ConfirmActionModal
       v-model:open="closeModalOpen"
       title="Tutup Periode"
-      :description="`Apakah Anda yakin ingin menutup periode '${selectedPeriod?.name}'? Tidak ada transaksi baru yang dapat dicatat pada periode ini.`"
+      :message="`Apakah Anda yakin ingin menutup periode '${selectedPeriod?.name}'? Tidak ada transaksi baru yang dapat dicatat pada periode ini.`"
       confirm-label="Tutup Periode"
       confirm-color="primary"
       :loading="store.isSubmitting"
@@ -218,7 +218,7 @@ function onPeriodSuccess() {
     <ConfirmActionModal
       v-model:open="reopenModalOpen"
       title="Buka Kembali Periode"
-      :description="`Apakah Anda yakin ingin membuka kembali periode '${selectedPeriod?.name}'? Transaksi baru dapat dicatat pada periode ini.`"
+      :message="`Apakah Anda yakin ingin membuka kembali periode '${selectedPeriod?.name}'? Transaksi baru dapat dicatat pada periode ini.`"
       confirm-label="Buka Kembali"
       confirm-color="primary"
       :loading="store.isSubmitting"
@@ -228,7 +228,7 @@ function onPeriodSuccess() {
     <ConfirmActionModal
       v-model:open="lockModalOpen"
       title="Kunci Periode"
-      :description="`PERINGATAN: Mengunci periode '${selectedPeriod?.name}' bersifat permanen dan tidak dapat dibatalkan. Tidak ada perubahan yang dapat dilakukan pada periode ini.`"
+      :message="`PERINGATAN: Mengunci periode '${selectedPeriod?.name}' bersifat permanen dan tidak dapat dibatalkan. Tidak ada perubahan yang dapat dilakukan pada periode ini.`"
       confirm-label="Kunci Permanen"
       confirm-color="error"
       :loading="store.isSubmitting"

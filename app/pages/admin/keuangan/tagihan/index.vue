@@ -37,8 +37,12 @@ const page = ref(1)
 const limit = ref(10)
 const search = ref('')
 const statusFilter = ref<string>('all')
-const periodeFilter = ref('')
-const tahunAjaranFilter = ref('')
+const billingPeriodFilter = ref<string>('all')
+
+const billingPeriodOptions = computed(() => [
+  { label: 'Semua periode', value: 'all' },
+  ...store.billingPeriods.map((p) => ({ label: p.name, value: p.id })),
+])
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 watch(search, () => {
@@ -48,7 +52,7 @@ watch(search, () => {
     load()
   }, 300)
 })
-watch([page, limit, statusFilter, periodeFilter, tahunAjaranFilter], () => load())
+watch([page, limit, statusFilter, billingPeriodFilter], () => load())
 
 async function load() {
   try {
@@ -56,8 +60,7 @@ async function load() {
       page: page.value,
       limit: limit.value,
       status: statusFilter.value && statusFilter.value !== 'all' ? (statusFilter.value as InvoiceStatus) : undefined,
-      periode: periodeFilter.value || undefined,
-      tahun_ajaran: tahunAjaranFilter.value || undefined,
+      billing_period_id: billingPeriodFilter.value && billingPeriodFilter.value !== 'all' ? billingPeriodFilter.value : undefined,
       santri_id: matchedSantriId.value,
     })
   } catch {
@@ -66,7 +69,11 @@ async function load() {
 }
 
 onMounted(async () => {
-  await Promise.all([load(), santriStore.fetchSantriList({ limit: 100 })])
+  await Promise.all([
+    load(),
+    santriStore.fetchSantriList({ limit: 100 }),
+    store.fetchBillingPeriods({ limit: 100 }),
+  ])
 })
 
 const createInvoiceOpen = ref(false)
@@ -119,8 +126,7 @@ const columns: TableColumn<Invoice>[] = [
   { accessorKey: 'invoice_number', header: 'No. Invoice' },
   { id: 'santri_id', header: 'Santri' },
   { accessorKey: 'fee_component', header: 'Komponen' },
-  { accessorKey: 'periode', header: 'Periode' },
-  { accessorKey: 'tahun_ajaran', header: 'Tahun Ajaran' },
+  { accessorKey: 'billing_period', header: 'Periode Tagihan' },
   { accessorKey: 'amount', header: 'Jumlah' },
   { accessorKey: 'paid_amount', header: 'Terbayar' },
   { accessorKey: 'status', header: 'Status' },
@@ -206,17 +212,12 @@ const statusOptions = [
         class="w-44"
         :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
       />
-      <UInput
-        v-model="periodeFilter"
-        placeholder="Periode"
-        class="w-36"
-        :ui="{ base: 'bg-gray-50 dark:bg-gray-800' }"
-      />
-      <UInput
-        v-model="tahunAjaranFilter"
-        placeholder="Tahun Ajaran"
-        class="w-40"
-        :ui="{ base: 'bg-gray-50 dark:bg-gray-800' }"
+      <USelect
+        v-model="billingPeriodFilter"
+        :items="billingPeriodOptions"
+        placeholder="Periode Tagihan"
+        class="w-52"
+        :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
       />
     </div>
 
@@ -240,6 +241,10 @@ const statusOptions = [
           <span class="text-sm text-gray-700 dark:text-gray-300">
             {{ row.original.fee_component ? `${row.original.fee_component.code} - ${row.original.fee_component.name}` : '-' }}
           </span>
+        </template>
+
+        <template #billing_period-cell="{ row }">
+          <span class="text-sm text-gray-700 dark:text-gray-300">{{ row.original.billing_period?.name ?? '-' }}</span>
         </template>
 
         <template #amount-cell="{ row }">

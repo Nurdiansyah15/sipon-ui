@@ -5,6 +5,9 @@ import type { ApiSuccess, ApiMeta } from '#shared/types/ApiResponse'
 import type {
   FeeComponent,
   BillingScheme,
+  BillingPeriod,
+  BillingBatch,
+  BillingBatchDetail,
   Invoice,
   Payment,
   SantriBillingAssignment,
@@ -16,10 +19,14 @@ import type {
   AssignSchemeRequest,
   CreateInvoiceRequest,
   CreateInvoiceBatchRequest,
+  CreateInvoiceBatchResponse,
+  CreateBillingPeriodRequest,
   ApplyAdjustmentRequest,
   CreatePaymentRequest,
   FeeComponentListQuery,
   BillingSchemeListQuery,
+  BillingPeriodListQuery,
+  BillingBatchListQuery,
   InvoiceListQuery,
   PaymentListQuery,
 } from '#shared/types/Keuangan'
@@ -29,6 +36,12 @@ interface KeuanganState {
   feeComponentsMeta: ApiMeta | null
   billingSchemes: BillingScheme[]
   billingSchemesMeta: ApiMeta | null
+  billingPeriods: BillingPeriod[]
+  billingPeriodsMeta: ApiMeta | null
+  currentBillingPeriod: BillingPeriod | null
+  billingBatches: BillingBatch[]
+  billingBatchesMeta: ApiMeta | null
+  currentBillingBatch: BillingBatchDetail | null
   assignments: SantriBillingAssignment[]
   invoices: Invoice[]
   invoicesMeta: ApiMeta | null
@@ -47,6 +60,12 @@ export const useKeuanganStore = defineStore('keuangan', {
     feeComponentsMeta: null,
     billingSchemes: [],
     billingSchemesMeta: null,
+    billingPeriods: [],
+    billingPeriodsMeta: null,
+    currentBillingPeriod: null,
+    billingBatches: [],
+    billingBatchesMeta: null,
+    currentBillingBatch: null,
     assignments: [],
     invoices: [],
     invoicesMeta: null,
@@ -70,8 +89,7 @@ export const useKeuanganStore = defineStore('keuangan', {
             page: query.page ?? 1,
             limit: query.limit ?? 10,
             status: query.status,
-            periode: query.periode,
-            tahun_ajaran: query.tahun_ajaran,
+            billing_period_id: query.billing_period_id,
           },
         })
         this.invoices = res.data
@@ -279,6 +297,98 @@ export const useKeuanganStore = defineStore('keuangan', {
       }
     },
 
+    async fetchBillingPeriods(query: BillingPeriodListQuery = {}) {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<BillingPeriod[]>>('/api/v1/web/keuangan/admin/billing-periods', {
+          query: {
+            status: query.status,
+            page: query.page ?? 1,
+            limit: query.limit ?? 10,
+          },
+        })
+        this.billingPeriods = res.data
+        this.billingPeriodsMeta = res.meta
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat periode tagihan.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async fetchBillingPeriod(id: string): Promise<BillingPeriod> {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<BillingPeriod>>(`/api/v1/web/keuangan/admin/billing-periods/${id}`)
+        this.currentBillingPeriod = res.data
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat detail periode tagihan.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async createBillingPeriod(payload: CreateBillingPeriodRequest): Promise<BillingPeriod> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<BillingPeriod>>('/api/v1/web/keuangan/admin/billing-periods', payload)
+        this.billingPeriods.push(res.data)
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal membuat periode tagihan.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async openBillingPeriod(id: string): Promise<BillingPeriod> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<BillingPeriod>>(
+          `/api/v1/web/keuangan/admin/billing-periods/${id}/open`,
+        )
+        const idx = this.billingPeriods.findIndex((p) => p.id === id)
+        if (idx !== -1) this.billingPeriods[idx] = res.data
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal membuka periode tagihan.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async closeBillingPeriod(id: string): Promise<BillingPeriod> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<BillingPeriod>>(
+          `/api/v1/web/keuangan/admin/billing-periods/${id}/close`,
+        )
+        const idx = this.billingPeriods.findIndex((p) => p.id === id)
+        if (idx !== -1) this.billingPeriods[idx] = res.data
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal menutup periode tagihan.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
     async addSchemeItem(schemeId: string, payload: AddSchemeItemRequest) {
       this.isSubmitting = true
       this.error = null
@@ -359,8 +469,7 @@ export const useKeuanganStore = defineStore('keuangan', {
             santri_id: query.santri_id,
             user_id: query.user_id,
             status: query.status,
-            periode: query.periode,
-            tahun_ajaran: query.tahun_ajaran,
+            billing_period_id: query.billing_period_id,
             page: query.page ?? 1,
             limit: query.limit ?? 10,
           },
@@ -391,18 +500,59 @@ export const useKeuanganStore = defineStore('keuangan', {
       }
     },
 
-    async createInvoiceBatch(payload: CreateInvoiceBatchRequest) {
+    async createInvoiceBatch(payload: CreateInvoiceBatchRequest): Promise<CreateInvoiceBatchResponse> {
       this.isSubmitting = true
       this.error = null
       try {
         const api = useApi()
-        const res = await api.post('/api/v1/web/keuangan/admin/invoices/batch', payload)
+        const res = await api.post<ApiSuccess<CreateInvoiceBatchResponse>>(
+          '/api/v1/web/keuangan/admin/invoices/batch',
+          payload,
+        )
         return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal membuat tagihan massal.')
         throw err
       } finally {
         this.isSubmitting = false
+      }
+    },
+
+    async fetchBillingBatches(query: BillingBatchListQuery = {}) {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<BillingBatch[]>>('/api/v1/web/keuangan/admin/billing-batches', {
+          query: {
+            status: query.status,
+            page: query.page ?? 1,
+            limit: query.limit ?? 10,
+          },
+        })
+        this.billingBatches = res.data
+        this.billingBatchesMeta = res.meta
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat riwayat batch tagihan.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async fetchBillingBatch(id: string): Promise<BillingBatchDetail> {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<BillingBatchDetail>>(`/api/v1/web/keuangan/admin/billing-batches/${id}`)
+        this.currentBillingBatch = res.data
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat detail batch tagihan.')
+        throw err
+      } finally {
+        this.isLoading = false
       }
     },
 

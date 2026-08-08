@@ -1,17 +1,24 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import { useKeuanganReportsStore } from '~/stores/keuanganReports'
+import { useKeuanganStore } from '~/stores/keuangan'
 import { usePermission } from '~/composables/usePermission'
 import type { OutstandingBySantri } from '#shared/types/Keuangan'
 
 definePageMeta({ layout: 'keuangan' })
 
 const store = useKeuanganReportsStore()
+const keuanganStore = useKeuanganStore()
 const { can } = usePermission()
 
-const filterTahunAjaran = ref('')
+const filterBillingPeriodId = ref('all')
 const page = ref(1)
 const limit = ref(10)
+
+const billingPeriodOptions = computed(() => [
+  { label: 'Semua periode', value: 'all' },
+  ...keuanganStore.billingPeriods.map((p) => ({ label: p.name, value: p.id })),
+])
 
 const sortField = ref<'total_outstanding' | null>('total_outstanding')
 const sortDir = ref<'asc' | 'desc'>('desc')
@@ -19,14 +26,16 @@ const sortDir = ref<'asc' | 'desc'>('desc')
 async function loadData() {
   try {
     await store.fetchOutstanding({
-      tahun_ajaran: filterTahunAjaran.value || undefined,
+      billing_period_id: filterBillingPeriodId.value && filterBillingPeriodId.value !== 'all' ? filterBillingPeriodId.value : undefined,
     })
   } catch {
     // error handled in store
   }
 }
 
-onMounted(loadData)
+onMounted(async () => {
+  await Promise.all([keuanganStore.fetchBillingPeriods({ limit: 100 }), loadData()])
+})
 
 function toggleSort() {
   if (sortField.value === 'total_outstanding') {
@@ -82,12 +91,13 @@ const columns: TableColumn<OutstandingBySantri>[] = [
 
       <div class="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700/50 dark:bg-gray-900">
         <div>
-          <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tahun Ajaran</label>
-          <UInput
-            v-model="filterTahunAjaran"
-            placeholder="cth. 2025/2026"
-            class="w-48"
-            :ui="{ base: 'bg-gray-50 dark:bg-gray-800' }"
+          <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Periode Tagihan</label>
+          <USelect
+            v-model="filterBillingPeriodId"
+            :items="billingPeriodOptions"
+            placeholder="Semua periode"
+            class="w-52"
+            :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
           />
         </div>
         <UButton color="neutral" variant="outline" icon="i-lucide-search" @click="loadData">

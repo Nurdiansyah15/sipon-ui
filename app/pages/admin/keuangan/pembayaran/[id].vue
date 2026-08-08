@@ -209,8 +209,8 @@ const canVerify = computed(() =>
             <p class="font-semibold text-green-600 dark:text-green-400">{{ formatRupiah(payment.invoice.paid_amount) }}</p>
           </div>
           <div>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Periode</p>
-            <p class="font-medium text-gray-900 dark:text-gray-100">{{ payment.invoice.periode }} - {{ payment.invoice.tahun_ajaran }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Periode Tagihan</p>
+            <p class="font-medium text-gray-900 dark:text-gray-100">{{ payment.invoice.billing_period?.name ?? '-' }}</p>
           </div>
           <div>
             <p class="text-xs text-gray-500 dark:text-gray-400">Jatuh Tempo</p>

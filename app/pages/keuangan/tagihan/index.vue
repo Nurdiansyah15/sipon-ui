@@ -146,7 +146,7 @@ function getStatusColor(status: string): string {
               </p>
               <p>
                 <span class="font-medium text-gray-700 dark:text-gray-300">Periode:</span>
-                {{ invoice.periode }} {{ invoice.tahun_ajaran }}
+                {{ invoice.billing_period?.name ?? '-' }}
               </p>
               <p>
                 <span class="font-medium text-gray-700 dark:text-gray-300">Jatuh Tempo:</span>

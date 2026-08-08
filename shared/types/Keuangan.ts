@@ -10,6 +10,16 @@ export type NormalBalance = 'debit' | 'credit'
 export type JournalStatus = 'draft' | 'posted' | 'cancelled'
 export type SourceType = 'invoice_issued' | 'payment_verified' | 'invoice_cancelled' | 'adjustment' | 'closing' | 'manual'
 export type PeriodStatus = 'open' | 'closing' | 'closed' | 'locked'
+export type BillingPeriodStatus = 'draft' | 'open' | 'closed'
+export type BillingBatchStatus = 'processing' | 'completed' | 'failed'
+export type BillingBatchTargetStatus =
+  | 'pending'
+  | 'created'
+  | 'skipped_no_assignment'
+  | 'skipped_wrong_scheme'
+  | 'skipped_already_invoiced'
+  | 'skipped_component_missing'
+  | 'error'
 
 // Entities
 export interface FeeComponent {
@@ -55,6 +65,50 @@ export interface SantriBillingAssignment {
   created_at: string
 }
 
+export interface BillingPeriod {
+  id: string
+  name: string
+  period_type: PeriodType
+  start_date: string
+  end_date: string
+  status: BillingPeriodStatus
+  created_at: string
+  updated_at: string
+}
+
+export interface BillingPeriodBrief {
+  id: string
+  name: string
+  status: BillingPeriodStatus
+}
+
+export interface BillingBatch {
+  id: string
+  name: string
+  billing_scheme_id: string
+  billing_period_id: string
+  status: BillingBatchStatus
+  created_by: string
+  created_at: string
+  completed_at: string | null
+  total_created: number
+  total_skipped: number
+  total_error: number
+}
+
+export interface BillingBatchTarget {
+  id: string
+  santri_id: string
+  status: BillingBatchTargetStatus
+  invoice_id: string | null
+  reason: string | null
+  processed_at: string | null
+}
+
+export interface BillingBatchDetail extends BillingBatch {
+  targets: BillingBatchTarget[]
+}
+
 export interface Invoice {
   id: string
   invoice_number: string
@@ -63,8 +117,8 @@ export interface Invoice {
   billing_scheme_id: string | null
   fee_component_id: string
   fee_component?: FeeComponent
-  periode: string
-  tahun_ajaran: string
+  billing_period_id: string
+  billing_period?: BillingPeriodBrief
   amount: number
   discount_amount: number
   paid_amount: number
@@ -213,8 +267,7 @@ export interface AssignSchemeRequest {
 export interface CreateInvoiceRequest {
   santri_id: string
   fee_component_id: string
-  periode: string
-  tahun_ajaran: string
+  billing_period_id: string
   amount: number
   due_date: string
   notes?: string
@@ -222,9 +275,20 @@ export interface CreateInvoiceRequest {
 
 export interface CreateInvoiceBatchRequest {
   billing_scheme_id: string
-  periode: string
-  tahun_ajaran: string
+  billing_period_id: string
   due_date: string
+}
+
+export interface CreateInvoiceBatchResponse {
+  batch_id: string
+  status: BillingBatchStatus
+}
+
+export interface CreateBillingPeriodRequest {
+  name: string
+  period_type: PeriodType
+  start_date: string
+  end_date: string
 }
 
 export interface ApplyAdjustmentRequest {
@@ -297,8 +361,19 @@ export interface InvoiceListQuery {
   santri_id?: string
   user_id?: string
   status?: InvoiceStatus
-  periode?: string
-  tahun_ajaran?: string
+  billing_period_id?: string
+  page?: number
+  limit?: number
+}
+
+export interface BillingPeriodListQuery {
+  status?: BillingPeriodStatus
+  page?: number
+  limit?: number
+}
+
+export interface BillingBatchListQuery {
+  status?: BillingBatchStatus
   page?: number
   limit?: number
 }
@@ -333,13 +408,14 @@ export interface PeriodListQuery {
 
 // Reports
 export interface InvoiceSummary {
-  tahun_ajaran: string
-  periode: string
-  total_amount: number
-  total_paid: number
-  total_outstanding: number
-  invoice_count: number
-  paid_count: number
+  billing_period_id: string
+  billing_period_name: string
+  total_tagihan: number
+  total_terbayar: number
+  total_tunggakan: number
+  jumlah_invoice: number
+  jumlah_lunas: number
+  jumlah_belum: number
 }
 
 export interface OutstandingBySantri {

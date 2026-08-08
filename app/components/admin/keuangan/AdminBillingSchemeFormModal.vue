@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { z } from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
 import type { BillingScheme } from '#shared/types/Keuangan'
 import { useKeuanganStore } from '~/stores/keuangan'
 
@@ -16,6 +18,11 @@ const store = useKeuanganStore()
 const toast = useToast()
 
 const isEdit = computed(() => !!props.scheme)
+
+const schema = z.object({
+  name: z.string().min(1, 'Nama skema wajib diisi'),
+  description: z.string().optional(),
+})
 
 const form = reactive({
   name: '',
@@ -36,12 +43,7 @@ watch(() => props.open, (val) => {
 
 const saving = ref(false)
 
-async function save() {
-  if (!form.name.trim()) {
-    toast.add({ title: 'Nama skema wajib diisi', color: 'warning' })
-    return
-  }
-
+async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
   saving.value = true
   try {
     if (isEdit.value && props.scheme) {
@@ -76,26 +78,38 @@ function close() {
   <UModal :open="open" :dismissible="!saving" @update:open="(v: boolean) => emit('update:open', v)">
     <template #content>
       <div class="p-6">
-        <div class="mb-4 flex items-center justify-between">
+        <div class="mb-5 flex items-center justify-between">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {{ isEdit ? 'Edit Skema Tagihan' : 'Tambah Skema Tagihan' }}
           </h3>
-          <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="sm" square :disabled="saving" @click="close" />
+          <UButton
+            v-if="!saving"
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-x"
+            size="sm"
+            square
+            @click="close"
+          />
         </div>
 
-        <div class="space-y-4">
-          <UFormField label="Nama" required>
-            <UInput v-model="form.name" placeholder="Nama skema tagihan" />
+        <UForm :schema="schema" :state="form" class="space-y-4" @submit="onSubmit">
+          <UFormField label="Nama" name="name" required>
+            <UInput v-model="form.name" placeholder="Nama skema tagihan" variant="subtle" class="w-full" />
           </UFormField>
-          <UFormField label="Deskripsi">
-            <UTextarea v-model="form.description" placeholder="Deskripsi (opsional)" :rows="2" />
+          <UFormField label="Deskripsi" name="description">
+            <UTextarea v-model="form.description" placeholder="Deskripsi (opsional)" :rows="2" variant="subtle" class="w-full" />
           </UFormField>
-        </div>
 
-        <div class="mt-6 flex justify-end gap-2">
-          <UButton color="neutral" variant="ghost" :disabled="saving" @click="close">Batal</UButton>
-          <UButton color="primary" :loading="saving" @click="save">Simpan</UButton>
-        </div>
+          <div class="flex justify-end gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
+            <UButton color="neutral" variant="outline" :disabled="saving" @click="close">
+              Batal
+            </UButton>
+            <UButton type="submit" :loading="saving" color="primary">
+              Simpan
+            </UButton>
+          </div>
+        </UForm>
       </div>
     </template>
   </UModal>

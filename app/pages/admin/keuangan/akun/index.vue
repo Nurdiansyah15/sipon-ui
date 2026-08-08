@@ -272,7 +272,7 @@ function formatNormalBalance(v: string) {
     <ConfirmActionModal
       v-model:open="deleteModalOpen"
       title="Nonaktifkan Akun"
-      :description="`Apakah Anda yakin ingin menonaktifkan akun ${selectedAccount?.code} - ${selectedAccount?.name}?`"
+      :message="`Apakah Anda yakin ingin menonaktifkan akun ${selectedAccount?.code} - ${selectedAccount?.name}?`"
       confirm-label="Nonaktifkan"
       confirm-color="error"
       :loading="store.isSubmitting"

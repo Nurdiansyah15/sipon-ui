@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { z } from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
 import type { FeeComponent, FeeComponentType, PeriodType } from '#shared/types/Keuangan'
 import { useKeuanganStore } from '~/stores/keuangan'
 
@@ -30,6 +32,16 @@ const periodOptions = [
   { label: 'Tahunan', value: 'yearly' as PeriodType },
   { label: 'Sekali', value: 'once' as PeriodType },
 ]
+
+const schema = z.object({
+  code: z.string().min(1, 'Kode wajib diisi'),
+  name: z.string().min(1, 'Nama wajib diisi'),
+  type: z.enum(['ukt', 'spp', 'daftar_ulang', 'insidental']),
+  amount: z.number().positive('Jumlah harus lebih dari 0'),
+  is_periodic: z.boolean(),
+  period_type: z.enum(['monthly', 'semesterly', 'yearly', 'once']),
+  description: z.string().optional(),
+})
 
 const form = reactive({
   code: '',
@@ -65,20 +77,7 @@ watch(() => props.open, (val) => {
 
 const saving = ref(false)
 
-async function save() {
-  if (!form.code.trim()) {
-    toast.add({ title: 'Kode wajib diisi', color: 'warning' })
-    return
-  }
-  if (!form.name.trim()) {
-    toast.add({ title: 'Nama wajib diisi', color: 'warning' })
-    return
-  }
-  if (form.amount <= 0) {
-    toast.add({ title: 'Jumlah harus lebih dari 0', color: 'warning' })
-    return
-  }
-
+async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
   saving.value = true
   try {
     if (isEdit.value && props.component) {
@@ -121,41 +120,59 @@ function close() {
   <UModal :open="open" :dismissible="!saving" @update:open="(v: boolean) => emit('update:open', v)">
     <template #content>
       <div class="p-6">
-        <div class="mb-4 flex items-center justify-between">
+        <div class="mb-5 flex items-center justify-between">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {{ isEdit ? 'Edit Komponen Biaya' : 'Tambah Komponen Biaya' }}
           </h3>
-          <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="sm" square :disabled="saving" @click="close" />
+          <UButton
+            v-if="!saving"
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-x"
+            size="sm"
+            square
+            @click="close"
+          />
         </div>
 
-        <div class="space-y-4">
-          <UFormField label="Kode" required>
-            <UInput v-model="form.code" placeholder="Contoh: UKT-001" :disabled="isEdit" />
-          </UFormField>
-          <UFormField label="Nama" required>
-            <UInput v-model="form.name" placeholder="Nama komponen biaya" />
-          </UFormField>
-          <UFormField label="Tipe" required>
-            <USelect v-model="form.type" :items="typeOptions" :disabled="isEdit" />
-          </UFormField>
-          <UFormField label="Jumlah (Rp)" required>
-            <UInput v-model.number="form.amount" type="number" placeholder="0" :min="0" />
-          </UFormField>
+        <UForm :schema="schema" :state="form" class="space-y-4" @submit="onSubmit">
+          <div class="grid grid-cols-2 gap-3">
+            <UFormField label="Kode" name="code" required>
+              <UInput v-model="form.code" placeholder="Contoh: UKT-001" :disabled="isEdit" variant="subtle" class="w-full" />
+            </UFormField>
+            <UFormField label="Nama" name="name" required>
+              <UInput v-model="form.name" placeholder="Nama komponen biaya" variant="subtle" class="w-full" />
+            </UFormField>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <UFormField label="Tipe" name="type" required>
+              <USelect v-model="form.type" :items="typeOptions" :disabled="isEdit" variant="subtle" class="w-full" />
+            </UFormField>
+            <UFormField label="Jumlah (Rp)" name="amount" required>
+              <UInput v-model.number="form.amount" type="number" placeholder="0" :min="0" variant="subtle" class="w-full" />
+            </UFormField>
+          </div>
+
           <UFormField label="Berkala">
             <USwitch v-model="form.is_periodic" class="mb-1" />
           </UFormField>
-          <UFormField v-if="form.is_periodic" label="Periode">
-            <USelect v-model="form.period_type" :items="periodOptions" />
+          <UFormField v-if="form.is_periodic" label="Periode" name="period_type">
+            <USelect v-model="form.period_type" :items="periodOptions" variant="subtle" class="w-full" />
           </UFormField>
-          <UFormField label="Deskripsi">
-            <UTextarea v-model="form.description" placeholder="Deskripsi (opsional)" :rows="2" />
+          <UFormField label="Deskripsi" name="description">
+            <UTextarea v-model="form.description" placeholder="Deskripsi (opsional)" :rows="2" variant="subtle" class="w-full" />
           </UFormField>
-        </div>
 
-        <div class="mt-6 flex justify-end gap-2">
-          <UButton color="neutral" variant="ghost" :disabled="saving" @click="close">Batal</UButton>
-          <UButton color="primary" :loading="saving" @click="save">Simpan</UButton>
-        </div>
+          <div class="flex justify-end gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
+            <UButton color="neutral" variant="outline" :disabled="saving" @click="close">
+              Batal
+            </UButton>
+            <UButton type="submit" :loading="saving" color="primary">
+              Simpan
+            </UButton>
+          </div>
+        </UForm>
       </div>
     </template>
   </UModal>

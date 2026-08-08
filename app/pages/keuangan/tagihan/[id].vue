@@ -100,7 +100,7 @@ onMounted(async () => {
             </div>
             <div>
               <h3 class="font-semibold text-gray-900 dark:text-gray-100">{{ invoice.invoice_number }}</h3>
-              <p class="text-sm text-gray-500">{{ invoice.periode }} {{ invoice.tahun_ajaran }}</p>
+              <p class="text-sm text-gray-500">{{ invoice.billing_period?.name ?? '-' }}</p>
             </div>
           </div>
           <KeuanganStatusBadge :status="invoice.status" type="invoice" size="md" />

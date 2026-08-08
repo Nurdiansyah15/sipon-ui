@@ -242,7 +242,7 @@ async function handleCancel() {
     <ConfirmActionModal
       v-model:open="cancelModalOpen"
       title="Batalkan Jurnal"
-      description="Apakah Anda yakin ingin membatalkan jurnal ini? Tindakan ini akan membuat jurnal reversalan dan tidak dapat dibatalkan ulang."
+      message="Apakah Anda yakin ingin membatalkan jurnal ini? Tindakan ini akan membuat jurnal reversalan dan tidak dapat dibatalkan ulang."
       confirm-label="Batalkan"
       confirm-color="error"
       :loading="store.isSubmitting"

@@ -35,15 +35,14 @@ export const useKeuanganReportsStore = defineStore('keuanganReports', {
   }),
 
   actions: {
-    async fetchSummary(query: { tahun_ajaran?: string; periode?: string } = {}) {
+    async fetchSummary(query: { billing_period_id?: string } = {}) {
       this.isLoading = true
       this.error = null
       try {
         const api = useApi()
         const res = await api.get<ApiSuccess<InvoiceSummary[]>>('/api/v1/web/keuangan/admin/reports/summary', {
           query: {
-            tahun_ajaran: query.tahun_ajaran,
-            periode: query.periode,
+            billing_period_id: query.billing_period_id,
           },
         })
         this.summary = res.data
@@ -55,7 +54,7 @@ export const useKeuanganReportsStore = defineStore('keuanganReports', {
       }
     },
 
-    async fetchOutstanding(query: { tahun_ajaran?: string; periode?: string } = {}) {
+    async fetchOutstanding(query: { billing_period_id?: string } = {}) {
       this.isLoading = true
       this.error = null
       try {
@@ -64,8 +63,7 @@ export const useKeuanganReportsStore = defineStore('keuanganReports', {
           '/api/v1/web/keuangan/admin/reports/outstanding',
           {
             query: {
-              tahun_ajaran: query.tahun_ajaran,
-              periode: query.periode,
+              billing_period_id: query.billing_period_id,
             },
           },
         )

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { z } from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
 import type { BillingScheme, SantriBillingAssignment } from '#shared/types/Keuangan'
 import type { SantriItem } from '#shared/types/Kesantrian'
 import { useKeuanganStore } from '~/stores/keuangan'
@@ -41,6 +43,13 @@ function formatDate(value: string) {
   return new Date(value).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+const schema = z.object({
+  santri_id: z.string().min(1, 'Pilih santri'),
+  billing_scheme_id: z.string().min(1, 'Pilih skema tagihan'),
+  effective_from: z.string().min(1, 'Tanggal berlaku wajib diisi'),
+  effective_until: z.string().optional(),
+})
+
 const form = reactive({
   santri_id: '',
   billing_scheme_id: '',
@@ -59,20 +68,7 @@ watch(() => props.open, (val) => {
 
 const saving = ref(false)
 
-async function save() {
-  if (!form.santri_id) {
-    toast.add({ title: 'Pilih santri', color: 'warning' })
-    return
-  }
-  if (!form.billing_scheme_id) {
-    toast.add({ title: 'Pilih skema tagihan', color: 'warning' })
-    return
-  }
-  if (!form.effective_from) {
-    toast.add({ title: 'Tanggal berlaku wajib diisi', color: 'warning' })
-    return
-  }
-
+async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
   saving.value = true
   try {
     await store.assignSchemeToSantri({
@@ -101,11 +97,19 @@ function close() {
   <UModal :open="open" :dismissible="!saving" @update:open="(v: boolean) => emit('update:open', v)">
     <template #content>
       <div class="p-6">
-        <div class="mb-4 flex items-center justify-between">
+        <div class="mb-5 flex items-center justify-between">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {{ currentAssignment ? 'Ganti Skema Santri' : 'Tetapkan Skema ke Santri' }}
           </h3>
-          <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="sm" square :disabled="saving" @click="close" />
+          <UButton
+            v-if="!saving"
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-x"
+            size="sm"
+            square
+            @click="close"
+          />
         </div>
 
         <div
@@ -116,8 +120,8 @@ function close() {
           Menyimpan skema baru akan mengakhiri skema ini pada tanggal sebelum tanggal berlaku baru.
         </div>
 
-        <div class="space-y-4">
-          <UFormField label="Santri" required>
+        <UForm :schema="schema" :state="form" class="space-y-4" @submit="onSubmit">
+          <UFormField label="Santri" name="santri_id" required>
             <USelectMenu
               v-model="form.santri_id"
               :items="santriOptions"
@@ -125,24 +129,29 @@ function close() {
               placeholder="Cari nama atau NIS santri..."
               searchable
               :disabled="!!selectedSantri"
+              variant="subtle"
               class="w-full"
             />
           </UFormField>
-          <UFormField label="Skema Tagihan" required>
-            <USelect v-model="form.billing_scheme_id" :items="schemeOptions" placeholder="Pilih skema" />
+          <UFormField label="Skema Tagihan" name="billing_scheme_id" required>
+            <USelect v-model="form.billing_scheme_id" :items="schemeOptions" placeholder="Pilih skema" variant="subtle" class="w-full" />
           </UFormField>
-          <UFormField label="Tanggal Berlaku" required>
-            <UInput v-model="form.effective_from" type="date" />
+          <UFormField label="Tanggal Berlaku" name="effective_from" required>
+            <UInput v-model="form.effective_from" type="date" variant="subtle" class="w-full" />
           </UFormField>
-          <UFormField label="Tanggal Berakhir" :hint="`Kosongkan jika tidak ada batas`">
-            <UInput v-model="form.effective_until" type="date" />
+          <UFormField label="Tanggal Berakhir" name="effective_until" :hint="`Kosongkan jika tidak ada batas`">
+            <UInput v-model="form.effective_until" type="date" variant="subtle" class="w-full" />
           </UFormField>
-        </div>
 
-        <div class="mt-6 flex justify-end gap-2">
-          <UButton color="neutral" variant="ghost" :disabled="saving" @click="close">Batal</UButton>
-          <UButton color="primary" :loading="saving" @click="save">Simpan</UButton>
-        </div>
+          <div class="flex justify-end gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
+            <UButton color="neutral" variant="outline" :disabled="saving" @click="close">
+              Batal
+            </UButton>
+            <UButton type="submit" :loading="saving" color="primary">
+              Simpan
+            </UButton>
+          </div>
+        </UForm>
       </div>
     </template>
   </UModal>

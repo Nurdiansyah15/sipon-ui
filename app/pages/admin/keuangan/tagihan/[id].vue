@@ -167,12 +167,8 @@ function outstandingAmount(inv: Invoice): number {
             </p>
           </div>
           <div>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Periode</p>
-            <p class="font-medium text-gray-900 dark:text-gray-100">{{ invoice.periode }}</p>
-          </div>
-          <div>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Tahun Ajaran</p>
-            <p class="font-medium text-gray-900 dark:text-gray-100">{{ invoice.tahun_ajaran }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Periode Tagihan</p>
+            <p class="font-medium text-gray-900 dark:text-gray-100">{{ invoice.billing_period?.name ?? '-' }}</p>
           </div>
           <div>
             <p class="text-xs text-gray-500 dark:text-gray-400">Jatuh Tempo</p>

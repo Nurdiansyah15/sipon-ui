@@ -1,33 +1,30 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
+import type { TableColumn } from '@nuxt/ui'
 import { useKeuanganStore } from '~/stores/keuangan'
-import { usePermission } from '~/composables/usePermission'
+import type { BillingBatch } from '#shared/types/Keuangan'
 
 definePageMeta({ layout: 'keuangan' })
 
 const store = useKeuanganStore()
 const toast = useToast()
-const { can } = usePermission()
 
 const schema = z.object({
   billing_scheme_id: z.string().min(1, 'Skema tagihan wajib dipilih'),
-  periode: z.string().min(1, 'Periode wajib diisi'),
-  tahun_ajaran: z.string().min(1, 'Tahun ajaran wajib diisi'),
+  billing_period_id: z.string().min(1, 'Periode tagihan wajib dipilih'),
   due_date: z.string().min(1, 'Tanggal jatuh tempo wajib diisi'),
 })
 type Schema = z.output<typeof schema>
 
 const state = reactive<Partial<Schema>>({
   billing_scheme_id: '',
-  periode: '',
-  tahun_ajaran: '',
+  billing_period_id: '',
   due_date: '',
 })
 
 const confirmOpen = ref(false)
 const isGenerating = ref(false)
-const batchResult = ref<{ message: string } | null>(null)
 
 const schemeOptions = computed(() =>
   store.billingSchemes
@@ -42,9 +39,54 @@ const selectedScheme = computed(() =>
   store.billingSchemes.find((s) => s.id === state.billing_scheme_id),
 )
 
+const billingPeriodOptions = computed(() =>
+  store.billingPeriods.map((p) => ({
+    label: p.name,
+    value: p.id,
+  })),
+)
+
+const batchStatusLabel: Record<BillingBatch['status'], string> = {
+  processing: 'Diproses',
+  completed: 'Selesai',
+  failed: 'Gagal',
+}
+
+const batchStatusColor: Record<BillingBatch['status'], 'warning' | 'success' | 'error'> = {
+  processing: 'warning',
+  completed: 'success',
+  failed: 'error',
+}
+
+const historyColumns: TableColumn<BillingBatch>[] = [
+  { accessorKey: 'name', header: 'Batch' },
+  { accessorKey: 'status', header: 'Status' },
+  { accessorKey: 'total_created', header: 'Dibuat' },
+  { accessorKey: 'total_skipped', header: 'Dilewati' },
+  { accessorKey: 'total_error', header: 'Error' },
+  { accessorKey: 'created_at', header: 'Dibuat Pada' },
+  { id: 'actions', header: '' },
+]
+
+function formatDateTime(v: string) {
+  return new Date(v).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
+}
+
+async function loadHistory() {
+  try {
+    await store.fetchBillingBatches({ limit: 10 })
+  } catch {
+    /* error in store */
+  }
+}
+
 onMounted(async () => {
   try {
-    await store.fetchBillingSchemes({ is_active: true, limit: 100 })
+    await Promise.all([
+      store.fetchBillingSchemes({ is_active: true, limit: 100 }),
+      store.fetchBillingPeriods({ status: 'open', limit: 100 }),
+      loadHistory(),
+    ])
   } catch {
     /* error in store */
   }
@@ -59,13 +101,12 @@ async function confirmGenerate() {
   try {
     const res = await store.createInvoiceBatch({
       billing_scheme_id: state.billing_scheme_id!,
-      periode: state.periode!,
-      tahun_ajaran: state.tahun_ajaran!,
+      billing_period_id: state.billing_period_id!,
       due_date: state.due_date!,
     })
-    batchResult.value = res
-    toast.add({ title: 'Tagihan massal berhasil dibuat', color: 'success' })
     confirmOpen.value = false
+    toast.add({ title: 'Tagihan massal sedang diproses', color: 'success' })
+    await navigateTo(`/admin/keuangan/tagihan/batch/${res.batch_id}`)
   } catch {
     toast.add({
       title: 'Gagal membuat tagihan massal',
@@ -76,14 +117,6 @@ async function confirmGenerate() {
   } finally {
     isGenerating.value = false
   }
-}
-
-function resetForm() {
-  state.billing_scheme_id = ''
-  state.periode = ''
-  state.tahun_ajaran = ''
-  state.due_date = ''
-  batchResult.value = null
 }
 </script>
 
@@ -106,29 +139,7 @@ function resetForm() {
       </p>
     </div>
 
-    <div v-if="batchResult" class="mb-6 rounded-lg border border-green-200 bg-green-50 p-6 dark:border-green-800 dark:bg-green-900/20">
-      <div class="flex items-start gap-3">
-        <UIcon name="i-lucide-check-circle-2" class="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-        <div>
-          <h2 class="mb-1 text-lg font-semibold text-green-800 dark:text-green-300">Hasil Generate</h2>
-          <p class="text-sm text-green-700 dark:text-green-400">{{ batchResult.message }}</p>
-        </div>
-      </div>
-      <div class="mt-4 flex gap-2">
-        <UButton
-          color="neutral"
-          variant="outline"
-          @click="navigateTo('/admin/keuangan/tagihan')"
-        >
-          Lihat Daftar Tagihan
-        </UButton>
-        <UButton color="neutral" variant="ghost" @click="resetForm">
-          Generate Lagi
-        </UButton>
-      </div>
-    </div>
-
-    <div v-else class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">
+    <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">
       <UForm
         :schema="schema"
         :state="state"
@@ -153,14 +164,15 @@ function resetForm() {
           </p>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <UFormField label="Periode" name="periode" required>
-            <UInput v-model="state.periode" class="w-full" variant="subtle" placeholder="Semester 1" />
-          </UFormField>
-          <UFormField label="Tahun Ajaran" name="tahun_ajaran" required>
-            <UInput v-model="state.tahun_ajaran" class="w-full" variant="subtle" placeholder="2025/2026" />
-          </UFormField>
-        </div>
+        <UFormField label="Periode Tagihan" name="billing_period_id" required>
+          <USelect
+            v-model="state.billing_period_id"
+            :items="billingPeriodOptions"
+            placeholder="Pilih periode tagihan"
+            class="w-full"
+            :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
+          />
+        </UFormField>
 
         <UFormField label="Jatuh Tempo" name="due_date" required>
           <UInput
@@ -190,6 +202,44 @@ function resetForm() {
           </UButton>
         </div>
       </UForm>
+    </div>
+
+    <div class="mt-8">
+      <h2 class="mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100">Riwayat Batch Terbaru</h2>
+      <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900">
+        <UTable
+          :data="store.billingBatches"
+          :columns="historyColumns"
+          :loading="store.isLoading"
+          class="w-full"
+          :ui="{ th: 'text-gray-900 font-bold dark:text-gray-100' }"
+        >
+          <template #name-cell="{ row }">
+            <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ row.original.name }}</span>
+          </template>
+
+          <template #status-cell="{ row }">
+            <UBadge :color="batchStatusColor[row.original.status]" variant="subtle" size="sm">
+              {{ batchStatusLabel[row.original.status] }}
+            </UBadge>
+          </template>
+
+          <template #created_at-cell="{ row }">
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ formatDateTime(row.original.created_at) }}</span>
+          </template>
+
+          <template #actions-cell="{ row }">
+            <UButton
+              size="xs"
+              color="neutral"
+              variant="outline"
+              @click="navigateTo(`/admin/keuangan/tagihan/batch/${row.original.id}`)"
+            >
+              Lihat Detail
+            </UButton>
+          </template>
+        </UTable>
+      </div>
     </div>
 
     <AdminConfirmActionModal

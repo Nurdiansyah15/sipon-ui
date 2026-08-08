@@ -27,8 +27,7 @@ const santriOptions = computed(() =>
 const schema = z.object({
   santri_id: z.string().min(1, 'Santri wajib dipilih'),
   fee_component_id: z.string().min(1, 'Komponen biaya wajib dipilih'),
-  periode: z.string().min(1, 'Periode wajib diisi'),
-  tahun_ajaran: z.string().min(1, 'Tahun ajaran wajib diisi'),
+  billing_period_id: z.string().min(1, 'Periode tagihan wajib dipilih'),
   amount: z.number().min(1, 'Jumlah wajib diisi'),
   due_date: z.string().min(1, 'Tanggal jatuh tempo wajib diisi'),
   notes: z.string().optional(),
@@ -38,8 +37,7 @@ type Schema = z.output<typeof schema>
 const state = reactive<Partial<Schema>>({
   santri_id: '',
   fee_component_id: '',
-  periode: '',
-  tahun_ajaran: '',
+  billing_period_id: '',
   amount: undefined,
   due_date: '',
   notes: '',
@@ -52,11 +50,17 @@ const componentOptions = computed(() =>
   })),
 )
 
+const billingPeriodOptions = computed(() =>
+  store.billingPeriods.map((p) => ({
+    label: p.name,
+    value: p.id,
+  })),
+)
+
 function resetState() {
   state.santri_id = ''
   state.fee_component_id = ''
-  state.periode = ''
-  state.tahun_ajaran = ''
+  state.billing_period_id = ''
   state.amount = undefined
   state.due_date = ''
   state.notes = ''
@@ -75,6 +79,7 @@ watch(
       try {
         await Promise.all([
           store.fetchFeeComponents({ is_active: true, limit: 100 }),
+          store.fetchBillingPeriods({ status: 'open', limit: 100 }),
           santriStore.fetchSantriList({ limit: 100 }),
         ])
       } catch {
@@ -89,8 +94,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     await store.createInvoice({
       santri_id: event.data.santri_id,
       fee_component_id: event.data.fee_component_id,
-      periode: event.data.periode,
-      tahun_ajaran: event.data.tahun_ajaran,
+      billing_period_id: event.data.billing_period_id,
       amount: event.data.amount,
       due_date: event.data.due_date,
       notes: event.data.notes || undefined,
@@ -154,14 +158,15 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
             />
           </UFormField>
 
-          <div class="grid grid-cols-2 gap-4">
-            <UFormField label="Periode" name="periode" required>
-              <UInput v-model="state.periode" class="w-full" variant="subtle" placeholder="Semester 1" />
-            </UFormField>
-            <UFormField label="Tahun Ajaran" name="tahun_ajaran" required>
-              <UInput v-model="state.tahun_ajaran" class="w-full" variant="subtle" placeholder="2025/2026" />
-            </UFormField>
-          </div>
+          <UFormField label="Periode Tagihan" name="billing_period_id" required>
+            <USelect
+              v-model="state.billing_period_id"
+              :items="billingPeriodOptions"
+              placeholder="Pilih periode tagihan"
+              class="w-full"
+              :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
+            />
+          </UFormField>
 
           <UFormField label="Jumlah (Rp)" name="amount" required>
             <UInput

@@ -20,6 +20,7 @@ interface NavSection {
 const dashboardItem: NavItem = { label: 'Dashboard', icon: 'i-lucide-gauge', to: '/admin/keuangan' }
 
 const masterDataItems: NavItem[] = [
+  { label: 'Periode Tagihan', icon: 'i-lucide-calendar-range', to: '/admin/keuangan/periode-tagihan' },
   { label: 'Komponen Biaya', icon: 'i-lucide-coins', to: '/admin/keuangan/komponen' },
   { label: 'Skema Tagihan', icon: 'i-lucide-package', to: '/admin/keuangan/skema' },
   { label: 'Skema Santri', icon: 'i-lucide-users', to: '/admin/keuangan/santri' },
