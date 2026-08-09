@@ -9,9 +9,10 @@ definePageMeta({ layout: 'keuangan' })
 const reportsStore = useKeuanganReportsStore()
 const accStore = useKeuanganAccountingStore()
 const { can } = usePermission()
+const { isDownloading, downloadPdf } = usePdfDownload()
 
-const filterPeriodId = ref('')
-const filterAsOfDate = ref('')
+const filterPeriodId = useQueryParamRef('period_id', '')
+const filterAsOfDate = useQueryParamRef('as_of_date', '')
 
 const periodItems = computed(() =>
   accStore.periods.map((p) => ({
@@ -40,6 +41,19 @@ async function loadData() {
   }
 }
 
+async function onDownloadPdf() {
+  const asOf = effectiveAsOfDate()
+  if (!asOf) return
+  try {
+    await downloadPdf(
+      `/api/v1/web/keuangan/admin/reports/balance-sheet/pdf?as_of_date=${encodeURIComponent(asOf)}`,
+      `neraca-${asOf}.pdf`,
+    )
+  } catch {
+    // handled in composable
+  }
+}
+
 function formatDate(value?: string | null) {
   if (!value) return '-'
   try {
@@ -56,6 +70,9 @@ function formatDate(value?: string | null) {
 onMounted(async () => {
   try {
     await accStore.fetchPeriods({ limit: 100 })
+    if (filterPeriodId.value || filterAsOfDate.value) {
+      await loadData()
+    }
   } catch {
     // error handled in store
   }
@@ -101,6 +118,16 @@ onMounted(async () => {
         </UButton>
         <UButton color="neutral" variant="ghost" icon="i-lucide-printer" @click="window.print()">
           Cetak
+        </UButton>
+        <UButton
+          color="teal"
+          variant="soft"
+          icon="i-lucide-file-down"
+          :disabled="!effectiveAsOfDate()"
+          :loading="isDownloading"
+          @click="onDownloadPdf"
+        >
+          Unduh PDF
         </UButton>
       </div>
 

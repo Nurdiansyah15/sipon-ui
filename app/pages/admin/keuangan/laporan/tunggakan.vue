@@ -10,9 +10,12 @@ definePageMeta({ layout: 'keuangan' })
 const store = useKeuanganReportsStore()
 const keuanganStore = useKeuanganStore()
 const { can } = usePermission()
+const { isDownloading, downloadPdf } = usePdfDownload()
 
-const filterBillingPeriodId = ref('all')
-const page = ref(1)
+const filterBillingPeriodId = useQueryParamRef('billing_period_id', 'all', {
+  serialize: (v) => (v === 'all' || v === '' ? undefined : v),
+})
+const page = useQueryParamRef('page', 1, { parse: (raw) => Number.parseInt(raw, 10) || 1, serialize: (v) => (v > 1 ? String(v) : undefined) })
 const limit = ref(10)
 
 const billingPeriodOptions = computed(() => [
@@ -30,6 +33,18 @@ async function loadData() {
     })
   } catch {
     // error handled in store
+  }
+}
+
+async function onDownloadPdf() {
+  try {
+    const bp = filterBillingPeriodId.value && filterBillingPeriodId.value !== 'all' ? filterBillingPeriodId.value : ''
+    await downloadPdf(
+      `/api/v1/web/keuangan/admin/reports/outstanding/pdf${bp ? `?billing_period_id=${bp}` : ''}`,
+      'tunggakan-santri.pdf',
+    )
+  } catch {
+    // handled in composable
   }
 }
 
@@ -105,6 +120,15 @@ const columns: TableColumn<OutstandingBySantri>[] = [
         </UButton>
         <UButton color="neutral" variant="ghost" icon="i-lucide-printer" @click="window.print()">
           Cetak
+        </UButton>
+        <UButton
+          color="teal"
+          variant="soft"
+          icon="i-lucide-file-down"
+          :loading="isDownloading"
+          @click="onDownloadPdf"
+        >
+          Unduh PDF
         </UButton>
       </div>
 

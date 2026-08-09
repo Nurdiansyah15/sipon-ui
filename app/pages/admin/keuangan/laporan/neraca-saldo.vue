@@ -9,8 +9,9 @@ definePageMeta({ layout: 'keuangan' })
 const reportsStore = useKeuanganReportsStore()
 const accStore = useKeuanganAccountingStore()
 const { can } = usePermission()
+const { isDownloading, downloadPdf } = usePdfDownload()
 
-const filterPeriodId = ref('')
+const filterPeriodId = useQueryParamRef('period_id', '')
 
 const periodItems = computed(() =>
   accStore.periods.map((p) => ({
@@ -31,12 +32,27 @@ async function loadData() {
 onMounted(async () => {
   try {
     await accStore.fetchPeriods({ limit: 100 })
+    if (filterPeriodId.value) {
+      await loadData()
+    }
   } catch {
     // error handled in store
   }
 })
 
 const columns: TrialBalanceLine[] = []
+
+async function onDownloadPdf() {
+  if (!filterPeriodId.value) return
+  try {
+    await downloadPdf(
+      `/api/v1/web/keuangan/admin/reports/trial-balance/pdf?period_id=${filterPeriodId.value}`,
+      `neraca-saldo-${filterPeriodId.value}.pdf`,
+    )
+  } catch {
+    // handled in composable
+  }
+}
 
 function accountTypeLabel(type: string) {
   const map: Record<string, string> = {
@@ -80,6 +96,16 @@ function accountTypeLabel(type: string) {
         </UButton>
         <UButton color="neutral" variant="ghost" icon="i-lucide-printer" @click="window.print()">
           Cetak
+        </UButton>
+        <UButton
+          color="teal"
+          variant="soft"
+          icon="i-lucide-file-down"
+          :disabled="!filterPeriodId"
+          :loading="isDownloading"
+          @click="onDownloadPdf"
+        >
+          Unduh PDF
         </UButton>
       </div>
 

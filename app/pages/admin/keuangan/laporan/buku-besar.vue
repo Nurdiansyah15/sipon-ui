@@ -9,9 +9,10 @@ definePageMeta({ layout: 'keuangan' })
 const reportsStore = useKeuanganReportsStore()
 const accStore = useKeuanganAccountingStore()
 const { can } = usePermission()
+const { isDownloading, downloadPdf } = usePdfDownload()
 
-const filterAccountId = ref<string | null>(null)
-const filterPeriodId = ref('')
+const filterAccountId = useQueryParamRef<string | null>('account_id', null)
+const filterPeriodId = useQueryParamRef('period_id', '')
 
 const accountItems = computed(() =>
   accStore.accounts.map((a) => ({
@@ -44,6 +45,18 @@ function canSubmit() {
   return !!filterAccountId.value && !!filterPeriodId.value
 }
 
+async function onDownloadPdf() {
+  if (!canSubmit()) return
+  try {
+    await downloadPdf(
+      `/api/v1/web/keuangan/admin/reports/ledger/pdf?account_id=${filterAccountId.value}&period_id=${filterPeriodId.value}`,
+      `buku-besar-${filterAccountId.value}.pdf`,
+    )
+  } catch {
+    // handled in composable
+  }
+}
+
 function formatDate(value?: string | null) {
   if (!value) return '-'
   try {
@@ -74,6 +87,9 @@ onMounted(async () => {
       accStore.fetchAccounts({ is_active: true, limit: 1000 }),
       accStore.fetchPeriods({ limit: 100 }),
     ])
+    if (filterAccountId.value && filterPeriodId.value) {
+      await loadData()
+    }
   } catch {
     // error handled in store
   }
@@ -112,8 +128,23 @@ onMounted(async () => {
         >
           Tampilkan
         </UButton>
-        <UButton color="neutral" variant="ghost" icon="i-lucide-printer" @click="window.print()">
+        <UButton
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-printer"
+          @click="window.print()"
+        >
           Cetak
+        </UButton>
+        <UButton
+          color="teal"
+          variant="soft"
+          icon="i-lucide-file-down"
+          :disabled="!canSubmit()"
+          :loading="isDownloading"
+          @click="onDownloadPdf"
+        >
+          Unduh PDF
         </UButton>
       </div>
 

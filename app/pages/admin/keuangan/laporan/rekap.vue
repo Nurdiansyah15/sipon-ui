@@ -10,8 +10,11 @@ definePageMeta({ layout: 'keuangan' })
 const store = useKeuanganReportsStore()
 const keuanganStore = useKeuanganStore()
 const { can } = usePermission()
+const { isDownloading, downloadPdf } = usePdfDownload()
 
-const filterBillingPeriodId = ref('all')
+const filterBillingPeriodId = useQueryParamRef('billing_period_id', 'all', {
+  serialize: (v) => (v === 'all' || v === '' ? undefined : v),
+})
 
 const billingPeriodOptions = computed(() => [
   { label: 'Semua periode', value: 'all' },
@@ -25,6 +28,18 @@ async function loadData() {
     })
   } catch {
     // error handled in store
+  }
+}
+
+async function onDownloadPdf() {
+  try {
+    const bp = filterBillingPeriodId.value && filterBillingPeriodId.value !== 'all' ? filterBillingPeriodId.value : ''
+    await downloadPdf(
+      `/api/v1/web/keuangan/admin/reports/summary/pdf${bp ? `?billing_period_id=${bp}` : ''}`,
+      'rekap-tagihan.pdf',
+    )
+  } catch {
+    // handled in composable
   }
 }
 
@@ -91,6 +106,15 @@ function formatRupiah(value: number): string {
         </UButton>
         <UButton color="neutral" variant="ghost" icon="i-lucide-printer" @click="window.print()">
           Cetak
+        </UButton>
+        <UButton
+          color="teal"
+          variant="soft"
+          icon="i-lucide-file-down"
+          :loading="isDownloading"
+          @click="onDownloadPdf"
+        >
+          Unduh PDF
         </UButton>
       </div>
 
