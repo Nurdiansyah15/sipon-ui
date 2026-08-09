@@ -30,14 +30,10 @@ const periodItems = computed(() =>
 async function loadData() {
   if (!filterAccountId.value || !filterPeriodId.value) return
 
-  const period = accStore.periods.find((p) => p.id === filterPeriodId.value)
-  if (!period) return
-
   try {
     await reportsStore.fetchLedger({
       account_id: filterAccountId.value,
-      start_date: period.start_date,
-      end_date: period.end_date,
+      period_id: filterPeriodId.value,
     })
   } catch {
     // error handled in store

@@ -76,7 +76,7 @@ export const useKeuanganReportsStore = defineStore('keuanganReports', {
       }
     },
 
-    async fetchLedger(params: { account_id: string; start_date?: string; end_date?: string }) {
+    async fetchLedger(params: { account_id: string; period_id: string }) {
       this.isLoading = true
       this.error = null
       try {
@@ -84,8 +84,7 @@ export const useKeuanganReportsStore = defineStore('keuanganReports', {
         const res = await api.get<ApiSuccess<LedgerResponse>>('/api/v1/web/keuangan/admin/reports/ledger', {
           query: {
             account_id: params.account_id,
-            start_date: params.start_date,
-            end_date: params.end_date,
+            period_id: params.period_id,
           },
         })
         this.ledger = res.data

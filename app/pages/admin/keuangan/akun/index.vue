@@ -37,6 +37,7 @@ async function load() {
   try {
     await store.fetchAccounts({
       type: typeFilter.value === 'all' ? undefined : (typeFilter.value as AccountType),
+      limit: 1000,
     })
   } catch {
     // error in store

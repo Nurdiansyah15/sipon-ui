@@ -185,6 +185,7 @@ export interface JournalEntryLine {
   account_id: string
   account?: Account
   account_code: string
+  account_name: string
   description: string | null
   debit: number
   credit: number

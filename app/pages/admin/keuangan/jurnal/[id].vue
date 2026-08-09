@@ -196,7 +196,7 @@ async function handleCancel() {
                   <code class="text-xs font-medium text-gray-600 dark:text-gray-400">{{ line.account_code }}</code>
                 </td>
                 <td class="px-4 py-2.5 text-gray-900 dark:text-gray-100">
-                  {{ line.account?.name || '—' }}
+                  {{ line.account_name || line.account?.name || '—' }}
                 </td>
                 <td class="px-4 py-2.5 text-gray-600 dark:text-gray-400">
                   {{ line.description || '—' }}

@@ -13,7 +13,7 @@ const { can } = usePermission()
 
 const schema = z.object({
   invoice_id: z.string().min(1, 'Invoice wajib dipilih'),
-  debit_account_id: z.string().optional(),
+  debit_account_id: z.string().min(1, 'Akun debit (kas/bank) wajib dipilih'),
   amount: z.number().min(1, 'Jumlah wajib diisi'),
   method: z.enum(['transfer', 'cash', 'check'] as const),
   reference_number: z.string().optional(),
@@ -74,7 +74,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   try {
     await store.createManualPayment({
       invoice_id: event.data.invoice_id,
-      debit_account_id: event.data.debit_account_id || undefined,
+      debit_account_id: event.data.debit_account_id,
       amount: event.data.amount,
       method: event.data.method,
       reference_number: event.data.reference_number || undefined,
@@ -134,6 +134,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           label="Akun Debit (Kas/Bank)"
           placeholder="Pilih akun kas/bank"
           :filter="'asset'"
+          required
         />
 
         <UFormField label="Jumlah (Rp)" name="amount" required>

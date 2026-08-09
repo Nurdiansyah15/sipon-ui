@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Account, AccountType } from '#shared/types/Keuangan'
+import type { ApiSuccess } from '#shared/types/ApiResponse'
 import { useApi } from '~/composables/useApi'
 import { parseApiError } from '~/utils/errorParser'
 
@@ -8,6 +9,7 @@ const props = defineProps<{
   label?: string
   placeholder?: string
   filter?: AccountType
+  required?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -49,10 +51,10 @@ async function fetchAccounts() {
 
   isLoading.value = true
   try {
-    const res = await api.get<{ data: Account[] }>('/api/v1/keuangan/accounts', {
-      params: { limit: 1000, is_active: true }
+    const res = await api.get<ApiSuccess<Account[]>>('/api/v1/web/keuangan/admin/accounts', {
+      query: { limit: 1000, is_active: true }
     })
-    accounts.value = res.data.data
+    accounts.value = res.data
   } catch (err) {
     toast.add({
       title: 'Gagal memuat akun',
@@ -82,7 +84,7 @@ watch(isOpen, (val) => {
 <template>
   <div class="space-y-1.5">
     <label v-if="label" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-      {{ label }}
+      {{ label }}<span v-if="props.required" class="ml-0.5 text-red-500">*</span>
     </label>
 
     <UPopover v-model:open="isOpen" :content="{ side: 'bottom', align: 'start', sideOffset: 4 }">
