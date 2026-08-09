@@ -70,16 +70,9 @@ function formatDate(value?: string | null) {
   }
 }
 
-const openingBalance = computed(() => {
-  if (!reportsStore.ledger || reportsStore.ledger.lines.length === 0) return 0
-  return 0
-})
+const openingBalance = computed(() => reportsStore.ledger?.opening_balance ?? 0)
 
-const closingBalance = computed(() => {
-  if (!reportsStore.ledger || reportsStore.ledger.lines.length === 0) return 0
-  const lines = reportsStore.ledger.lines
-  return lines[lines.length - 1].balance
-})
+const closingBalance = computed(() => reportsStore.ledger?.closing_balance ?? 0)
 
 onMounted(async () => {
   try {

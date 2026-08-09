@@ -27,7 +27,8 @@ const santriOptions = computed(() =>
 const schema = z.object({
   santri_id: z.string().min(1, 'Santri wajib dipilih'),
   fee_component_id: z.string().min(1, 'Komponen biaya wajib dipilih'),
-  billing_period_id: z.string().min(1, 'Periode tagihan wajib dipilih'),
+  billing_period_id: z.string().optional(),
+  issued_date: z.string().min(1, 'Tanggal terbit wajib diisi'),
   amount: z.number().min(1, 'Jumlah wajib diisi'),
   due_date: z.string().min(1, 'Tanggal jatuh tempo wajib diisi'),
   notes: z.string().optional(),
@@ -38,6 +39,7 @@ const state = reactive<Partial<Schema>>({
   santri_id: '',
   fee_component_id: '',
   billing_period_id: '',
+  issued_date: '',
   amount: undefined,
   due_date: '',
   notes: '',
@@ -45,10 +47,16 @@ const state = reactive<Partial<Schema>>({
 
 const componentOptions = computed(() =>
   store.feeComponents.map((c) => ({
-    label: `${c.code} - ${c.name}`,
+    label: `${c.code} - ${c.name}${c.is_periodic ? '' : ' (non-periodik)'}`,
     value: c.id,
   })),
 )
+
+const selectedComponent = computed(() =>
+  store.feeComponents.find((c) => c.id === state.fee_component_id),
+)
+
+const isPeriodicComponent = computed(() => selectedComponent.value?.is_periodic ?? false)
 
 const billingPeriodOptions = computed(() =>
   store.billingPeriods.map((p) => ({
@@ -61,6 +69,7 @@ function resetState() {
   state.santri_id = ''
   state.fee_component_id = ''
   state.billing_period_id = ''
+  state.issued_date = new Date().toISOString().slice(0, 10)
   state.amount = undefined
   state.due_date = ''
   state.notes = ''
@@ -94,7 +103,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     await store.createInvoice({
       santri_id: event.data.santri_id,
       fee_component_id: event.data.fee_component_id,
-      billing_period_id: event.data.billing_period_id,
+      billing_period_id: event.data.billing_period_id || undefined,
+      issued_date: event.data.issued_date,
       amount: event.data.amount,
       due_date: event.data.due_date,
       notes: event.data.notes || undefined,
@@ -158,13 +168,28 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
             />
           </UFormField>
 
-          <UFormField label="Periode Tagihan" name="billing_period_id" required>
+          <UFormField label="Periode Tagihan" name="billing_period_id" :required="isPeriodicComponent">
             <USelect
               v-model="state.billing_period_id"
               :items="billingPeriodOptions"
-              placeholder="Pilih periode tagihan"
+              :placeholder="isPeriodicComponent ? 'Pilih periode tagihan' : 'Opsional (komponen non-periodik)'"
               class="w-full"
               :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
+            />
+            <p v-if="isPeriodicComponent && !state.billing_period_id" class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+              Komponen ini periodik — periode tagihan wajib diisi.
+            </p>
+            <p v-else-if="!isPeriodicComponent" class="mt-1 text-xs text-gray-400">
+              Komponen non-periodik — periode tagihan boleh dikosongkan.
+            </p>
+          </UFormField>
+
+          <UFormField label="Tanggal Terbit" name="issued_date" required>
+            <UInput
+              v-model="state.issued_date"
+              type="date"
+              class="w-full"
+              variant="subtle"
             />
           </UFormField>
 

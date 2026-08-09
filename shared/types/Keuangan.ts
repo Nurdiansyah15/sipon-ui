@@ -268,7 +268,8 @@ export interface AssignSchemeRequest {
 export interface CreateInvoiceRequest {
   santri_id: string
   fee_component_id: string
-  billing_period_id: string
+  billing_period_id?: string
+  issued_date: string
   amount: number
   due_date: string
   notes?: string
@@ -277,6 +278,7 @@ export interface CreateInvoiceRequest {
 export interface CreateInvoiceBatchRequest {
   billing_scheme_id: string
   billing_period_id: string
+  issued_date: string
   due_date: string
 }
 
@@ -439,7 +441,9 @@ export interface LedgerResponse {
   account_code: string
   account_name: string
   account_type: AccountType
+  opening_balance: number
   lines: LedgerLine[]
+  closing_balance: number
 }
 
 export interface TrialBalanceLine {

@@ -13,6 +13,7 @@ const toast = useToast()
 const schema = z.object({
   billing_scheme_id: z.string().min(1, 'Skema tagihan wajib dipilih'),
   billing_period_id: z.string().min(1, 'Periode tagihan wajib dipilih'),
+  issued_date: z.string().min(1, 'Tanggal terbit wajib diisi'),
   due_date: z.string().min(1, 'Tanggal jatuh tempo wajib diisi'),
 })
 type Schema = z.output<typeof schema>
@@ -20,6 +21,7 @@ type Schema = z.output<typeof schema>
 const state = reactive<Partial<Schema>>({
   billing_scheme_id: '',
   billing_period_id: '',
+  issued_date: '',
   due_date: '',
 })
 
@@ -102,6 +104,7 @@ async function confirmGenerate() {
     const res = await store.createInvoiceBatch({
       billing_scheme_id: state.billing_scheme_id!,
       billing_period_id: state.billing_period_id!,
+      issued_date: state.issued_date!,
       due_date: state.due_date!,
     })
     confirmOpen.value = false
@@ -171,6 +174,15 @@ async function confirmGenerate() {
             placeholder="Pilih periode tagihan"
             class="w-full"
             :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
+          />
+        </UFormField>
+
+        <UFormField label="Tanggal Terbit" name="issued_date" required>
+          <UInput
+            v-model="state.issued_date"
+            type="date"
+            class="w-full"
+            variant="subtle"
           />
         </UFormField>
 
