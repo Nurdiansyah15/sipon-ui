@@ -2,7 +2,8 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useKeuanganAccountingStore } from '~/stores/keuanganAccounting'
-import type { Account, AccountType, NormalBalance } from '#shared/types/Keuangan'
+import type { Account, AccountType, AccountSubType, NormalBalance } from '#shared/types/Keuangan'
+import { SUB_TYPES_BY_TYPE, SUB_TYPE_LABELS } from '#shared/types/Keuangan'
 
 const props = defineProps<{
   open: boolean
@@ -20,14 +21,22 @@ const toast = useToast()
 
 const isSubmitting = ref(false)
 
+const isSubTypeRequired = computed(() => props.mode === 'create' || props.account?.is_postable === true)
+
 const schema = z.object({
   code: z.string().min(1, 'Kode akun wajib diisi'),
   name: z.string().min(1, 'Nama akun wajib diisi'),
+  sub_type: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (isSubTypeRequired.value && !data.sub_type) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['sub_type'], message: 'Sub-tipe akun wajib diisi' })
+  }
 })
 
 const code = ref('')
 const name = ref('')
 const type = ref<AccountType>('asset')
+const subType = ref<AccountSubType | null>(null)
 const parentId = ref<string | null>(null)
 const normalBalance = ref<NormalBalance>('debit')
 const isPostable = ref(false)
@@ -46,11 +55,19 @@ const normalBalanceOptions = [
   { label: 'Kredit', value: 'credit' },
 ]
 
+const subTypeOptions = computed(() =>
+  (SUB_TYPES_BY_TYPE[type.value] || []).map((st) => ({
+    label: SUB_TYPE_LABELS[st],
+    value: st,
+  })),
+)
+
 function reset() {
   if (props.mode === 'edit' && props.account) {
     code.value = props.account.code
     name.value = props.account.name
     type.value = props.account.type
+    subType.value = props.account.sub_type
     parentId.value = props.account.parent_id
     normalBalance.value = props.account.normal_balance
     isPostable.value = props.account.is_postable
@@ -59,6 +76,7 @@ function reset() {
     code.value = ''
     name.value = ''
     type.value = 'asset'
+    subType.value = null
     parentId.value = null
     normalBalance.value = 'debit'
     isPostable.value = false
@@ -68,12 +86,17 @@ function reset() {
 
 watch(() => props.open, (v) => { if (v) reset() })
 
+watch(() => type.value, () => {
+  if (props.mode === 'create') subType.value = null
+})
+
 async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
   isSubmitting.value = true
   try {
     if (props.mode === 'edit' && props.account) {
       await store.updateAccount(props.account.id, {
         name: name.value,
+        sub_type: subType.value || undefined,
         description: description.value || undefined,
         is_postable: isPostable.value,
       })
@@ -83,6 +106,7 @@ async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
         code: code.value,
         name: name.value,
         type: type.value,
+        sub_type: subType.value || undefined,
         parent_id: parentId.value || undefined,
         normal_balance: normalBalance.value,
         is_postable: isPostable.value,
@@ -119,7 +143,7 @@ async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
           />
         </div>
 
-        <UForm :schema="schema" :state="{ code, name }" class="space-y-4" @submit="onSubmit">
+        <UForm :schema="schema" :state="{ code, name, sub_type: subType }" class="space-y-4" @submit="onSubmit">
           <div class="grid grid-cols-2 gap-3">
             <UFormField label="Kode Akun" name="code" required>
               <UInput
@@ -157,6 +181,18 @@ async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
               />
             </UFormField>
           </div>
+
+          <UFormField label="Sub-Tipe Akun" name="sub_type" :required="isSubTypeRequired">
+            <USelect
+              v-model="subType"
+              :items="subTypeOptions"
+              :disabled="mode === 'edit' && !account?.is_postable"
+              :placeholder="mode === 'edit' && !account?.is_postable ? 'Tidak diperlukan' : 'Pilih sub-tipe'"
+              value-key="value"
+              variant="subtle"
+              class="w-full"
+            />
+          </UFormField>
 
           <UFormField label="Akun Induk (opsional)">
             <KeuanganAccountPicker

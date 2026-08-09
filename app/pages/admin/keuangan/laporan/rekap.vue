@@ -12,7 +12,7 @@ const keuanganStore = useKeuanganStore()
 const { can } = usePermission()
 const { isDownloading, downloadPdf } = usePdfDownload()
 
-const filterBillingPeriodId = useQueryParamRef('billing_period_id', 'all', {
+const filterBillingPeriodId = usePersistentFilterRef('billing_period_id', 'all', {
   serialize: (v) => (v === 'all' || v === '' ? undefined : v),
 })
 

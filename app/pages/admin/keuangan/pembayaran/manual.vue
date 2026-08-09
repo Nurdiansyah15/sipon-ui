@@ -134,6 +134,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           label="Akun Debit (Kas/Bank)"
           placeholder="Pilih akun kas/bank"
           :filter="'asset'"
+          :sub-type="'cash_bank'"
           required
         />
 

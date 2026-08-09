@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Account, AccountType, NormalBalance } from '#shared/types/Keuangan'
+import { SUB_TYPE_LABELS } from '#shared/types/Keuangan'
 
 const props = defineProps<{
   account: Account
@@ -72,6 +73,9 @@ function rowActions(account: Account): DropdownMenuItem[] {
 
       <div class="flex shrink-0 items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
         <span class="hidden sm:inline">{{ typeLabels[account.type] }}</span>
+        <span v-if="account.sub_type" class="hidden md:inline text-gray-400">
+          {{ SUB_TYPE_LABELS[account.sub_type] }}
+        </span>
         <span>L{{ account.level }}</span>
         <UBadge v-if="account.is_postable" color="primary" variant="subtle" size="xs">Postable</UBadge>
         <span class="hidden sm:inline">{{ account.normal_balance === 'debit' ? 'D' : 'K' }}</span>

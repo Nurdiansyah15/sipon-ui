@@ -7,6 +7,90 @@ export type PaymentMethod = 'transfer' | 'cash' | 'check'
 export type AdjustmentType = 'beasiswa' | 'diskon' | 'penyesuaian'
 export type AccountType = 'asset' | 'liability' | 'equity' | 'revenue' | 'expense'
 export type NormalBalance = 'debit' | 'credit'
+export type AccountSubType =
+  | 'cash_bank'
+  | 'receivable'
+  | 'prepaid_expense'
+  | 'inventory'
+  | 'fixed_asset'
+  | 'accumulated_depreciation'
+  | 'intangible_asset'
+  | 'investment'
+  | 'other_asset'
+  | 'payable'
+  | 'customer_advance'
+  | 'unearned_revenue'
+  | 'tax_payable'
+  | 'accrued_liability'
+  | 'long_term_liability'
+  | 'other_liability'
+  | 'capital'
+  | 'retained_earnings'
+  | 'current_year_earnings'
+  | 'withdrawal'
+  | 'operating_revenue'
+  | 'non_operating_revenue'
+  | 'cost_of_goods_sold'
+  | 'operating_expense'
+  | 'depreciation_expense'
+  | 'non_operating_expense'
+  | 'tax_expense'
+
+export const SUB_TYPE_LABELS: Record<AccountSubType, string> = {
+  cash_bank: 'Kas & Bank',
+  receivable: 'Piutang',
+  prepaid_expense: 'Biaya Dibayar Dimuka',
+  inventory: 'Persediaan',
+  fixed_asset: 'Aset Tetap',
+  accumulated_depreciation: 'Akumulasi Penyusutan (Kontra-Aset)',
+  intangible_asset: 'Aset Tidak Berwujud',
+  investment: 'Investasi',
+  other_asset: 'Aset Lainnya',
+  payable: 'Utang Usaha',
+  customer_advance: 'Uang Muka Pelanggan/Santri',
+  unearned_revenue: 'Pendapatan/Biaya Diterima Dimuka',
+  tax_payable: 'Utang Pajak',
+  accrued_liability: 'Beban Masih Harus Dibayar',
+  long_term_liability: 'Liabilitas Jangka Panjang',
+  other_liability: 'Liabilitas Lainnya',
+  capital: 'Modal',
+  retained_earnings: 'Laba Ditahan/Saldo Laba',
+  current_year_earnings: 'Laba Tahun Berjalan',
+  withdrawal: 'Prive/Distribusi',
+  operating_revenue: 'Pendapatan Operasional',
+  non_operating_revenue: 'Pendapatan Non-Operasional',
+  cost_of_goods_sold: 'Beban Pokok/HPP',
+  operating_expense: 'Beban Operasional',
+  depreciation_expense: 'Beban Penyusutan',
+  non_operating_expense: 'Beban Non-Operasional',
+  tax_expense: 'Beban Pajak',
+}
+
+export const SUB_TYPES_BY_TYPE: Record<AccountType, AccountSubType[]> = {
+  asset: [
+    'cash_bank',
+    'receivable',
+    'prepaid_expense',
+    'inventory',
+    'fixed_asset',
+    'accumulated_depreciation',
+    'intangible_asset',
+    'investment',
+    'other_asset',
+  ],
+  liability: [
+    'payable',
+    'customer_advance',
+    'unearned_revenue',
+    'tax_payable',
+    'accrued_liability',
+    'long_term_liability',
+    'other_liability',
+  ],
+  equity: ['capital', 'retained_earnings', 'current_year_earnings', 'withdrawal'],
+  revenue: ['operating_revenue', 'non_operating_revenue'],
+  expense: ['cost_of_goods_sold', 'operating_expense', 'depreciation_expense', 'non_operating_expense', 'tax_expense'],
+}
 export type JournalStatus = 'draft' | 'posted' | 'cancelled'
 export type SourceType = 'invoice_issued' | 'payment_verified' | 'invoice_cancelled' | 'adjustment' | 'closing' | 'manual'
 export type PeriodStatus = 'open' | 'closing' | 'closed' | 'locked'
@@ -168,6 +252,7 @@ export interface Account {
   code: string
   name: string
   type: AccountType
+  sub_type: AccountSubType | null
   parent_id: string | null
   level: number
   is_postable: boolean
@@ -316,6 +401,7 @@ export interface CreateAccountRequest {
   code: string
   name: string
   type: AccountType
+  sub_type?: AccountSubType
   parent_id?: string
   normal_balance: NormalBalance
   description?: string
@@ -324,6 +410,7 @@ export interface CreateAccountRequest {
 
 export interface UpdateAccountRequest {
   name: string
+  sub_type?: AccountSubType
   description?: string
   is_postable: boolean
 }
@@ -390,6 +477,7 @@ export interface PaymentListQuery {
 
 export interface AccountListQuery {
   type?: AccountType
+  sub_type?: AccountSubType
   is_active?: boolean
   page?: number
   limit?: number

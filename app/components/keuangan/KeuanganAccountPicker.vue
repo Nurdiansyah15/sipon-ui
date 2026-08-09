@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Account, AccountType } from '#shared/types/Keuangan'
+import type { Account, AccountType, AccountSubType } from '#shared/types/Keuangan'
 import type { ApiSuccess } from '#shared/types/ApiResponse'
 import { useApi } from '~/composables/useApi'
 import { parseApiError } from '~/utils/errorParser'
@@ -9,6 +9,7 @@ const props = defineProps<{
   label?: string
   placeholder?: string
   filter?: AccountType
+  subType?: AccountSubType
   required?: boolean
 }>()
 
@@ -29,6 +30,10 @@ const filteredAccounts = computed(() => {
 
   if (props.filter) {
     result = result.filter(acc => acc.type === props.filter)
+  }
+
+  if (props.subType) {
+    result = result.filter(acc => acc.sub_type === props.subType)
   }
 
   if (searchQuery.value) {

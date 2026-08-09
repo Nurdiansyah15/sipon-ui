@@ -55,6 +55,7 @@ export const useKeuanganAccountingStore = defineStore('keuanganAccounting', {
         const res = await api.get<ApiSuccess<Account[]>>('/api/v1/web/keuangan/admin/accounts', {
           query: {
             type: query.type,
+            sub_type: query.sub_type,
             is_active: query.is_active,
             page: query.page ?? 1,
             limit: query.limit ?? 10,
