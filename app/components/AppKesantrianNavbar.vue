@@ -1,11 +1,15 @@
 <script setup lang="ts">
-const route = useRoute()
+import { usePermission } from '~/composables/usePermission'
 
-const links = [
+const route = useRoute()
+const { can } = usePermission()
+
+const links = computed(() => [
   { label: 'Dasbor', icon: 'i-lucide-gauge', to: '/admin/kesantrian' },
   { label: 'Kelola Santri', icon: 'i-lucide-graduation-cap', to: '/admin/kesantrian/santri' },
   { label: 'Permintaan', icon: 'i-lucide-clipboard-check', to: '/admin/kesantrian/requests' },
-]
+  ...(can('manage_persuratan') ? [{ label: 'Persuratan', icon: 'i-lucide-mail', to: '/admin/kesantrian/persuratan' }] : []),
+])
 
 function isActive(to: string) {
   if (to === '/admin/kesantrian') return route.path === '/admin/kesantrian'

@@ -6,7 +6,7 @@ definePageMeta({ layout: 'admin' })
 const { can, canAny } = usePermission()
 
 const canManagePSB = computed(() => canAny(['manage_psb', 'manage_psb_settings']))
-const canManageSantri = computed(() => can('manage_santri'))
+const canManageSantri = computed(() => canAny(['manage_santri', 'manage_persuratan']))
 const canManageArticle = computed(() => canAny(['create_article', 'edit_article', 'manage_article_category']))
 const canManageKeuangan = computed(() => canAny(['manage_keuangan', 'verify_payment', 'view_keuangan_reports', 'manage_accounts', 'manage_journal', 'close_period']))
 const canManageFeedback = computed(() => can('manage_feedback'))

@@ -45,10 +45,10 @@ export const useAppModules = () => {
     },
     {
       title: 'Kesantrian',
-      description: 'Kelola profil santri, permintaan menjadi santri, dan dokumen persyaratan.',
+      description: 'Kelola profil santri, permintaan menjadi santri, dokumen persyaratan, dan surat-menyurat.',
       icon: 'i-lucide-graduation-cap',
       to: '/admin/kesantrian',
-      shown: can('manage_santri'),
+      shown: canAny(['manage_santri', 'manage_persuratan']),
     },
     {
       title: 'PSB',

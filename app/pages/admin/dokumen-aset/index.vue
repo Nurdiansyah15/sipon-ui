@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { TableColumn, DropdownMenuItem } from '@nuxt/ui'
+import { z } from 'zod'
+import type { TableColumn, DropdownMenuItem, FormSubmitEvent } from '@nuxt/ui'
 import { useDokumenAsetStore } from '~/stores/dokumenAset'
 import { usePermission } from '~/composables/usePermission'
 import type { DokumenAsetItem, DokumenAsetPresignResponse } from '#shared/types/DokumenAset'
@@ -86,22 +87,31 @@ const columns: TableColumn<DokumenAsetItem>[] = [
 
 // ── Create Modal ───────────────────────────────────────────────────────────────
 const createOpen = ref(false)
-const createStep = ref(1)
-const createJudul = ref('')
-const createDeskripsi = ref('')
-const createKategori = ref('lainnya')
-const createIsPublic = ref(true)
 const createFileInput = ref<HTMLInputElement | null>(null)
 const createFile = ref<File | null>(null)
 const createUploading = ref(false)
 const createProgress = ref('')
 
+const createSchema = z.object({
+  judul: z.string().min(1, 'Judul wajib diisi'),
+  deskripsi: z.string().nullable().optional(),
+  kategori: z.string().min(1, 'Kategori wajib diisi'),
+  is_public: z.boolean().optional(),
+})
+type CreateSchema = z.output<typeof createSchema>
+
+const createState = reactive<Partial<CreateSchema>>({
+  judul: '',
+  deskripsi: null,
+  kategori: 'lainnya',
+  is_public: true,
+})
+
 function openCreate() {
-  createStep.value = 1
-  createJudul.value = ''
-  createDeskripsi.value = ''
-  createKategori.value = 'lainnya'
-  createIsPublic.value = true
+  createState.judul = ''
+  createState.deskripsi = null
+  createState.kategori = 'lainnya'
+  createState.is_public = true
   createFile.value = null
   if (createFileInput.value) createFileInput.value.value = ''
   createUploading.value = false
@@ -109,25 +119,11 @@ function openCreate() {
   createOpen.value = true
 }
 
-function createNext() {
-  if (createStep.value === 1) {
-    if (!createJudul.value.trim()) {
-      toast.add({ title: 'Judul wajib diisi', color: 'warning' })
-      return
-    }
-  }
-  createStep.value++
-}
-
-function createPrev() {
-  createStep.value--
-}
-
 function handleCreateFile() {
   createFile.value = createFileInput.value?.files?.[0] ?? null
 }
 
-async function doCreateUpload() {
+async function doCreateUpload(event: FormSubmitEvent<CreateSchema>) {
   const file = createFile.value
   if (!file) {
     toast.add({ title: 'Pilih file terlebih dahulu', color: 'warning' })
@@ -153,9 +149,9 @@ async function doCreateUpload() {
     const presignRes = await store.requestPresign({
       content_type: file.type,
       filename: file.name,
-      kategori: createKategori.value,
-      deskripsi: createDeskripsi.value,
-      is_public: createIsPublic.value,
+      kategori: event.data.kategori,
+      deskripsi: event.data.deskripsi || undefined,
+      is_public: event.data.is_public ?? false,
     })
 
     createProgress.value = 'Mengunggah file...'
@@ -168,13 +164,13 @@ async function doCreateUpload() {
     createProgress.value = 'Menyimpan...'
     await store.confirmUpload({
       key: presignRes.key,
-      judul: createJudul.value,
-      kategori: createKategori.value,
-      deskripsi: createDeskripsi.value,
+      judul: event.data.judul,
+      kategori: event.data.kategori,
+      deskripsi: event.data.deskripsi || undefined,
       original_filename: file.name,
       mime_type: file.type,
       size: file.size,
-      is_public: createIsPublic.value,
+      is_public: event.data.is_public ?? false,
     })
 
     createOpen.value = false
@@ -520,40 +516,14 @@ function rowActions(row: DokumenAsetItem): DropdownMenuItem[] {
           />
         </div>
 
-        <!-- Stepper -->
-        <div class="mb-6 flex items-center">
-          <template v-for="(step, i) in [
-            { label: 'Metadata', icon: 'i-lucide-file-text' },
-            { label: 'Upload', icon: 'i-lucide-upload' },
-          ]" :key="step.label">
-            <div class="flex items-center gap-2 text-sm" :class="{ 'opacity-40': createStep < i + 1 }">
-              <div
-                class="flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold"
-                :class="createStep > i + 1
-                  ? 'bg-teal-600 text-white'
-                  : createStep === i + 1
-                    ? 'border-2 border-teal-600 text-teal-600'
-                    : 'border-2 border-gray-300 text-gray-400 dark:border-gray-600'"
-              >
-                {{ createStep > i + 1 ? '✓' : i + 1 }}
-              </div>
-              <span class="font-medium text-gray-700 dark:text-gray-300">{{ step.label }}</span>
-            </div>
-            <div v-if="i < 1" class="mx-2 h-px w-8" :class="createStep > 1 ? 'bg-teal-600' : 'bg-gray-300 dark:bg-gray-600'" />
-          </template>
-        </div>
+        <UForm :schema="createSchema" :state="createState" class="space-y-4" @submit="doCreateUpload">
+          <UFormField label="Judul" name="judul" required>
+            <UInput v-model="createState.judul" class="w-full" placeholder="Contoh: Formulir Pendaftaran 2026" />
+          </UFormField>
 
-        <!-- Step 1: Metadata -->
-        <div v-if="createStep === 1" class="space-y-4">
-          <UFormField label="Judul" required>
-            <UInput v-model="createJudul" placeholder="Contoh: Formulir Pendaftaran 2026" />
-          </UFormField>
-          <UFormField label="Deskripsi">
-            <UTextarea v-model="createDeskripsi" placeholder="Deskripsi singkat (opsional)" :rows="2" />
-          </UFormField>
-          <UFormField label="Kategori" required>
+          <UFormField label="Kategori" name="kategori" required>
             <USelect
-              v-model="createKategori"
+              v-model="createState.kategori"
               :items="[
                 { label: 'Formulir', value: 'formulir' },
                 { label: 'Surat', value: 'surat' },
@@ -561,58 +531,49 @@ function rowActions(row: DokumenAsetItem): DropdownMenuItem[] {
                 { label: 'Brosur', value: 'brosur' },
                 { label: 'Lainnya', value: 'lainnya' },
               ]"
+              value-key="value"
+              class="w-full"
             />
           </UFormField>
-          <UFormField label="Akses Publik">
-            <USwitch v-model="createIsPublic" class="mb-1" />
+
+          <UFormField label="Deskripsi" name="deskripsi">
+            <UTextarea v-model="createState.deskripsi" class="w-full" placeholder="Deskripsi singkat (opsional)" :rows="2" />
+          </UFormField>
+
+          <UFormField label="File" required>
+            <div class="space-y-2">
+              <input ref="createFileInput" type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.zip" @change="handleCreateFile" />
+              <UButton
+                variant="outline"
+                block
+                icon="i-lucide-upload"
+                class="w-full"
+                :disabled="createUploading"
+                @click="createFileInput?.click()"
+              >
+                {{ createFile ? createFile.name : 'Pilih File' }}
+              </UButton>
+              <p v-if="createFile" class="text-xs text-gray-500">{{ formatSize(createFile.size) }}</p>
+              <p v-else class="text-xs text-gray-500">PDF, DOC/DOCX, XLS/XLSX, JPG, PNG, ZIP</p>
+            </div>
+          </UFormField>
+
+          <UFormField label="Akses Publik" name="is_public">
+            <USwitch v-model="createState.is_public" class="mb-1" />
             <template #help>
-              <span class="text-xs" :class="createIsPublic ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'">
-                {{ createIsPublic ? 'Dapat diakses siapa saja tanpa login' : 'Hanya dapat diakses pengguna yang sudah login' }}
+              <span class="text-xs" :class="createState.is_public ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'">
+                {{ createState.is_public ? 'Dapat diakses siapa saja tanpa login' : 'Hanya dapat diakses pengguna yang sudah login' }}
               </span>
             </template>
           </UFormField>
-          <div class="flex justify-end pt-2">
-            <UButton color="primary" @click="createNext">
-              Selanjutnya: Upload
-              <UIcon name="i-lucide-arrow-right" class="ml-1 h-4 w-4" />
-            </UButton>
-          </div>
-        </div>
 
-        <!-- Step 2: Upload -->
-        <div v-if="createStep === 2">
-          <div
-            class="cursor-pointer rounded-lg border-2 border-dashed py-10 text-center transition"
-            :class="createFile
-              ? 'border-teal-400 bg-teal-50 dark:border-teal-600 dark:bg-teal-950/30'
-              : 'border-gray-300 hover:border-teal-400 dark:border-gray-600 dark:hover:border-teal-400'"
-            @click="createFileInput?.click()"
-          >
-            <input ref="createFileInput" type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.zip" @change="handleCreateFile" />
-
-            <template v-if="createFile">
-              <UIcon name="i-lucide-file-check" class="mx-auto h-10 w-10 text-teal-600 dark:text-teal-400" />
-              <p class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">{{ createFile.name }}</p>
-              <p class="text-xs text-gray-500">{{ formatSize(createFile.size) }}</p>
-              <p class="mt-1 text-xs text-teal-600 dark:text-teal-400">Klik untuk ganti file</p>
-            </template>
-            <template v-else>
-              <UIcon name="i-lucide-upload" class="mx-auto h-10 w-10 text-gray-400" />
-              <p class="mt-2 text-sm font-medium text-gray-700 dark:text-gray-300">Klik untuk pilih file</p>
-              <p class="text-xs text-gray-500">PDF, DOC/DOCX, XLS/XLSX, JPG, PNG, ZIP</p>
-            </template>
-          </div>
-
-          <div class="mt-4 flex justify-between">
-            <UButton variant="outline" :disabled="createUploading" @click="createPrev">
-              <UIcon name="i-lucide-arrow-left" class="mr-1 h-4 w-4" />
-              Kembali
-            </UButton>
-            <UButton color="primary" :loading="createUploading" :disabled="!createFile" @click="doCreateUpload">
+          <div class="flex justify-end gap-2 pt-2">
+            <UButton color="neutral" variant="ghost" type="button" :disabled="createUploading" @click="createOpen = false">Batal</UButton>
+            <UButton type="submit" :loading="createUploading" :disabled="!createFile">
               {{ createUploading ? createProgress || 'Mengunggah...' : 'Unggah Dokumen' }}
             </UButton>
           </div>
-        </div>
+        </UForm>
       </div>
     </template>
   </UModal>

@@ -30,6 +30,13 @@ const { can } = usePermission()
         icon="i-lucide-clipboard-check"
         to="/admin/kesantrian/requests"
       />
+      <FeatureModuleCard
+        v-if="can('manage_persuratan')"
+        title="Persuratan"
+        description="Kelola tipe surat dan pencatatan surat keluar dengan nomor otomatis."
+        icon="i-lucide-mail"
+        to="/admin/kesantrian/persuratan"
+      />
     </div>
   </div>
 </template>
