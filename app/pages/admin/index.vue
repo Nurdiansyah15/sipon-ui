@@ -9,6 +9,7 @@ const canManagePSB = computed(() => canAny(['manage_psb', 'manage_psb_settings']
 const canManageSantri = computed(() => can('manage_santri'))
 const canManageArticle = computed(() => canAny(['create_article', 'edit_article', 'manage_article_category']))
 const canManageKeuangan = computed(() => canAny(['manage_keuangan', 'verify_payment', 'view_keuangan_reports', 'manage_accounts', 'manage_journal', 'close_period']))
+const canManageFeedback = computed(() => can('manage_feedback'))
 
 const shortcuts = computed(() => [
   {
@@ -45,6 +46,13 @@ const shortcuts = computed(() => [
     icon: 'i-lucide-wallet',
     to: '/admin/keuangan',
     shown: canManageKeuangan.value,
+  },
+  {
+    title: 'Feedback',
+    description: 'Moderasi umpan balik: takedown/restore feedback dan komentar yang tidak pantas.',
+    icon: 'i-lucide-message-square',
+    to: '/admin/feedback',
+    shown: canManageFeedback.value,
   },
 ])
 </script>

@@ -52,13 +52,7 @@ function isActive(to: string) {
         >
           <UIcon name="i-lucide-bell" class="h-5 w-5" />
         </UButton>
-        <UButton
-          variant="ghost"
-          square
-          class="text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-        >
-          <UIcon name="i-lucide-grid-3x3" class="h-5 w-5" />
-        </UButton>
+        <AppAppMenu />
         <AppUserMenu />
       </div>
     </div>

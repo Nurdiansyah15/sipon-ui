@@ -5,11 +5,11 @@ const items = [
   { label: 'Dasbor', icon: 'i-lucide-home', to: '/dashboard' },
   { label: 'Aplikasi', icon: 'i-lucide-layout-grid', to: '/aplikasi' },
   { label: 'Artikel', icon: 'i-lucide-globe', to: '/artikel' },
-  { label: 'Umpan Balik', icon: 'i-lucide-message-square', to: '#' },
+  { label: 'Umpan Balik', icon: 'i-lucide-message-square', to: '/feedback' },
 ]
 
 function isActive(to: string) {
-  return route.path === to
+  return route.path === to || (to !== '/dashboard' && to !== '/aplikasi' && to !== '/artikel' && route.path.startsWith(to))
 }
 </script>
 

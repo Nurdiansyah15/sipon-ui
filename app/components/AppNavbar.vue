@@ -5,11 +5,11 @@ const links = [
   { label: 'Dasbor', icon: 'i-lucide-home', to: '/dashboard' },
   { label: 'Aplikasi', icon: 'i-lucide-layout-grid', to: '/aplikasi' },
   { label: 'Artikel', icon: 'i-lucide-globe', to: '/artikel' },
-  { label: 'Umpan Balik', icon: 'i-lucide-message-square', to: '#' },
+  { label: 'Umpan Balik', icon: 'i-lucide-message-square', to: '/feedback' },
 ]
 
 function isActive(to: string) {
-  return route.path === to
+  return route.path === to || (to !== '/dashboard' && to !== '/aplikasi' && to !== '/artikel' && route.path.startsWith(to))
 }
 </script>
 
@@ -51,13 +51,7 @@ function isActive(to: string) {
         >
           <UIcon name="i-lucide-bell" class="h-5 w-5" />
         </UButton>
-        <UButton
-          variant="ghost"
-          square
-          class="text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-        >
-          <UIcon name="i-lucide-grid-3x3" class="h-5 w-5" />
-        </UButton>
+        <AppAppMenu />
         <AppUserMenu />
       </div>
     </div>
