@@ -1,5 +1,4 @@
 // Enums
-export type FeeComponentType = 'ukt' | 'spp' | 'daftar_ulang' | 'insidental'
 export type PeriodType = 'monthly' | 'semesterly' | 'yearly' | 'once'
 export type InvoiceStatus = 'draft' | 'issued' | 'partial' | 'paid' | 'expired' | 'cancelled'
 export type PaymentStatus = 'pending' | 'verified' | 'rejected'
@@ -106,11 +105,22 @@ export type BillingBatchTargetStatus =
   | 'error'
 
 // Entities
+export interface AccountBrief {
+  id: string
+  code: string
+  name: string
+  type: AccountType
+  sub_type: AccountSubType | null
+}
+
 export interface FeeComponent {
   id: string
   code: string
   name: string
-  type: FeeComponentType
+  revenue_account_id: string
+  receivable_account_id: string
+  revenue_account?: AccountBrief
+  receivable_account?: AccountBrief
   amount: number
   is_periodic: boolean
   period_type: PeriodType | null
@@ -311,7 +321,8 @@ export interface AccountingPeriod {
 export interface CreateFeeComponentRequest {
   code: string
   name: string
-  type: FeeComponentType
+  revenue_account_id: string
+  receivable_account_id: string
   amount: number
   is_periodic: boolean
   period_type?: PeriodType
@@ -319,6 +330,8 @@ export interface CreateFeeComponentRequest {
 }
 
 export interface UpdateFeeComponentRequest {
+  revenue_account_id: string
+  receivable_account_id: string
   name: string
   amount: number
   is_periodic: boolean
@@ -435,7 +448,6 @@ export interface CreatePeriodRequest {
 
 // Query params
 export interface FeeComponentListQuery {
-  type?: FeeComponentType
   is_active?: boolean
   page?: number
   limit?: number

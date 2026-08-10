@@ -150,7 +150,6 @@ export const useKeuanganStore = defineStore('keuangan', {
           query: {
             page: query.page ?? 1,
             limit: query.limit ?? 10,
-            type: query.type,
             is_active: query.is_active,
           },
         })

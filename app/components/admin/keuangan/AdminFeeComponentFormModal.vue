@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { FeeComponent, FeeComponentType, PeriodType } from '#shared/types/Keuangan'
+import type { FeeComponent, PeriodType } from '#shared/types/Keuangan'
 import { useKeuanganStore } from '~/stores/keuangan'
 
 const props = defineProps<{
@@ -19,13 +19,6 @@ const toast = useToast()
 
 const isEdit = computed(() => !!props.component)
 
-const typeOptions = [
-  { label: 'UKT', value: 'ukt' as FeeComponentType },
-  { label: 'SPP', value: 'spp' as FeeComponentType },
-  { label: 'Daftar Ulang', value: 'daftar_ulang' as FeeComponentType },
-  { label: 'Insidental', value: 'insidental' as FeeComponentType },
-]
-
 const periodOptions = [
   { label: 'Bulanan', value: 'monthly' as PeriodType },
   { label: 'Semester', value: 'semesterly' as PeriodType },
@@ -36,7 +29,8 @@ const periodOptions = [
 const schema = z.object({
   code: z.string().min(1, 'Kode wajib diisi'),
   name: z.string().min(1, 'Nama wajib diisi'),
-  type: z.enum(['ukt', 'spp', 'daftar_ulang', 'insidental']),
+  revenue_account_id: z.string().min(1, 'Akun pendapatan wajib dipilih'),
+  receivable_account_id: z.string().min(1, 'Akun piutang wajib dipilih'),
   amount: z.number().positive('Jumlah harus lebih dari 0'),
   is_periodic: z.boolean(),
   period_type: z.enum(['monthly', 'semesterly', 'yearly', 'once']),
@@ -46,7 +40,8 @@ const schema = z.object({
 const form = reactive({
   code: '',
   name: '',
-  type: 'ukt' as FeeComponentType,
+  revenue_account_id: '',
+  receivable_account_id: '',
   amount: 0,
   is_periodic: false,
   period_type: 'monthly' as PeriodType,
@@ -58,7 +53,8 @@ watch(() => props.open, (val) => {
     if (props.component) {
       form.code = props.component.code
       form.name = props.component.name
-      form.type = props.component.type
+      form.revenue_account_id = props.component.revenue_account_id
+      form.receivable_account_id = props.component.receivable_account_id
       form.amount = props.component.amount
       form.is_periodic = props.component.is_periodic
       form.period_type = props.component.period_type ?? 'monthly'
@@ -66,7 +62,8 @@ watch(() => props.open, (val) => {
     } else {
       form.code = ''
       form.name = ''
-      form.type = 'ukt'
+      form.revenue_account_id = ''
+      form.receivable_account_id = ''
       form.amount = 0
       form.is_periodic = false
       form.period_type = 'monthly'
@@ -82,6 +79,8 @@ async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
   try {
     if (isEdit.value && props.component) {
       await store.updateFeeComponent(props.component.id, {
+        revenue_account_id: form.revenue_account_id,
+        receivable_account_id: form.receivable_account_id,
         name: form.name,
         amount: form.amount,
         is_periodic: form.is_periodic,
@@ -93,7 +92,8 @@ async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
       await store.createFeeComponent({
         code: form.code,
         name: form.name,
-        type: form.type,
+        revenue_account_id: form.revenue_account_id,
+        receivable_account_id: form.receivable_account_id,
         amount: form.amount,
         is_periodic: form.is_periodic,
         period_type: form.is_periodic ? form.period_type : undefined,
@@ -146,11 +146,25 @@ function close() {
           </div>
 
           <div class="grid grid-cols-2 gap-3">
-            <UFormField label="Tipe" name="type" required>
-              <USelect v-model="form.type" :items="typeOptions" :disabled="isEdit" variant="subtle" class="w-full" />
-            </UFormField>
             <UFormField label="Jumlah (Rp)" name="amount" required>
               <UInput v-model.number="form.amount" type="number" placeholder="0" :min="0" variant="subtle" class="w-full" />
+            </UFormField>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <UFormField label="Akun Pendapatan" name="revenue_account_id" required>
+              <KeuanganAccountPicker
+                v-model="form.revenue_account_id"
+                filter="revenue"
+                placeholder="Pilih akun pendapatan..."
+              />
+            </UFormField>
+            <UFormField label="Akun Piutang" name="receivable_account_id" required>
+              <KeuanganAccountPicker
+                v-model="form.receivable_account_id"
+                sub-type="receivable"
+                placeholder="Pilih akun piutang..."
+              />
             </UFormField>
           </div>
 

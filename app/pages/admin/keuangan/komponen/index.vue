@@ -2,7 +2,7 @@
 import type { TableColumn, DropdownMenuItem } from '@nuxt/ui'
 import { useKeuanganStore } from '~/stores/keuangan'
 import { usePermission } from '~/composables/usePermission'
-import type { FeeComponent, FeeComponentType } from '#shared/types/Keuangan'
+import type { FeeComponent } from '#shared/types/Keuangan'
 
 definePageMeta({ layout: 'keuangan' })
 
@@ -12,16 +12,14 @@ const { can } = usePermission()
 
 const page = ref(1)
 const limit = ref(10)
-const typeFilter = ref<string>('all')
 
-watch([page, limit, typeFilter], () => load())
+watch([page, limit], () => load())
 
 async function load() {
   try {
     await store.fetchFeeComponents({
       page: page.value,
       limit: limit.value,
-      type: typeFilter.value !== 'all' ? (typeFilter.value as FeeComponentType) : undefined,
     })
   } catch {
     // error set in store
@@ -32,13 +30,6 @@ onMounted(load)
 
 const totalPages = computed(() => store.feeComponentsMeta?.total_pages ?? 1)
 const totalItems = computed(() => store.feeComponentsMeta?.total ?? 0)
-
-const typeLabels: Record<string, string> = {
-  ukt: 'UKT',
-  spp: 'SPP',
-  daftar_ulang: 'Daftar Ulang',
-  insidental: 'Insidental',
-}
 
 const periodLabels: Record<string, string> = {
   monthly: 'Bulanan',
@@ -54,7 +45,8 @@ function formatCurrency(value: number) {
 const columns: TableColumn<FeeComponent>[] = [
   { accessorKey: 'code', header: 'Kode' },
   { accessorKey: 'name', header: 'Nama' },
-  { accessorKey: 'type', header: 'Tipe' },
+  { accessorKey: 'revenue_account', header: 'Akun Pendapatan' },
+  { accessorKey: 'receivable_account', header: 'Akun Piutang' },
   { accessorKey: 'amount', header: 'Jumlah' },
   { accessorKey: 'is_periodic', header: 'Berkala' },
   { accessorKey: 'is_active', header: 'Aktif' },
@@ -101,6 +93,8 @@ async function confirmDelete() {
 async function toggleActive(row: FeeComponent) {
   try {
     await store.updateFeeComponent(row.id, {
+      revenue_account_id: row.revenue_account_id,
+      receivable_account_id: row.receivable_account_id,
       name: row.name,
       amount: row.amount,
       is_periodic: row.is_periodic,
@@ -127,7 +121,7 @@ function rowActions(row: FeeComponent): DropdownMenuItem[] {
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Komponen Biaya</h1>
-        <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Kelola daftar komponen biaya: UKT, SPP, daftar ulang, dan insidental.</p>
+        <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Kelola daftar komponen biaya beserta akun pendapatan & piutang dari COA.</p>
       </div>
       <UButton
         v-if="can('manage_keuangan')"
@@ -139,21 +133,6 @@ function rowActions(row: FeeComponent): DropdownMenuItem[] {
       </UButton>
     </div>
 
-    <div class="mb-4 flex flex-wrap items-center gap-2">
-      <USelect
-        v-model="typeFilter"
-        :items="[
-          { label: 'Semua Tipe', value: 'all' },
-          { label: 'UKT', value: 'ukt' },
-          { label: 'SPP', value: 'spp' },
-          { label: 'Daftar Ulang', value: 'daftar_ulang' },
-          { label: 'Insidental', value: 'insidental' },
-        ]"
-        class="w-48"
-        :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
-      />
-    </div>
-
     <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900">
       <UTable
         :data="store.feeComponents"
@@ -162,10 +141,16 @@ function rowActions(row: FeeComponent): DropdownMenuItem[] {
         class="w-full"
         :ui="{ th: 'text-gray-900 font-bold dark:text-gray-100' }"
       >
-        <template #type-cell="{ row }">
-          <UBadge variant="subtle" color="neutral" size="sm">
-            {{ typeLabels[row.original.type] ?? row.original.type }}
-          </UBadge>
+        <template #revenue_account-cell="{ row }">
+          <span class="text-sm text-gray-700 dark:text-gray-300">
+            {{ row.original.revenue_account ? `${row.original.revenue_account.code} - ${row.original.revenue_account.name}` : '-' }}
+          </span>
+        </template>
+
+        <template #receivable_account-cell="{ row }">
+          <span class="text-sm text-gray-700 dark:text-gray-300">
+            {{ row.original.receivable_account ? `${row.original.receivable_account.code} - ${row.original.receivable_account.name}` : '-' }}
+          </span>
         </template>
 
         <template #amount-cell="{ row }">
