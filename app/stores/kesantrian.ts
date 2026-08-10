@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { useApi } from '~/composables/useApi'
 import { useAuthStore } from '~/stores/auth'
-import { parseApiError } from '~/utils/errorParser'
+import { getErrorStatus, parseApiError } from '~/utils/errorParser'
 import type { ApiSuccess, ApiMeta } from '#shared/types/ApiResponse'
 import type {
   SantriItem,
@@ -272,6 +272,7 @@ export const useKesantrianStore = defineStore('kesantrian', {
         this.myProfile = res.data
       } catch (err) {
         this.myProfile = null
+        if (getErrorStatus(err) === 404) return
         this.error = parseApiError(err, 'Gagal memuat profil santri.')
         throw err
       } finally {

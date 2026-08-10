@@ -11,6 +11,7 @@ import type {
   Invoice,
   Payment,
   SantriBillingAssignment,
+  MyInvoiceSummary,
   CreateFeeComponentRequest,
   UpdateFeeComponentRequest,
   CreateBillingSchemeRequest,
@@ -50,6 +51,7 @@ interface KeuanganState {
   payments: Payment[]
   paymentsMeta: ApiMeta | null
   currentPayment: Payment | null
+  myInvoiceSummary: MyInvoiceSummary | null
   isLoading: boolean
   isSubmitting: boolean
   error: string | null
@@ -74,6 +76,7 @@ export const useKeuanganStore = defineStore('keuangan', {
     payments: [],
     paymentsMeta: null,
     currentPayment: null,
+    myInvoiceSummary: null,
     isLoading: false,
     isSubmitting: false,
     error: null,
@@ -136,6 +139,21 @@ export const useKeuanganStore = defineStore('keuangan', {
         this.paymentsMeta = res.meta
       } catch (err) {
         this.error = parseApiError(err, 'Gagal memuat daftar pembayaran.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async fetchMyInvoiceSummary() {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<MyInvoiceSummary>>('/api/v1/web/keuangan/summary')
+        this.myInvoiceSummary = res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat ringkasan tagihan.')
         throw err
       } finally {
         this.isLoading = false

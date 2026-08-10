@@ -614,3 +614,13 @@ export interface Meta {
   total: number
   total_pages: number
 }
+
+// Santri self-service summary
+export interface MyInvoiceSummary {
+  total_tagihan: number
+  total_terbayar: number
+  total_tunggakan: number
+  jumlah_invoice: number
+  jumlah_lunas: number
+  jumlah_belum: number
+}

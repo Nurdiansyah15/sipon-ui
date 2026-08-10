@@ -100,6 +100,7 @@ export interface SantriProfile {
   id: string
   user_id: string
   nis?: string | null
+  status?: string | null
   username: string
   email: string
   fullname?: string | null

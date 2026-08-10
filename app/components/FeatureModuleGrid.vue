@@ -45,10 +45,10 @@ const showKesantrian = computed(() => canAny(["manage_santri"]));
 </script>
 
 <template>
-  <section class="mx-auto max-w-7xl px-4 py-8">
-    <h2 class="mb-6 text-lg font-semibold text-gray-900 dark:text-gray-100">
+  <section class="mx-auto max-w-7xl">
+    <!-- <h2 class="mb-6 text-lg font-semibold text-gray-900 dark:text-gray-100">
       Aplikasi
-    </h2>
+    </h2> -->
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <FeatureModuleCard
         title="Pendaftaran Santri Baru"
