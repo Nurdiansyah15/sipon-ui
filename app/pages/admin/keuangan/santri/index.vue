@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { TableColumn } from '@nuxt/ui'
+import type { TableColumn, DropdownMenuItem } from '@nuxt/ui'
 import { useKeuanganStore } from '~/stores/keuangan'
 import { useKesantrianStore } from '~/stores/kesantrian'
 import { usePermission } from '~/composables/usePermission'
 import type { SantriItem } from '#shared/types/Kesantrian'
+import type { SantriBillingAssignment } from '#shared/types/Keuangan'
 
 definePageMeta({ layout: 'keuangan' })
 
@@ -33,20 +34,46 @@ async function load() {
 
 onMounted(load)
 
-const assignmentBySantriId = computed(() => {
-  const map = new Map<string, typeof store.assignments[number]>()
+function todayStr() {
+  const d = new Date()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
+
+function isActive(a: SantriBillingAssignment) {
+  // effective_until dihilangkan backend saat NULL (omitempty), jadi bisa
+  // undefined maupun null — keduanya berarti masih berlangsung (tanpa batas).
+  return a.effective_from <= todayStr() && (!a.effective_until || a.effective_until >= todayStr())
+}
+
+const assignmentsBySantriId = computed(() => {
+  const map = new Map<string, SantriBillingAssignment[]>()
   for (const a of store.assignments) {
-    map.set(a.santri_id, a)
+    const list = map.get(a.santri_id) ?? []
+    list.push(a)
+    map.set(a.santri_id, list)
+  }
+  for (const list of map.values()) {
+    list.sort((x, y) => new Date(y.effective_from).getTime() - new Date(x.effective_from).getTime())
   }
   return map
 })
 
-function assignmentFor(santriId: string) {
-  return assignmentBySantriId.value.get(santriId) ?? null
+function assignmentsFor(santriId: string) {
+  return assignmentsBySantriId.value.get(santriId) ?? []
+}
+
+function currentAssignmentFor(santriId: string) {
+  return assignmentsFor(santriId).find(isActive) ?? null
 }
 
 function schemeName(schemeId: string) {
   return store.billingSchemes.find((s) => s.id === schemeId)?.name ?? 'Skema tidak ditemukan'
+}
+
+function assignmentSchemeName(a: SantriBillingAssignment) {
+  return a.billing_scheme?.name ?? schemeName(a.billing_scheme_id)
 }
 
 function formatDate(value: string) {
@@ -62,12 +89,39 @@ const columns: TableColumn<SantriItem>[] = [
 ]
 
 const assignOpen = ref(false)
+const assignMode = ref<'edit' | 'create'>('create')
 const selectedSantri = ref<SantriItem | null>(null)
-const selectedAssignment = computed(() => selectedSantri.value ? assignmentFor(selectedSantri.value.id) : null)
+const selectedAssignment = computed(() => selectedSantri.value ? currentAssignmentFor(selectedSantri.value.id) : null)
+
+function openEdit(santri: SantriItem) {
+  selectedSantri.value = santri
+  assignMode.value = 'edit'
+  assignOpen.value = true
+}
 
 function openAssign(santri?: SantriItem) {
   selectedSantri.value = santri || null
+  assignMode.value = 'create'
   assignOpen.value = true
+}
+
+const historyOpen = ref(false)
+const historySantri = ref<SantriItem | null>(null)
+
+function openHistory(santri: SantriItem) {
+  historySantri.value = santri
+  historyOpen.value = true
+}
+
+function rowActions(santri: SantriItem): DropdownMenuItem[] {
+  const items: DropdownMenuItem[] = [
+    { label: 'Tetapkan Skema', icon: 'i-lucide-user-check', onSelect: () => openAssign(santri) },
+  ]
+  if (currentAssignmentFor(santri.id)) {
+    items.unshift({ label: 'Edit Skema', icon: 'i-lucide-pencil', onSelect: () => openEdit(santri) })
+  }
+  items.push({ label: 'Riwayat', icon: 'i-lucide-history', onSelect: () => openHistory(santri) })
+  return items
 }
 
 function statusBadgeColor(status: string) {
@@ -80,7 +134,7 @@ function statusBadgeColor(status: string) {
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Penetapan Skema Santri</h1>
-        <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Tetapkan skema tagihan ke santri beserta periode berlakunya.</p>
+        <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Tetapkan atau edit skema tagihan santri beserta periode berlakunya.</p>
       </div>
       <UButton
         v-if="can('manage_keuangan')"
@@ -119,15 +173,15 @@ function statusBadgeColor(status: string) {
         </template>
 
         <template #current_scheme-cell="{ row }">
-          <template v-if="assignmentFor(row.original.id)">
+          <template v-if="currentAssignmentFor(row.original.id)">
             <div class="flex flex-col gap-0.5">
               <UBadge color="success" variant="subtle" size="sm" class="w-fit">
-                {{ schemeName(assignmentFor(row.original.id)!.billing_scheme_id) }}
+                {{ assignmentSchemeName(currentAssignmentFor(row.original.id)!) }}
               </UBadge>
               <span class="text-xs text-gray-500 dark:text-gray-400">
-                sejak {{ formatDate(assignmentFor(row.original.id)!.effective_from) }}
-                <template v-if="assignmentFor(row.original.id)!.effective_until">
-                  – {{ formatDate(assignmentFor(row.original.id)!.effective_until!) }}
+                sejak {{ formatDate(currentAssignmentFor(row.original.id)!.effective_from) }}
+                <template v-if="currentAssignmentFor(row.original.id)!.effective_until">
+                  – {{ formatDate(currentAssignmentFor(row.original.id)!.effective_until!) }}
                 </template>
               </span>
             </div>
@@ -136,16 +190,7 @@ function statusBadgeColor(status: string) {
         </template>
 
         <template #actions-cell="{ row }">
-          <UButton
-            v-if="can('manage_keuangan')"
-            variant="ghost"
-            size="sm"
-            :icon="assignmentFor(row.original.id) ? 'i-lucide-repeat' : 'i-lucide-user-check'"
-            color="neutral"
-            @click="openAssign(row.original)"
-          >
-            {{ assignmentFor(row.original.id) ? 'Ganti Skema' : 'Tetapkan Skema' }}
-          </UButton>
+          <AppRowActions v-if="can('manage_keuangan')" :items="rowActions(row.original)" />
         </template>
       </UTable>
     </div>
@@ -156,7 +201,16 @@ function statusBadgeColor(status: string) {
       :santri-list="santriList"
       :selected-santri="selectedSantri"
       :current-assignment="selectedAssignment"
+      :mode="assignMode"
       @success="load"
+    />
+
+    <AdminKeuanganAdminSantriSchemeHistoryModal
+      v-model:open="historyOpen"
+      :santri="historySantri"
+      :assignments="historySantri ? assignmentsFor(historySantri.id) : []"
+      :scheme-name="schemeName"
+      :is-active="isActive"
     />
   </div>
 </template>

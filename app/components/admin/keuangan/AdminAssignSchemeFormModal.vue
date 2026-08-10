@@ -11,6 +11,7 @@ const props = defineProps<{
   santriList: SantriItem[]
   selectedSantri?: SantriItem | null
   currentAssignment?: SantriBillingAssignment | null
+  mode?: 'edit' | 'create'
 }>()
 
 const emit = defineEmits<{
@@ -20,6 +21,9 @@ const emit = defineEmits<{
 
 const store = useKeuanganStore()
 const toast = useToast()
+
+const mode = computed(() => props.mode ?? (props.currentAssignment ? 'edit' : 'create'))
+const isEdit = computed(() => mode.value === 'edit')
 
 const santriOptions = computed(() =>
   props.santriList.map((s) => ({
@@ -60,9 +64,15 @@ const form = reactive({
 watch(() => props.open, (val) => {
   if (val) {
     form.santri_id = props.selectedSantri?.id ?? ''
-    form.billing_scheme_id = ''
-    form.effective_from = props.currentAssignment ? new Date().toISOString().slice(0, 10) : ''
-    form.effective_until = ''
+    if (isEdit.value && props.currentAssignment) {
+      form.billing_scheme_id = props.currentAssignment.billing_scheme_id
+      form.effective_from = props.currentAssignment.effective_from
+      form.effective_until = props.currentAssignment.effective_until ?? ''
+    } else {
+      form.billing_scheme_id = ''
+      form.effective_from = props.currentAssignment ? new Date().toISOString().slice(0, 10) : ''
+      form.effective_until = ''
+    }
   }
 })
 
@@ -71,17 +81,26 @@ const saving = ref(false)
 async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
   saving.value = true
   try {
-    await store.assignSchemeToSantri({
-      santri_id: form.santri_id,
-      billing_scheme_id: form.billing_scheme_id,
-      effective_from: form.effective_from,
-      effective_until: form.effective_until || undefined,
-    })
-    toast.add({ title: props.currentAssignment ? 'Skema santri berhasil diganti' : 'Skema ditetapkan ke santri', color: 'success' })
+    if (isEdit.value && props.currentAssignment) {
+      await store.updateAssignment(props.currentAssignment.id, {
+        billing_scheme_id: form.billing_scheme_id,
+        effective_from: form.effective_from,
+        effective_until: form.effective_until || undefined,
+      })
+      toast.add({ title: 'Skema aktif santri diperbarui', color: 'success' })
+    } else {
+      await store.assignSchemeToSantri({
+        santri_id: form.santri_id,
+        billing_scheme_id: form.billing_scheme_id,
+        effective_from: form.effective_from,
+        effective_until: form.effective_until || undefined,
+      })
+      toast.add({ title: props.currentAssignment ? 'Skema baru ditetapkan, skema lama berakhir' : 'Skema ditetapkan ke santri', color: 'success' })
+    }
     emit('update:open', false)
     emit('success')
   } catch {
-    toast.add({ title: store.error ?? 'Gagal menetapkan skema', color: 'error' })
+    toast.add({ title: store.error ?? 'Gagal menyimpan skema', color: 'error' })
   } finally {
     saving.value = false
   }
@@ -99,7 +118,7 @@ function close() {
       <div class="p-6">
         <div class="mb-5 flex items-center justify-between">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            {{ currentAssignment ? 'Ganti Skema Santri' : 'Tetapkan Skema ke Santri' }}
+            {{ isEdit ? 'Edit Skema Santri' : 'Tetapkan Skema ke Santri' }}
           </h3>
           <UButton
             v-if="!saving"
@@ -113,11 +132,19 @@ function close() {
         </div>
 
         <div
-          v-if="currentAssignment"
+          v-if="isEdit && currentAssignment"
+          class="mb-4 rounded-lg border border-teal-200 bg-teal-50 p-3 text-sm text-teal-800 dark:border-teal-900/50 dark:bg-teal-900/20 dark:text-teal-300"
+        >
+          Mengedit skema aktif <strong>{{ currentSchemeName }}</strong> (berlaku sejak {{ formatDate(currentAssignment.effective_from) }}).
+          Perubahan hanya berlaku untuk tagihan yang dibuat setelahnya — invoice lama yang sudah terbit tidak berubah.
+        </div>
+
+        <div
+          v-else-if="currentAssignment"
           class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-300"
         >
           Santri ini sedang memiliki skema <strong>{{ currentSchemeName }}</strong> (berlaku sejak {{ formatDate(currentAssignment.effective_from) }}).
-          Menyimpan skema baru akan mengakhiri skema ini pada tanggal sebelum tanggal berlaku baru.
+          Menetapkan skema baru akan mengakhiri skema ini pada tanggal sebelum tanggal berlaku baru.
         </div>
 
         <UForm :schema="schema" :state="form" class="space-y-4" @submit="onSubmit">

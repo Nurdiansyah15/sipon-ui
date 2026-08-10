@@ -153,6 +153,10 @@ export interface SantriBillingAssignment {
   id: string
   santri_id: string
   billing_scheme_id: string
+  billing_scheme?: {
+    id: string
+    name: string
+  }
   effective_from: string
   effective_until: string | null
   assigned_by: string
@@ -358,6 +362,12 @@ export interface AddSchemeItemRequest {
 
 export interface AssignSchemeRequest {
   santri_id: string
+  billing_scheme_id: string
+  effective_from: string
+  effective_until?: string
+}
+
+export interface UpdateAssignmentRequest {
   billing_scheme_id: string
   effective_from: string
   effective_until?: string

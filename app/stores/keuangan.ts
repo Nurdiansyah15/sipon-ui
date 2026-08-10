@@ -17,6 +17,7 @@ import type {
   UpdateBillingSchemeRequest,
   AddSchemeItemRequest,
   AssignSchemeRequest,
+  UpdateAssignmentRequest,
   CreateInvoiceRequest,
   CreateInvoiceBatchRequest,
   CreateInvoiceBatchResponse,
@@ -443,18 +444,36 @@ export const useKeuanganStore = defineStore('keuangan', {
       }
     },
 
-    async fetchAssignments() {
+    async fetchAssignments(santriId?: string) {
       this.isLoading = true
       this.error = null
       try {
         const api = useApi()
-        const res = await api.get<ApiSuccess<SantriBillingAssignment[]>>('/api/v1/web/keuangan/admin/assignments')
+        const res = await api.get<ApiSuccess<SantriBillingAssignment[]>>('/api/v1/web/keuangan/admin/assignments', {
+          query: santriId ? { santri_id: santriId } : undefined,
+        })
         this.assignments = res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal memuat penetapan skema.')
         throw err
       } finally {
         this.isLoading = false
+      }
+    },
+
+    async updateAssignment(id: string, payload: UpdateAssignmentRequest) {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.put(`/api/v1/web/keuangan/admin/assignments/${id}`, payload)
+        await this.fetchAssignments()
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memperbarui penetapan skema.')
+        throw err
+      } finally {
+        this.isSubmitting = false
       }
     },
 
