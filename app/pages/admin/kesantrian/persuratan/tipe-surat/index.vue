@@ -94,14 +94,24 @@ function rowActions(row: TipeSuratItem): DropdownMenuItem[] {
           Master jenis surat yang dipakai untuk penomoran surat keluar.
         </p>
       </div>
-      <UButton
-        v-if="can('manage_persuratan')"
-        icon="i-lucide-plus"
-        color="primary"
-        @click="openCreate"
-      >
-        Buat Tipe Surat
-      </UButton>
+      <div class="flex flex-wrap items-center gap-2">
+        <UButton
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-arrow-left"
+          @click="navigateTo('/admin/kesantrian/persuratan')"
+        >
+          Kembali ke Persuratan
+        </UButton>
+        <UButton
+          v-if="can('manage_persuratan')"
+          icon="i-lucide-plus"
+          color="primary"
+          @click="openCreate"
+        >
+          Buat Tipe Surat
+        </UButton>
+      </div>
     </div>
 
     <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900">

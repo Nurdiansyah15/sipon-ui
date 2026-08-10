@@ -155,14 +155,24 @@ const columns: TableColumn<SuratItem>[] = [
           Pencatatan surat keluar dengan nomor otomatis dan tautan dokumen aset.
         </p>
       </div>
-      <UButton
-        v-if="can('manage_persuratan')"
-        icon="i-lucide-plus"
-        color="primary"
-        @click="createOpen = true"
-      >
-        Buat Surat
-      </UButton>
+      <div class="flex flex-wrap items-center gap-2">
+        <UButton
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-arrow-left"
+          @click="navigateTo('/admin/kesantrian/persuratan')"
+        >
+          Kembali ke Persuratan
+        </UButton>
+        <UButton
+          v-if="can('manage_persuratan')"
+          icon="i-lucide-plus"
+          color="primary"
+          @click="createOpen = true"
+        >
+          Buat Surat
+        </UButton>
+      </div>
     </div>
 
     <div class="mb-4 flex flex-wrap items-center gap-2">
