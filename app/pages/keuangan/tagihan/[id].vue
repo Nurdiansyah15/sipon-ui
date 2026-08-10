@@ -44,6 +44,19 @@ const outstandingAmount = computed(() => {
   return Math.max(0, invoice.value.amount - invoice.value.discount_amount - invoice.value.paid_amount)
 })
 
+const isPayable = computed(() => {
+  if (!invoice.value) return false
+  return (invoice.value.status === 'issued' || invoice.value.status === 'partial') && outstandingAmount.value > 0
+})
+
+async function handlePaymentPaid() {
+  try {
+    invoice.value = await keuanganStore.fetchMyInvoice(invoice.value!.id)
+  } catch (err) {
+    toast.add({ title: 'Gagal memuat data', description: parseApiError(err), color: 'error' })
+  }
+}
+
 const adjustmentTypeLabel: Record<string, string> = {
   beasiswa: 'Beasiswa',
   diskon: 'Diskon',
@@ -152,6 +165,20 @@ onMounted(async () => {
               </span>
             </div>
           </div>
+        </div>
+
+        <!-- Pay Online -->
+        <div v-if="isPayable" class="mt-6 flex items-center justify-between gap-4 border-t border-gray-200 pt-6 dark:border-gray-700">
+          <div>
+            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Bayar tagihan ini secara online</p>
+            <p class="mt-1 text-sm text-gray-500">Pembayaran diproses melalui Midtrans dengan berbagai metode pembayaran.</p>
+          </div>
+          <MidtransPayButton
+            :invoice-id="invoice.id"
+            :amount="outstandingAmount"
+            :payable="isPayable"
+            @paid="handlePaymentPaid"
+          />
         </div>
       </div>
 

@@ -31,6 +31,8 @@ import type {
   BillingBatchListQuery,
   InvoiceListQuery,
   PaymentListQuery,
+  MidtransPaymentResponse,
+  PaymentGatewayStatusResponse,
 } from '#shared/types/Keuangan'
 
 interface KeuanganState {
@@ -158,6 +160,32 @@ export const useKeuanganStore = defineStore('keuangan', {
       } finally {
         this.isLoading = false
       }
+    },
+
+    async createMidtransPayment(invoiceId: string): Promise<MidtransPaymentResponse> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<MidtransPaymentResponse>>(
+          '/api/v1/web/keuangan/payments/midtrans',
+          { invoice_id: invoiceId },
+        )
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal membuat transaksi pembayaran online.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async fetchPaymentGatewayStatus(invoiceId: string): Promise<PaymentGatewayStatusResponse> {
+      const api = useApi()
+      const res = await api.get<ApiSuccess<PaymentGatewayStatusResponse>>(
+        `/api/v1/web/keuangan/invoices/${invoiceId}/payment-status`,
+      )
+      return res.data
     },
 
     async fetchFeeComponents(query: FeeComponentListQuery = {}) {

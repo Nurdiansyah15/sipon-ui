@@ -41,6 +41,21 @@ const totalPaid = computed(() => {
   return keuanganStore.invoices.reduce((sum, inv) => sum + inv.paid_amount, 0)
 })
 
+function isPayable(invoice: Invoice): boolean {
+  if (invoice.status !== 'issued' && invoice.status !== 'partial') return false
+  return invoice.amount - invoice.discount_amount - invoice.paid_amount > 0
+}
+
+async function handlePaid(invoice: Invoice) {
+  try {
+    await keuanganStore.fetchMyInvoices({ limit: 100 })
+    await keuanganStore.fetchMyInvoiceSummary()
+    toast.add({ title: 'Pembayaran diterima', description: `Tagihan ${invoice.invoice_number} telah terbayar.`, color: 'success' })
+  } catch (err) {
+    toast.add({ title: 'Gagal memperbarui data', description: parseApiError(err), color: 'error' })
+  }
+}
+
 onMounted(async () => {
   try {
     await keuanganStore.fetchMyInvoices({ limit: 100 })
@@ -160,6 +175,14 @@ function getStatusColor(status: string): string {
             <div class="mt-2 space-y-1 text-xs">
               <p class="text-green-600 dark:text-green-400">Dibayar: {{ formatRupiah(invoice.paid_amount) }}</p>
               <p v-if="invoice.discount_amount > 0" class="text-blue-600 dark:text-blue-400">Diskon: {{ formatRupiah(invoice.discount_amount) }}</p>
+            </div>
+            <div v-if="isPayable(invoice)" class="mt-3" @click.stop>
+              <MidtransPayButton
+                :invoice-id="invoice.id"
+                :amount="invoice.amount - invoice.discount_amount - invoice.paid_amount"
+                size="sm"
+                @paid="handlePaid(invoice)"
+              />
             </div>
           </div>
         </div>

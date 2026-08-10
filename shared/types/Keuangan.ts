@@ -3,6 +3,15 @@ export type PeriodType = 'monthly' | 'semesterly' | 'yearly' | 'once'
 export type InvoiceStatus = 'draft' | 'issued' | 'partial' | 'paid' | 'expired' | 'cancelled'
 export type PaymentStatus = 'pending' | 'verified' | 'rejected'
 export type PaymentMethod = 'transfer' | 'cash' | 'check'
+export type PaymentGatewayStatus =
+  | 'pending'
+  | 'pending_challenge'
+  | 'capture'
+  | 'settlement'
+  | 'deny'
+  | 'failure'
+  | 'expire'
+  | 'cancel'
 export type AdjustmentType = 'beasiswa' | 'diskon' | 'penyesuaian'
 export type AccountType = 'asset' | 'liability' | 'equity' | 'revenue' | 'expense'
 export type NormalBalance = 'debit' | 'credit'
@@ -259,6 +268,28 @@ export interface InvoiceAdjustment {
   description: string | null
   applied_by: string
   applied_at: string
+}
+
+export interface MidtransPaymentResponse {
+  transaction_id: string
+  invoice_id: string
+  amount: number
+  snap_token: string
+  redirect_url: string
+  status: PaymentGatewayStatus
+  expires_at: string
+}
+
+export interface PaymentGatewayStatusResponse {
+  transaction_id: string
+  invoice_id: string
+  payment_id?: string | null
+  amount: number
+  status: PaymentGatewayStatus
+  payment_method?: string | null
+  snap_token?: string
+  redirect_url?: string
+  expires_at?: string
 }
 
 export interface Account {
