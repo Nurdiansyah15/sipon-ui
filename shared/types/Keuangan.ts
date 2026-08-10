@@ -420,6 +420,45 @@ export interface CreatePaymentRequest {
   proof_key?: string
 }
 
+export interface KeuanganSettingResponse {
+  default_payment_debit_account_id?: string | null
+  default_payment_debit_account?: AccountBrief | null
+}
+
+export interface UpdateKeuanganSettingRequest {
+  default_payment_debit_account_id?: string | null
+}
+
+export interface PresignPaymentProofRequest {
+  filename: string
+  content_type: string
+}
+
+export interface PresignPaymentProofResponse {
+  presign_url: string
+  key: string
+  expires_in: number
+}
+
+export interface SubmitPaymentRequest {
+  invoice_id: string
+  amount: number
+  method: PaymentMethod
+  reference_number?: string
+  payment_date: string
+  proof_key: string
+  notes?: string
+}
+
+export interface VerifyPaymentRequest {
+  debit_account_id: string
+}
+
+export interface PaymentProofResponse {
+  url: string
+  expires_in: number
+}
+
 export interface CreateAccountRequest {
   code: string
   name: string

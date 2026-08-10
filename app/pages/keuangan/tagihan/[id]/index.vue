@@ -14,6 +14,12 @@ const invoice = ref<Invoice | null>(null)
 const payments = computed(() => invoice.value?.payments ?? [])
 const adjustments = computed(() => invoice.value?.adjustments ?? [])
 
+const isChildRoute = computed(() => {
+  const id = route.params.id as string
+  const indexPath = `/keuangan/tagihan/${id}`
+  return route.path !== indexPath
+})
+
 function formatRupiah(value: number): string {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -69,13 +75,27 @@ onMounted(async () => {
 
 <template>
   <div class="mx-auto max-w-7xl px-4 py-8">
-    <div class="mb-8 flex items-start justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Detail Tagihan</h1>
-        <p class="mt-1 text-sm text-gray-500">Informasi lengkap tagihan dan riwayat pembayaran.</p>
+    <NuxtPage v-if="isChildRoute" />
+
+    <template v-else>
+      <div class="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Detail Tagihan</h1>
+          <p class="mt-1 text-sm text-gray-500">Informasi lengkap tagihan dan riwayat pembayaran.</p>
+        </div>
+        <div class="flex shrink-0 items-center gap-2">
+          <UButton
+            v-if="invoice && outstandingAmount > 0 && ['issued', 'partial'].includes(invoice.status)"
+            icon="i-lucide-credit-card"
+            class="bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-400"
+            size="sm"
+            @click="router.push(`/keuangan/tagihan/${invoice.id}/bayar`)"
+          >
+            Bayar Tagihan
+          </UButton>
+          <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" @click="router.push('/keuangan/tagihan')">Kembali</UButton>
+        </div>
       </div>
-      <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" class="shrink-0" @click="router.push('/keuangan/tagihan')">Kembali</UButton>
-    </div>
 
     <!-- Loading -->
     <div v-if="keuanganStore.isLoading" class="space-y-4">
@@ -262,5 +282,6 @@ onMounted(async () => {
       <p class="mt-2 text-gray-500 dark:text-gray-400">Tagihan yang Anda cari tidak ada atau telah dihapus.</p>
       <UButton class="mt-4" @click="router.push('/keuangan/tagihan')">Kembali ke Daftar</UButton>
     </div>
+    </template>
   </div>
 </template>

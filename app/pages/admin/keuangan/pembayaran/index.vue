@@ -74,6 +74,19 @@ async function handleDownloadReceipt(id: string) {
   }
 }
 
+async function handleViewProof(id: string) {
+  try {
+    const res = await store.getPaymentProofURL(id)
+    window.open(res.url, '_blank')
+  } catch {
+    toast.add({
+      title: 'Gagal memuat bukti transfer',
+      description: store.error ?? undefined,
+      color: 'error',
+    })
+  }
+}
+
 function rowActions(row: Payment): DropdownMenuItem[] {
   const items: DropdownMenuItem[] = []
   items.push({
@@ -81,6 +94,13 @@ function rowActions(row: Payment): DropdownMenuItem[] {
     icon: 'i-lucide-eye',
     onSelect: () => navigateTo(`/admin/keuangan/pembayaran/${row.id}`),
   })
+  if (row.proof_key) {
+    items.push({
+      label: 'Lihat Bukti Transfer',
+      icon: 'i-lucide-image',
+      onSelect: () => handleViewProof(row.id),
+    })
+  }
   if (row.status === 'pending' && can('manage_keuangan')) {
     items.push({
       label: 'Verifikasi / Tolak',

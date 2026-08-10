@@ -15,6 +15,8 @@ const payment = computed<Payment | null>(() => store.currentPayment)
 
 const verificationOpen = ref(false)
 const verificationTarget = ref<any>(null)
+const proofUrl = ref<string | null>(null)
+const proofLoading = ref(false)
 
 async function load() {
   try {
@@ -29,6 +31,27 @@ async function load() {
 }
 
 onMounted(load)
+
+async function handleViewProof() {
+  if (!payment.value?.proof_key) {
+    toast.add({ title: 'Bukti transfer tidak tersedia', color: 'error' })
+    return
+  }
+  proofLoading.value = true
+  try {
+    const res = await store.getPaymentProofURL(paymentId.value)
+    proofUrl.value = res.url
+    window.open(res.url, '_blank')
+  } catch {
+    toast.add({
+      title: 'Gagal memuat bukti transfer',
+      description: store.error ?? undefined,
+      color: 'error',
+    })
+  } finally {
+    proofLoading.value = false
+  }
+}
 
 function openVerification() {
   if (!payment.value) return
@@ -224,6 +247,16 @@ const canVerify = computed(() =>
       </div>
 
       <div class="flex flex-wrap gap-2">
+        <UButton
+          v-if="payment.proof_key"
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-image"
+          :loading="proofLoading"
+          @click="handleViewProof"
+        >
+          Lihat Bukti Transfer
+        </UButton>
         <UButton
           v-if="canVerify"
           color="success"

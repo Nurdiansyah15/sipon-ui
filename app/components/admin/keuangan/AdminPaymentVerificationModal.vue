@@ -20,6 +20,7 @@ const store = useKeuanganStore()
 const toast = useToast()
 
 const isProcessing = ref(false)
+const debitAccountId = ref<string | null>(null)
 
 function close() {
   if (isProcessing.value) return
@@ -29,7 +30,10 @@ function close() {
 watch(
   () => props.open,
   (open) => {
-    if (!open) isProcessing.value = false
+    if (!open) {
+      isProcessing.value = false
+      debitAccountId.value = null
+    }
   },
 )
 
@@ -44,9 +48,17 @@ function formatRupiah(value: number): string {
 
 async function handleVerify() {
   if (!props.payment) return
+  if (!debitAccountId.value) {
+    toast.add({
+      title: 'Akun debit wajib dipilih',
+      description: 'Pilih akun kas/bank sebelum memverifikasi pembayaran.',
+      color: 'error',
+    })
+    return
+  }
   isProcessing.value = true
   try {
-    await store.verifyPayment(props.payment.id)
+    await store.verifyPayment(props.payment.id, { debit_account_id: debitAccountId.value })
     toast.add({ title: 'Pembayaran diverifikasi', color: 'success' })
     emit('verified')
     emit('update:open', false)
@@ -119,6 +131,20 @@ async function handleReject() {
             <span class="text-gray-500 dark:text-gray-400">Status</span>
             <KeuanganStatusBadge :status="payment.status" type="payment" size="sm" />
           </div>
+        </div>
+
+        <div class="mb-5">
+          <KeuanganAccountPicker
+            v-model="debitAccountId"
+            filter="asset"
+            sub-type="cash_bank"
+            label="Akun Debit (Kas/Bank)"
+            placeholder="Pilih akun kas/bank"
+            :required="true"
+          />
+          <p class="mt-1.5 text-xs text-gray-400">
+            Akun debit wajib dipilih — berpengaruh ke posting jurnal otomatis saat pembayaran diverifikasi.
+          </p>
         </div>
 
         <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">

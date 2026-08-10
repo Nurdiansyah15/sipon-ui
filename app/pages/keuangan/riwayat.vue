@@ -110,6 +110,18 @@ onMounted(async () => {
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ payment.payment_number }}</h3>
               <KeuanganStatusBadge :status="payment.status" type="payment" size="sm" />
             </div>
+            <div v-if="payment.status === 'pending'" class="mt-2 flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+              <UIcon name="i-lucide-clock" class="h-4 w-4 shrink-0" />
+              Pembayaran sedang menunggu verifikasi admin.
+            </div>
+            <div v-if="payment.status === 'verified' && payment.verified_at" class="mt-2 flex items-center gap-1.5 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-300">
+              <UIcon name="i-lucide-shield-check" class="h-4 w-4 shrink-0" />
+              Diverifikasi pada {{ formatDateTime(payment.verified_at) }}.
+            </div>
+            <div v-if="payment.status === 'rejected'" class="mt-2 flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
+              <UIcon name="i-lucide-x-circle" class="h-4 w-4 shrink-0" />
+              Pembayaran ditolak{{ payment.notes ? `: ${payment.notes}` : '.' }}
+            </div>
             <div class="mt-3 space-y-1 text-sm text-gray-500">
               <p v-if="payment.invoice">
                 <span class="font-medium text-gray-700 dark:text-gray-300">Tagihan:</span>

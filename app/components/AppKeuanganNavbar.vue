@@ -25,6 +25,7 @@ const masterDataItems: NavItem[] = [
   { label: 'Komponen Biaya', icon: 'i-lucide-coins', to: '/admin/keuangan/komponen' },
   { label: 'Skema Tagihan', icon: 'i-lucide-package', to: '/admin/keuangan/skema' },
   { label: 'Skema Santri', icon: 'i-lucide-users', to: '/admin/keuangan/santri' },
+  { label: 'Pengaturan', icon: 'i-lucide-settings', to: '/admin/keuangan/settings' },
 ]
 
 const transaksiItems: NavItem[] = [

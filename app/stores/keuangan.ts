@@ -25,6 +25,13 @@ import type {
   CreateBillingPeriodRequest,
   ApplyAdjustmentRequest,
   CreatePaymentRequest,
+  KeuanganSettingResponse,
+  UpdateKeuanganSettingRequest,
+  PresignPaymentProofRequest,
+  PresignPaymentProofResponse,
+  SubmitPaymentRequest,
+  VerifyPaymentRequest,
+  PaymentProofResponse,
   FeeComponentListQuery,
   BillingSchemeListQuery,
   BillingPeriodListQuery,
@@ -52,6 +59,7 @@ interface KeuanganState {
   paymentsMeta: ApiMeta | null
   currentPayment: Payment | null
   myInvoiceSummary: MyInvoiceSummary | null
+  settings: KeuanganSettingResponse | null
   isLoading: boolean
   isSubmitting: boolean
   error: string | null
@@ -77,6 +85,7 @@ export const useKeuanganStore = defineStore('keuangan', {
     paymentsMeta: null,
     currentPayment: null,
     myInvoiceSummary: null,
+    settings: null,
     isLoading: false,
     isSubmitting: false,
     error: null,
@@ -719,12 +728,12 @@ export const useKeuanganStore = defineStore('keuangan', {
       }
     },
 
-    async verifyPayment(id: string): Promise<Payment> {
+    async verifyPayment(id: string, payload: VerifyPaymentRequest): Promise<Payment> {
       this.isSubmitting = true
       this.error = null
       try {
         const api = useApi()
-        const res = await api.post<ApiSuccess<Payment>>(`/api/v1/web/keuangan/admin/payments/${id}/verify`)
+        const res = await api.post<ApiSuccess<Payment>>(`/api/v1/web/keuangan/admin/payments/${id}/verify`, payload)
         const idx = this.payments.findIndex((p) => p.id === id)
         if (idx !== -1) this.payments[idx] = res.data
         if (this.currentPayment?.id === id) this.currentPayment = res.data
@@ -752,6 +761,84 @@ export const useKeuanganStore = defineStore('keuangan', {
         throw err
       } finally {
         this.isSubmitting = false
+      }
+    },
+
+    async fetchKeuanganSettings(): Promise<KeuanganSettingResponse> {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<KeuanganSettingResponse>>('/api/v1/web/keuangan/admin/settings')
+        this.settings = res.data
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat settings keuangan.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async updateKeuanganSettings(payload: UpdateKeuanganSettingRequest): Promise<KeuanganSettingResponse> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.put<ApiSuccess<KeuanganSettingResponse>>('/api/v1/web/keuangan/admin/settings', payload)
+        this.settings = res.data
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memperbarui settings keuangan.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async requestPaymentProofPresign(payload: PresignPaymentProofRequest): Promise<PresignPaymentProofResponse> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<PresignPaymentProofResponse>>('/api/v1/web/keuangan/payments/proof/presign', payload)
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal membuat URL unggahan bukti transfer.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async submitPayment(payload: SubmitPaymentRequest): Promise<Payment> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<Payment>>('/api/v1/web/keuangan/payments', payload)
+        this.payments.unshift(res.data)
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal mengajukan pembayaran.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async getPaymentProofURL(paymentId: string): Promise<PaymentProofResponse> {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<PaymentProofResponse>>(`/api/v1/web/keuangan/admin/payments/${paymentId}/proof`)
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat bukti transfer.')
+        throw err
+      } finally {
+        this.isLoading = false
       }
     },
 
