@@ -2,6 +2,8 @@
 import { useAppModules } from '~/composables/useAppModules'
 
 const { publicApps, visibleAdminApps } = useAppModules()
+
+const portalAdminApps = computed(() => visibleAdminApps.value.filter((app) => app.to === '/admin'))
 </script>
 
 <template>
@@ -23,14 +25,14 @@ const { publicApps, visibleAdminApps } = useAppModules()
       </div>
     </div>
 
-    <!-- Aplikasi Admin (hanya tampil sesuai permission) -->
-    <div v-if="visibleAdminApps.length > 0">
+    <!-- Aplikasi Admin (hanya Portal Admin yang tampil) -->
+    <div v-if="portalAdminApps.length > 0">
       <h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
         Aplikasi Admin
       </h2>
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <FeatureModuleCard
-          v-for="app in visibleAdminApps"
+          v-for="app in portalAdminApps"
           :key="app.to"
           :title="app.title"
           :description="app.description"

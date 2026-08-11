@@ -23,6 +23,7 @@ const { publicApps, visibleAdminApps } = useAppModules()
             :key="app.to"
             :text="app.title"
             :content="{ side: 'bottom' }"
+            :ignore-non-keyboard-focus="true"
           >
             <button
               type="button"
