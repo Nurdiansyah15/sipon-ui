@@ -1,3 +1,5 @@
+import type { DokumenKind, DokumenStatus } from './Dokumen'
+
 export interface SantriItem {
   id: string
   user_id: string
@@ -74,9 +76,6 @@ export interface ApproveSantriRequestPayload {
 export interface RejectSantriRequestPayload {
   notes?: string
 }
-
-export type DokumenKind = 'surat_pernyataan' | 'ktp' | 'kk' | 'mutasi' | 'pembayaran'
-export type DokumenStatus = 'pending' | 'verified' | 'rejected'
 
 export interface DokumenItem {
   id: string
@@ -237,7 +236,7 @@ export interface DokumenPresignPayload {
   kind: DokumenKind
 }
 
-export interface DokumenPresignResponse {
+export interface SantriDokumenPresignResponse {
   presign_url: string
   key: string
   expires_in: number
@@ -251,7 +250,7 @@ export interface DokumenConfirmPayload {
   size?: number
 }
 
-export interface DokumenConfirmResponse {
+export interface SantriDokumenConfirmResponse {
   id: string
   kind: DokumenKind
   key: string

@@ -1,5 +1,7 @@
 // ===== Enums / status literals =====
 
+import type { DokumenKind, DokumenStatus } from './Dokumen'
+
 export type PendaftarStatus =
   | 'draft'
   | 'diajukan'
@@ -12,10 +14,6 @@ export type PendaftarStatus =
   | 'selesai'
 
 export type DokumenStage = 'pendaftaran' | 'daftar_ulang'
-
-export type DokumenKind = 'surat_pernyataan' | 'ktp' | 'kk' | 'mutasi' | 'pembayaran'
-
-export type DokumenStatus = 'pending' | 'verified' | 'rejected'
 
 export type ReviewStage = 'pendaftaran' | 'daftar_ulang'
 

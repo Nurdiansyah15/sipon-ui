@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { DokumenStage, DokumenKind, DokumenItemResponse } from '#shared/types/Psb'
+import type { DokumenStage, DokumenItemResponse } from '#shared/types/Psb'
+import type { DokumenKind } from '#shared/types/Dokumen'
 import { usePsbStore } from '~/stores/psb'
 import { parseApiError } from '~/utils/errorParser'
 

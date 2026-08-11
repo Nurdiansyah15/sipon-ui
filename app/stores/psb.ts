@@ -7,7 +7,6 @@ import type {
   PendaftarResponse,
   UpsertFormulirRequest,
   DokumenStage,
-  DokumenKind,
   DokumenPresignRequest,
   DokumenPresignResponse,
   DokumenItemResponse,
@@ -16,6 +15,7 @@ import type {
   ReviewResponse,
   MessageResponse,
 } from '#shared/types/Psb'
+import type { DokumenKind } from '#shared/types/Dokumen'
 
 export interface PendingDokumenEntry {
   stage: DokumenStage

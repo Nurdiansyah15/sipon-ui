@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { useKesantrianStore } from '~/stores/kesantrian'
 import { parseApiError } from '~/utils/errorParser'
-import type { DokumenItem, DokumenKind } from '#shared/types/Kesantrian'
+import type { DokumenItem } from '#shared/types/Kesantrian'
+import type { DokumenKind } from '#shared/types/Dokumen'
 
 const store = useKesantrianStore()
 const toast = useToast()

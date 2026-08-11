@@ -19,9 +19,9 @@ import type {
   UpdateSantriProfileRequest,
   RequestSantriResult,
   DokumenPresignPayload,
-  DokumenPresignResponse,
+  SantriDokumenPresignResponse,
   DokumenConfirmPayload,
-  DokumenConfirmResponse,
+  SantriDokumenConfirmResponse,
   DokumenAccessResult,
 } from '#shared/types/Kesantrian'
 
@@ -327,15 +327,15 @@ export const useKesantrianStore = defineStore('kesantrian', {
       }
     },
 
-    async presignMyDokumen(payload: DokumenPresignPayload): Promise<DokumenPresignResponse> {
+    async presignMyDokumen(payload: DokumenPresignPayload): Promise<SantriDokumenPresignResponse> {
       const api = useApi()
-      const res = await api.post<ApiSuccess<DokumenPresignResponse>>('/api/v1/web/santri/dokumen/presign', payload)
+      const res = await api.post<ApiSuccess<SantriDokumenPresignResponse>>('/api/v1/web/santri/dokumen/presign', payload)
       return res.data
     },
 
-    async confirmMyDokumen(payload: DokumenConfirmPayload): Promise<DokumenConfirmResponse> {
+    async confirmMyDokumen(payload: DokumenConfirmPayload): Promise<SantriDokumenConfirmResponse> {
       const api = useApi()
-      const res = await api.post<ApiSuccess<DokumenConfirmResponse>>('/api/v1/web/santri/dokumen/confirm', payload)
+      const res = await api.post<ApiSuccess<SantriDokumenConfirmResponse>>('/api/v1/web/santri/dokumen/confirm', payload)
       return res.data
     },
 
