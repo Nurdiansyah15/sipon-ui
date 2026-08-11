@@ -83,11 +83,16 @@ const confirmAction = ref<'complete' | 'cancel'>('complete')
 const confirmRunning = ref(false)
 const selected = ref<SantriRegistration | null>(null)
 
+function santriLabel(row: SantriRegistration) {
+  const name = row.santri_name ?? row.santri_nis ?? shortID(row.santri_id)
+  return row.santri_name && row.santri_nis ? `${name} (${row.santri_nis})` : name
+}
+
 function completeRegistration(row: SantriRegistration) {
   selected.value = row
   confirmAction.value = 'complete'
   confirmTitle.value = 'Selesaikan Herregistrasi'
-  confirmMessage.value = `Tandai registrasi santri (${row.santri_nis ?? row.santri_id}) sebagai selesai?`
+  confirmMessage.value = `Tandai registrasi santri (${santriLabel(row)}) sebagai selesai?`
   confirmOpen.value = true
 }
 
@@ -95,7 +100,7 @@ function cancelRegistration(row: SantriRegistration) {
   selected.value = row
   confirmAction.value = 'cancel'
   confirmTitle.value = 'Batalkan Herregistrasi'
-  confirmMessage.value = `Yakin ingin membatalkan registrasi santri (${row.santri_nis ?? row.santri_id}) untuk periode '${row.period_name ?? ''}'?`
+  confirmMessage.value = `Yakin ingin membatalkan registrasi santri (${santriLabel(row)}) untuk periode '${row.period_name ?? ''}'?`
   confirmOpen.value = true
 }
 
@@ -165,7 +170,10 @@ function rowActions(row: SantriRegistration): DropdownMenuItem[] {
         </template>
 
         <template #santri_id-cell="{ row }">
-          <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ shortID(row.original.santri_id) }}</span>
+          <div class="min-w-0">
+            <p class="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{{ row.original.santri_name ?? '-' }}</p>
+            <p class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ shortID(row.original.santri_id) }}</p>
+          </div>
         </template>
 
         <template #status-cell="{ row }">

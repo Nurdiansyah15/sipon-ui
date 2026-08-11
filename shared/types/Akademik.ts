@@ -42,6 +42,7 @@ export interface SantriRegistration {
   id: string
   santri_id: string
   santri_nis?: string
+  santri_name?: string
   academic_period_id: string
   period_name?: string
   status: SantriRegistrationStatus
