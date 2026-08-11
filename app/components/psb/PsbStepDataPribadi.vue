@@ -2,26 +2,42 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { UpsertFormulirRequest } from '#shared/types/Psb'
+import type { Program } from '#shared/types/Akademik'
+import { useApi } from '~/composables/useApi'
+import type { ApiSuccess } from '#shared/types/ApiResponse'
 
 const form = defineModel<UpsertFormulirRequest>({ required: true })
 const emit = defineEmits<{ next: [] }>()
 
 const schema = z.object({
   nickname: z.string().min(1, 'Nama panggilan wajib diisi'),
+  program_id: z.string().min(1, 'Program wajib dipilih'),
 })
 
-const state = reactive({ nickname: form.value.nickname || '' })
+const state = reactive({ nickname: form.value.nickname || '', program_id: form.value.program_id || '' })
 
 watch(() => form.value.nickname, (val) => {
   state.nickname = val || ''
 })
 
-const programOptions = [
-  { label: 'Tahfidz Putra', value: 'tahfidh_pa' },
-  { label: 'Tahfidz Putri', value: 'tahfidh_pi' },
-  { label: 'Kitab Putra', value: 'kitab_pa' },
-  { label: 'Kitab Putri', value: 'kitab_pi' },
-]
+watch(() => form.value.program_id, (val) => {
+  state.program_id = val || ''
+})
+
+const programs = ref<Program[]>([])
+const programOptions = computed(() =>
+  programs.value.map((p) => ({ label: `${p.name}`, value: p.id })),
+)
+
+onMounted(async () => {
+  try {
+    const api = useApi()
+    const res = await api.get<ApiSuccess<Program[]>>('/api/v1/web/akademik/programs/active')
+    programs.value = res.data
+  } catch {
+    programs.value = []
+  }
+})
 
 const bloodOptions = [
   { label: '-', value: null },
@@ -30,6 +46,9 @@ const bloodOptions = [
 
 function onNext(_e: FormSubmitEvent<z.output<typeof schema>>) {
   form.value.nickname = state.nickname
+  const selected = programs.value.find((p) => p.id === state.program_id)
+  form.value.program_id = state.program_id
+  form.value.program = selected?.name ?? state.program_id
   emit('next')
 }
 </script>
@@ -54,8 +73,8 @@ function onNext(_e: FormSubmitEvent<z.output<typeof schema>>) {
             <UInput v-model="state.nickname" placeholder="cth: Ahmad" variant="subtle" autofocus class="w-full" />
           </UFormField>
 
-          <UFormField label="Program">
-            <USelect v-model="form.program" :items="programOptions" placeholder="Pilih program" variant="subtle" class="w-full" />
+          <UFormField label="Program" name="program_id" required>
+            <USelect v-model="state.program_id" :items="programOptions" placeholder="Pilih program" variant="subtle" class="w-full" />
           </UFormField>
         </div>
 

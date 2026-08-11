@@ -24,6 +24,7 @@ const masterDataItems: NavItem[] = [
   { label: 'Program', icon: 'i-lucide-graduation-cap', to: '/admin/akademik/program' },
   { label: 'Periode Akademik', icon: 'i-lucide-calendar-range', to: '/admin/akademik/periode' },
   { label: 'Kegiatan', icon: 'i-lucide-trophy', to: '/admin/akademik/kegiatan' },
+  { label: 'Pengaturan', icon: 'i-lucide-settings', to: '/admin/akademik/settings' },
 ]
 
 const operasionalItems: NavItem[] = [

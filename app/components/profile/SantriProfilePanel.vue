@@ -13,13 +13,11 @@ async function load() {
   viewState.value = 'loading'
   try {
     await store.fetchMyProfile()
-    viewState.value = 'santri'
+    // fetchMyProfile menelan 404 (set myProfile = null tanpa throw), jadi
+    // tentukan state dari myProfile, bukan dari error yang dilempar.
+    viewState.value = store.myProfile ? 'santri' : 'not-santri'
   } catch (err) {
-    if (getErrorStatus(err) === 404) {
-      viewState.value = 'not-santri'
-    } else {
-      viewState.value = 'error'
-    }
+    viewState.value = 'error'
   }
 }
 

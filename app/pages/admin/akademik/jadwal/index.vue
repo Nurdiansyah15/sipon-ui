@@ -17,8 +17,18 @@ async function load() {
     const api = useApi()
     let result: ActivitySchedule[] = []
     if (periodFilter.value !== 'all') {
-      const res = await api.get<ApiSuccess<ActivitySchedule[]>>(`/api/v1/web/akademik/activity-periods/${periodFilter.value}/schedules`)
-      result = res.data
+      // Filter memakai academic_period_id → cari dulu activity-period milik
+      // periode tersebut, baru ambil jadwal tiap activity-period.
+      const apRes = await api.get<ApiSuccess<ActivityPeriod[]>>('/api/v1/web/akademik/activity-periods', {
+        query: { page: 1, limit: 100, academic_period_id: periodFilter.value },
+      })
+      const periods = apRes.data
+      const all: ActivitySchedule[] = []
+      for (const p of periods) {
+        const r = await api.get<ApiSuccess<ActivitySchedule[]>>(`/api/v1/web/akademik/activity-periods/${p.id}/schedules`)
+        all.push(...r.data)
+      }
+      result = all
     } else {
       // Tidak ada endpoint list global — tarik per activity-period aktif.
       const apRes = await api.get<ApiSuccess<ActivityPeriod[]>>('/api/v1/web/akademik/activity-periods', {

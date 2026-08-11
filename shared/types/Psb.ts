@@ -28,6 +28,7 @@ export type PsbSettingStatus = 'active' | 'closed'
 export interface PendaftarProfileFields {
   nickname: string | null
   program: string | null
+  program_id: string | null
   hobby: string | null
   purpose: string | null
   motivation_entry: string | null
@@ -114,6 +115,7 @@ export interface ListPendaftarItem {
   psb_setting_id: string
   gender: string
   program: string | null
+  program_id: string | null
   status: PendaftarStatus
   nis: string | null
   no_regis: string | null

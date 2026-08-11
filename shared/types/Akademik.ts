@@ -134,6 +134,15 @@ export interface Attendance {
 }
 
 // ── Request DTOs ─────────────────────────────────────────────────────────────
+export interface AkademikSettingResponse {
+  default_program_id?: string | null
+  default_program?: Program | null
+}
+
+export interface UpdateAkademikSettingRequest {
+  default_program_id?: string | null
+}
+
 export interface CreateProgramRequest {
   code: string
   name: string

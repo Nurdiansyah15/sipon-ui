@@ -25,7 +25,7 @@ const steps = [
 ]
 
 const formState = reactive<UpsertFormulirRequest>({
-  nickname: null, program: null, hobby: null, purpose: null, motivation_entry: null,
+  nickname: null, program: null, program_id: null, hobby: null, purpose: null, motivation_entry: null,
   pob: null, dob: null, blood: null,
   address: null, sub_district: null, district: null, province: null, postal_code: null,
   previous_pondok_name: null, previous_pondok_address: null, previous_pondok_div: null, previous_pondok_time: null,
@@ -41,7 +41,7 @@ function loadFormFromStore() {
     maxStepReached.value = steps.length - 1
     const s = store.pendaftar
     Object.assign(formState, {
-      nickname: s.nickname, program: s.program, hobby: s.hobby, purpose: s.purpose,
+      nickname: s.nickname, program: s.program, program_id: s.program_id, hobby: s.hobby, purpose: s.purpose,
       motivation_entry: s.motivation_entry, pob: s.pob,
       dob: s.dob ? s.dob.split('T')[0] : null,
       blood: s.blood,

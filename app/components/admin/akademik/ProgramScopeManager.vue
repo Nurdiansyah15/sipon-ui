@@ -19,15 +19,23 @@ const assignOpen = ref(false)
 const selectedProgramId = ref('')
 const availablePrograms = ref<Program[]>([])
 const loading = ref(false)
+const statusFilter = ref<'active' | 'inactive' | 'all'>('active')
 const isSubmitting = computed(() => store.isSubmitting)
 
 async function openAssign() {
   selectedProgramId.value = ''
+  statusFilter.value = 'active'
   assignOpen.value = true
+  await loadAvailablePrograms()
+}
+
+async function loadAvailablePrograms() {
   loading.value = true
   try {
     const api = useApi()
-    const res = await api.get<ApiSuccess<Program[]>>('/api/v1/web/akademik/programs', { query: { limit: 100 } })
+    const res = await api.get<ApiSuccess<Program[]>>('/api/v1/web/akademik/programs', {
+      query: { limit: 100, status: statusFilter.value === 'all' ? undefined : statusFilter.value },
+    })
     const assigned = new Set(props.programs.map(p => p.program_id))
     availablePrograms.value = res.data.filter(p => !assigned.has(p.id))
   } catch {
@@ -35,6 +43,11 @@ async function openAssign() {
   } finally {
     loading.value = false
   }
+}
+
+function onStatusFilterChange() {
+  selectedProgramId.value = ''
+  loadAvailablePrograms()
 }
 
 async function confirmAssign() {
@@ -114,6 +127,21 @@ const showAll = computed(() => props.programs.length === 0)
           <div class="mb-5 flex items-center justify-between">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Tambahkan Program</h3>
             <UButton color="neutral" variant="ghost" icon="i-lucide-x" size="sm" square @click="assignOpen = false" />
+          </div>
+          <div class="mb-3">
+            <UFormField label="Status Program" hint="Tampilkan program berdasarkan status">
+              <USelect
+                v-model="statusFilter"
+                :items="[
+                  { label: 'Aktif', value: 'active' },
+                  { label: 'Non Aktif', value: 'inactive' },
+                  { label: 'Semua', value: 'all' },
+                ]"
+                variant="subtle"
+                class="w-full"
+                @update:model-value="onStatusFilterChange"
+              />
+            </UFormField>
           </div>
           <USelect
             v-model="selectedProgramId"

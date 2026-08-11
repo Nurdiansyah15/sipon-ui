@@ -11,6 +11,7 @@ export interface SantriItem {
 
 export interface CreateSantriRequest {
   nis: string
+  program_id?: string | null
 }
 
 export interface CreateSantriResponse {
@@ -67,6 +68,7 @@ export interface ListSantriRequestsQuery {
 
 export interface ApproveSantriRequestPayload {
   nis: string
+  program_id?: string | null
 }
 
 export interface RejectSantriRequestPayload {

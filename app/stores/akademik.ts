@@ -32,9 +32,12 @@ import type {
   ActivityListQuery,
   ActivityPeriodListQuery,
   ActivitySessionListQuery,
+  AkademikSettingResponse,
+  UpdateAkademikSettingRequest,
 } from '#shared/types/Akademik'
 
 interface AkademikState {
+  settings: AkademikSettingResponse | null
   programs: Program[]
   programsMeta: ApiMeta | null
   periods: AcademicPeriod[]
@@ -61,6 +64,7 @@ const base = '/api/v1/web/akademik'
 
 export const useAkademikStore = defineStore('akademik', {
   state: (): AkademikState => ({
+    settings: null,
     programs: [],
     programsMeta: null,
     periods: [],
@@ -84,6 +88,39 @@ export const useAkademikStore = defineStore('akademik', {
   }),
 
   actions: {
+    // ── Settings ─────────────────────────────────────────────────────────────
+    async fetchAkademikSettings(): Promise<AkademikSettingResponse> {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<AkademikSettingResponse>>(`${base}/settings`)
+        this.settings = res.data
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat pengaturan akademik.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async updateAkademikSettings(payload: UpdateAkademikSettingRequest): Promise<AkademikSettingResponse> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.put<ApiSuccess<AkademikSettingResponse>>(`${base}/settings`, payload)
+        this.settings = res.data
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memperbarui pengaturan akademik.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
     // ── Program ──────────────────────────────────────────────────────────────
     async fetchPrograms(query: ProgramListQuery = {}) {
       this.isLoading = true

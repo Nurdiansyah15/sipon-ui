@@ -143,7 +143,6 @@ async function onSubmit() {
     const payload: UpdateSantriProfileRequest = {
       fullname: form.fullname || undefined,
       nickname: form.nickname || undefined,
-      program: form.program || undefined,
       hobby: form.hobby || undefined,
       purpose: form.purpose || undefined,
       motivation_entry: form.motivation_entry || undefined,
@@ -218,6 +217,10 @@ async function onSubmit() {
       <UBadge color="neutral" variant="subtle">NIS: {{ store.myProfile?.nis || '-' }}</UBadge>
       <UBadge color="neutral" variant="subtle">Username: {{ store.myProfile?.username }}</UBadge>
       <UBadge color="neutral" variant="subtle">Email: {{ store.myProfile?.email }}</UBadge>
+      <UBadge color="primary" variant="subtle">
+        <UIcon name="i-lucide-graduation-cap" class="mr-1 h-3.5 w-3.5" />
+        {{ form.program || store.myProfile?.program || '—' }}
+      </UBadge>
     </div>
 
     <!-- Data Pribadi -->
@@ -229,9 +232,6 @@ async function onSubmit() {
         </UFormField>
         <UFormField label="Nama Panggilan" name="nickname">
           <UInput v-model="form.nickname" class="w-full" variant="subtle" />
-        </UFormField>
-        <UFormField label="Program" name="program">
-          <UInput v-model="form.program" class="w-full" variant="subtle" />
         </UFormField>
         <UFormField label="Golongan Darah" name="blood">
           <UInput v-model="form.blood" class="w-full" variant="subtle" placeholder="A/B/AB/O" />

@@ -1,17 +1,22 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth'
 import { usePsbStore } from '~/stores/psb'
+import { useKesantrianStore } from '~/stores/kesantrian'
 
 definePageMeta({ layout: 'default' })
 
 const authStore = useAuthStore()
 const psbStore = usePsbStore()
+const kesantrianStore = useKesantrianStore()
 const router = useRouter()
 const toast = useToast()
 
 const showVerifyEmail = ref(false)
 
 const userEmailVerified = computed(() => authStore.user?.is_email_verified ?? false)
+
+// Sudah jadi santri → tidak boleh mengisi formulir.
+const isAlreadySantri = computed(() => kesantrianStore.myProfile?.status === 'SANTRI')
 
 watch(showVerifyEmail, async (open, prev) => {
   if (prev && !open) {
@@ -20,6 +25,12 @@ watch(showVerifyEmail, async (open, prev) => {
 })
 
 onMounted(async () => {
+  await kesantrianStore.fetchMyProfile()
+  if (isAlreadySantri.value) {
+    router.replace('/psb')
+    return
+  }
+
   await psbStore.fetchActiveSetting()
   if (psbStore.noActiveSetting) {
     router.replace('/psb')

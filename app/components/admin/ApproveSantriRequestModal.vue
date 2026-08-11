@@ -2,6 +2,8 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useKesantrianStore } from '~/stores/kesantrian'
+import { useAkademikStore } from '~/stores/akademik'
+import type { Program } from '#shared/types/Akademik'
 
 const props = defineProps<{
   open: boolean
@@ -15,6 +17,7 @@ const emit = defineEmits<{
 }>()
 
 const store = useKesantrianStore()
+const akademikStore = useAkademikStore()
 const toast = useToast()
 
 const schema = z.object({
@@ -27,8 +30,26 @@ type Schema = z.output<typeof schema>
 const state = reactive<Partial<Schema>>({ nis: '' })
 const isSubmitting = ref(false)
 
+const programs = ref<Program[]>([])
+const programId = ref<string>('')
+const defaultProgram = ref<Program | null>(null)
+
+async function loadPrograms() {
+  try {
+    const settings = await akademikStore.fetchAkademikSettings()
+    defaultProgram.value = settings.default_program ?? null
+    await akademikStore.fetchPrograms({ status: 'active', limit: 100 })
+    programs.value = akademikStore.programs
+    programId.value = ''
+  } catch {
+    programs.value = []
+    defaultProgram.value = null
+  }
+}
+
 function resetState() {
   state.nis = ''
+  programId.value = ''
 }
 
 function close() {
@@ -39,14 +60,20 @@ function close() {
 watch(
   () => props.open,
   (open) => {
-    if (open) resetState()
+    if (open) {
+      resetState()
+      loadPrograms()
+    }
   },
 )
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   isSubmitting.value = true
   try {
-    await store.approveSantriRequest(props.requestId, { nis: event.data.nis })
+    await store.approveSantriRequest(props.requestId, {
+      nis: event.data.nis,
+      program_id: programId.value || undefined,
+    })
     toast.add({ title: 'Permintaan santri disetujui', color: 'success' })
     emit('approved')
     close()
@@ -78,6 +105,22 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
           <UFormField label="NIS" name="nis" required description="Nomor Induk Santri, 10 digit (mis. 1000112345)">
             <UInput v-model="state.nis" class="w-full" variant="subtle" placeholder="1000112345" />
+          </UFormField>
+
+          <UFormField
+            label="Program"
+            name="program_id"
+            :hint="defaultProgram
+              ? `Kosongkan untuk memakai program default (${defaultProgram.code} — ${defaultProgram.name})`
+              : 'Pilih program untuk santri'"
+          >
+            <USelect
+              v-model="programId"
+              :items="programs.map((p) => ({ label: `${p.code} — ${p.name}`, value: p.id }))"
+              placeholder="Gunakan program default"
+              variant="subtle"
+              class="w-full"
+            />
           </UFormField>
 
           <div class="flex justify-end gap-2 pt-2">

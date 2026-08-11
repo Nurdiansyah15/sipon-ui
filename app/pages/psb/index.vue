@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth'
 import { usePsbStore } from '~/stores/psb'
+import { useKesantrianStore } from '~/stores/kesantrian'
 import { parseApiError } from '~/utils/errorParser'
 
 definePageMeta({ layout: 'default' })
 
 const authStore = useAuthStore()
 const psbStore = usePsbStore()
+const kesantrianStore = useKesantrianStore()
 const toast = useToast()
 
 const isSubmitting = ref(false)
@@ -17,6 +19,9 @@ const pageError = computed(() => psbStore.error)
 
 const userEmailVerified = computed(() => authStore.user?.is_email_verified ?? false)
 
+// Sudah jadi santri → tidak boleh daftar (isi formulir) lagi.
+const isAlreadySantri = computed(() => kesantrianStore.myProfile?.status === 'SANTRI')
+
 watch(showVerifyEmail, async (open, prev) => {
   if (prev && !open) {
     await authStore.fetchMe()
@@ -24,12 +29,14 @@ watch(showVerifyEmail, async (open, prev) => {
 })
 
 onMounted(async () => {
-  await psbStore.fetchActiveSetting()
+  await Promise.all([kesantrianStore.fetchMyProfile(), psbStore.fetchActiveSetting()])
   if (psbStore.noActiveSetting) return
 
-  await psbStore.fetchPendaftaran()
-  if (psbStore.pendaftar) {
-    await psbStore.fetchRiwayat()
+  if (!isAlreadySantri.value) {
+    await psbStore.fetchPendaftaran()
+    if (psbStore.pendaftar) {
+      await psbStore.fetchRiwayat()
+    }
   }
 })
 
@@ -70,6 +77,20 @@ async function handleSubmit() {
       <UIcon name="i-lucide-calendar-off" class="mx-auto mb-3 h-12 w-12 text-gray-300" />
       <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Pendaftaran Belum Dibuka</h2>
       <p class="mt-2 text-gray-500 dark:text-gray-400">Saat ini belum ada periode pendaftaran yang aktif. Silakan periksa kembali nanti.</p>
+    </div>
+
+    <!-- Sudah jadi santri -->
+    <div v-else-if="isAlreadySantri" class="space-y-6">
+      <div class="rounded-lg border border-blue-200 bg-blue-50 p-8 text-center dark:border-blue-800 dark:bg-blue-950">
+        <UIcon name="i-lucide-check-circle" class="mx-auto mb-3 h-12 w-12 text-blue-500" />
+        <h2 class="text-lg font-semibold text-blue-900 dark:text-blue-100">Anda Sudah Terdaftar sebagai Santri</h2>
+        <p class="mx-auto mt-2 max-w-lg text-sm text-blue-700 dark:text-blue-300">
+          Akun Anda sudah berstatus santri. Pendaftaran santri baru (PSB) tidak tersedia untuk santri aktif.
+        </p>
+        <div class="mt-4 flex justify-center gap-2">
+          <UButton icon="i-lucide-user" to="/profile">Lihat Profil Santri</UButton>
+        </div>
+      </div>
     </div>
 
     <!-- Not registered yet -->
