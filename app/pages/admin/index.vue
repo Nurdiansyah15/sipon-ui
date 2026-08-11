@@ -10,6 +10,7 @@ const canManageSantri = computed(() => canAny(['manage_santri', 'manage_persurat
 const canManageArticle = computed(() => canAny(['create_article', 'edit_article', 'manage_article_category']))
 const canManageKeuangan = computed(() => canAny(['manage_keuangan', 'verify_payment', 'view_keuangan_reports', 'manage_accounts', 'manage_journal', 'close_period']))
 const canManageFeedback = computed(() => can('manage_feedback'))
+const canManageAkademik = computed(() => can('manage_akademik'))
 
 const shortcuts = computed(() => [
   {
@@ -53,6 +54,13 @@ const shortcuts = computed(() => [
     icon: 'i-lucide-message-square',
     to: '/admin/feedback',
     shown: canManageFeedback.value,
+  },
+  {
+    title: 'Akademik',
+    description: 'Kelola program, periode akademik, kegiatan, jadwal, sesi, dan absensi santri.',
+    icon: 'i-lucide-graduation-cap',
+    to: '/admin/akademik',
+    shown: canManageAkademik.value,
   },
 ])
 </script>
