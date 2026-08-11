@@ -110,16 +110,35 @@ function onAttendanceChanged() {
 const summaryCards = computed(() => {
   const s = session.value?.attendance_summary
   if (!s) return null
+  const notRecorded = Math.max(s.total - s.present - s.absent - s.excused, 0)
   return [
     { label: 'Total', value: s.total, color: 'text-gray-700 dark:text-gray-300', bg: 'bg-gray-100 dark:bg-gray-800' },
     { label: 'Hadir', value: s.present, color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-950' },
     { label: 'Alpa', value: s.absent, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-950' },
     { label: 'Izin', value: s.excused, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950' },
+    { label: 'Belum Dicatat', value: notRecorded, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-950' },
   ]
 })
 
+const canOpen = computed(() => session.value && session.value.status === 'scheduled')
+const canRecord = computed(() => session.value && session.value.status === 'open')
 const canComplete = computed(() => session.value && (session.value.status === 'scheduled' || session.value.status === 'open'))
 const canCancel = computed(() => session.value && session.value.status !== 'completed' && session.value.status !== 'cancelled')
+
+const opening = ref(false)
+
+async function openSessionRun() {
+  opening.value = true
+  try {
+    await store.openSession(id.value)
+    toast.add({ title: 'Sesi dibuka — absensi dapat dicatat', color: 'success' })
+    await load()
+  } catch {
+    toast.add({ title: store.error ?? 'Gagal membuka sesi', color: 'error' })
+  } finally {
+    opening.value = false
+  }
+}
 </script>
 
 <template>
@@ -138,6 +157,16 @@ const canCancel = computed(() => session.value && session.value.status !== 'comp
       </div>
       <div v-if="session" class="flex items-center gap-2">
         <AkademikStatusBadge :status="session.status as any" type="session" />
+        <UButton
+          v-if="can('manage_akademik') && canOpen"
+          color="primary"
+          variant="outline"
+          icon="i-lucide-play"
+          :loading="opening"
+          @click="openSessionRun"
+        >
+          Buka Sesi
+        </UButton>
         <UButton
           v-if="can('manage_akademik') && canComplete"
           color="success"
@@ -168,7 +197,7 @@ const canCancel = computed(() => session.value && session.value.status !== 'comp
     </div>
 
     <template v-else>
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div
           v-for="card in summaryCards ?? []"
           :key="card.label"
@@ -187,7 +216,7 @@ const canCancel = computed(() => session.value && session.value.status !== 'comp
         <div class="mb-3 flex items-center justify-between">
           <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Absensi</h2>
           <UButton
-            v-if="can('manage_akademik')"
+            v-if="can('manage_akademik') && canRecord"
             icon="i-lucide-plus"
             size="sm"
             class="bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-400"
@@ -197,10 +226,15 @@ const canCancel = computed(() => session.value && session.value.status !== 'comp
           </UButton>
         </div>
 
+        <p v-if="!canRecord" class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+          {{ session?.status === 'scheduled' ? 'Buka sesi terlebih dahulu untuk mencatat absensi.' : 'Absensi terkunci karena sesi sudah selesai/dibatalkan.' }}
+        </p>
+
         <AdminAkademikAttendanceList
           :session-id="id"
           :data="store.attendances"
           :loading="store.isLoading"
+          :disabled="!canRecord"
           @changed="onAttendanceChanged"
         />
 

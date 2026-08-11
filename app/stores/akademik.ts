@@ -12,6 +12,7 @@ import type {
   ActivitySchedule,
   ActivitySession,
   Attendance,
+  EligibleSantri,
   CreateProgramRequest,
   UpdateProgramRequest,
   CreateAcademicPeriodRequest,
@@ -55,7 +56,9 @@ interface AkademikState {
   sessionsMeta: ApiMeta | null
   currentSession: ActivitySession | null
   attendances: Attendance[]
+  eligibleSantri: EligibleSantri[]
   isLoading: boolean
+  isLoadingSantri: boolean
   isSubmitting: boolean
   error: string | null
 }
@@ -82,7 +85,9 @@ export const useAkademikStore = defineStore('akademik', {
     sessionsMeta: null,
     currentSession: null,
     attendances: [],
+    eligibleSantri: [],
     isLoading: false,
+    isLoadingSantri: false,
     isSubmitting: false,
     error: null,
   }),
@@ -654,6 +659,21 @@ export const useAkademikStore = defineStore('akademik', {
       }
     },
 
+    async openSession(id: string): Promise<ActivitySession> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<ActivitySession>>(`${base}/sessions/${id}/open`)
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal membuka sesi.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
     async completeSession(id: string): Promise<ActivitySession> {
       this.isSubmitting = true
       this.error = null
@@ -670,6 +690,22 @@ export const useAkademikStore = defineStore('akademik', {
     },
 
     // ── Attendance ───────────────────────────────────────────────────────────
+    async fetchEligibleSantri(sessionId: string): Promise<EligibleSantri[]> {
+      this.isLoadingSantri = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<EligibleSantri[]>>(`${base}/sessions/${sessionId}/eligible-santri`)
+        this.eligibleSantri = res.data
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat daftar santri yang berhak absen.')
+        throw err
+      } finally {
+        this.isLoadingSantri = false
+      }
+    },
+
     async fetchAttendance(sessionId: string) {
       this.isLoading = true
       this.error = null

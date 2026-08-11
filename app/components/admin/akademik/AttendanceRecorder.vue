@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import type { AttendanceStatus } from '#shared/types/Akademik'
-import type { SantriItem } from '#shared/types/Kesantrian'
+import type { AttendanceStatus, EligibleSantri } from '#shared/types/Akademik'
 import { useAkademikStore } from '~/stores/akademik'
-import { useKesantrianStore } from '~/stores/kesantrian'
 
 const props = defineProps<{
   open: boolean
@@ -15,7 +13,6 @@ const emit = defineEmits<{
 }>()
 
 const store = useAkademikStore()
-const kesantrianStore = useKesantrianStore()
 const toast = useToast()
 
 const isSubmitting = computed(() => store.isSubmitting)
@@ -34,22 +31,30 @@ interface Row {
 
 const rows = ref<Row[]>([])
 const loadingSantri = ref(false)
+const search = ref('')
+
+const available = ref<EligibleSantri[]>([])
+
+const displayRows = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  if (!q) return rows.value
+  return rows.value.filter((r) => r.label.toLowerCase().includes(q))
+})
 
 async function loadSantri() {
   loadingSantri.value = true
+  search.value = ''
   try {
-    if (kesantrianStore.santriList.length === 0) {
-      await kesantrianStore.fetchSantriList({ limit: 100 })
-    }
+    const eligible = await store.fetchEligibleSantri(props.sessionId)
     const existing = new Set(store.attendances.map(a => a.santri_id))
-    rows.value = kesantrianStore.santriList
-      .filter((s: SantriItem) => s.status === 'SANTRI' && !existing.has(s.id))
-      .map((s: SantriItem) => ({
-        santri_id: s.id,
-        label: s.fullname ? `${s.fullname} (${s.nis ?? '-'})` : (s.nis ?? s.username),
-        status: 'present' as AttendanceStatus,
-      }))
+    available.value = eligible.filter(s => !existing.has(s.santri_id))
+    rows.value = available.value.map(s => ({
+      santri_id: s.santri_id,
+      label: s.fullname ? `${s.fullname} (${s.nis ?? '-'})` : (s.nis ?? s.santri_id.slice(0, 8)),
+      status: 'present' as AttendanceStatus,
+    }))
   } catch {
+    available.value = []
     rows.value = []
   } finally {
     loadingSantri.value = false
@@ -65,7 +70,7 @@ function markAll(status: AttendanceStatus) {
 }
 
 function hasNoSantri() {
-  return !loadingSantri.value && rows.value.length === 0
+  return !loadingSantri.value && available.value.length === 0
 }
 
 async function onSubmit() {
@@ -112,25 +117,37 @@ async function onSubmit() {
         </div>
 
         <div v-else-if="hasNoSantri()" class="rounded-lg border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
-          Tidak ada santri aktif yang belum dicatat.
+          Tidak ada santri berhak absen yang belum dicatat. Pastikan santri sudah herregistrasi pada periode akademik sesi ini.
         </div>
 
-        <div v-else class="max-h-96 space-y-2 overflow-y-auto pr-1">
-          <div
-            v-for="row in rows"
-            :key="row.santri_id"
-            class="flex items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700/50"
-          >
-            <span class="min-w-0 truncate text-sm font-medium text-gray-900 dark:text-gray-100">{{ row.label }}</span>
-            <USelect
-              :model-value="row.status"
-              :items="statusOptions"
-              class="w-28 shrink-0"
-              size="sm"
-              @update:model-value="row.status = $event as AttendanceStatus"
-            />
+        <template v-else>
+          <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
+            {{ rows.length }} santri berhak absen · status default Hadir, sesuaikan bila ada yang alpa/izin.
+          </p>
+
+          <UInput v-model="search" placeholder="Cari nama / NIS..." class="mb-3" size="sm" />
+
+          <div v-if="displayRows.length === 0" class="rounded-lg border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+            Tidak ada santri yang cocok.
           </div>
-        </div>
+
+          <div v-else class="max-h-96 space-y-2 overflow-y-auto pr-1">
+            <div
+              v-for="row in displayRows"
+              :key="row.santri_id"
+              class="flex items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700/50"
+            >
+              <span class="min-w-0 truncate text-sm font-medium text-gray-900 dark:text-gray-100">{{ row.label }}</span>
+              <USelect
+                :model-value="row.status"
+                :items="statusOptions"
+                class="w-28 shrink-0"
+                size="sm"
+                @update:model-value="row.status = $event as AttendanceStatus"
+              />
+            </div>
+          </div>
+        </template>
 
         <div class="mt-5 flex justify-end gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
           <UButton color="neutral" variant="outline" :disabled="isSubmitting" @click="emit('update:open', false)">

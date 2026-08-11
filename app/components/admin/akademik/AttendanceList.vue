@@ -7,6 +7,7 @@ const props = defineProps<{
   sessionId: string
   data: Attendance[]
   loading: boolean
+  disabled?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -34,6 +35,7 @@ const statusOptions: { label: string; value: AttendanceStatus }[] = [
 ]
 
 async function changeStatus(row: Attendance, status: AttendanceStatus) {
+  if (props.disabled) return
   try {
     await store.updateAttendance(props.sessionId, row.santri_id, { status })
     toast.add({ title: 'Status absensi diperbarui', color: 'success' })
@@ -57,8 +59,15 @@ function fmtDate(v: string) {
       class="w-full"
       :ui="{ th: 'text-gray-900 font-bold dark:text-gray-100' }"
     >
+      <template #santri_nis-cell="{ row }">
+        <span class="font-mono text-sm font-medium text-gray-900 dark:text-gray-100">{{ row.original.santri_nis ?? '-' }}</span>
+      </template>
+
       <template #santri_id-cell="{ row }">
-        <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ shortID(row.original.santri_id) }}</span>
+        <div class="min-w-0">
+          <p class="truncate text-sm font-medium text-gray-900 dark:text-gray-100">{{ row.original.santri_name ?? '-' }}</p>
+          <p class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ shortID(row.original.santri_id) }}</p>
+        </div>
       </template>
 
       <template #status-cell="{ row }">
@@ -67,6 +76,7 @@ function fmtDate(v: string) {
           :items="statusOptions"
           size="sm"
           class="w-28"
+          :disabled="disabled"
           :loading="store.isSubmitting"
           @update:model-value="v => changeStatus(row.original, v as AttendanceStatus)"
         />

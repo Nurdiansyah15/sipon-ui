@@ -149,10 +149,19 @@ export interface Attendance {
   activity_session_id: string
   santri_id: string
   santri_nis?: string
+  santri_name?: string
   status: AttendanceStatus
   recorded_at: string
   created_at: string
   updated_at: string
+}
+
+// Santri eligible for attendance recording: has completed herregistrasi for the
+// session's academic period (regardless of program/major assignment).
+export interface EligibleSantri {
+  santri_id: string
+  nis?: string
+  fullname?: string
 }
 
 // ── Request DTOs ─────────────────────────────────────────────────────────────
