@@ -10,15 +10,14 @@ const store = useAkademikStore()
 const loading = ref(true)
 const schedules = ref<ActivitySchedule[]>([])
 const periodFilter = ref<string>('all')
+const viewMode = ref<'list' | 'calendar'>('calendar')
 
-async function load() {
+async function loadSchedules() {
   loading.value = true
   try {
     const api = useApi()
     let result: ActivitySchedule[] = []
     if (periodFilter.value !== 'all') {
-      // Filter memakai academic_period_id → cari dulu activity-period milik
-      // periode tersebut, baru ambil jadwal tiap activity-period.
       const apRes = await api.get<ApiSuccess<ActivityPeriod[]>>('/api/v1/web/akademik/activity-periods', {
         query: { page: 1, limit: 100, academic_period_id: periodFilter.value },
       })
@@ -30,7 +29,6 @@ async function load() {
       }
       result = all
     } else {
-      // Tidak ada endpoint list global — tarik per activity-period aktif.
       const apRes = await api.get<ApiSuccess<ActivityPeriod[]>>('/api/v1/web/akademik/activity-periods', {
         query: { page: 1, limit: 100, status: 'active' },
       })
@@ -57,11 +55,14 @@ async function loadPeriods() {
 }
 
 onMounted(() => {
-  load()
+  loadSchedules()
   loadPeriods()
 })
 
-watch(periodFilter, () => load())
+watch(periodFilter, () => loadSchedules())
+watch(viewMode, (mode) => {
+  if (mode === 'list') loadSchedules()
+})
 
 const periodOptions = computed(() => [
   { label: 'Semua Periode', value: 'all' },
@@ -91,6 +92,15 @@ function dayLabel(d: string): string {
   }
   return map[d] ?? d
 }
+
+function onScheduleClick(id: string) {
+  navigateTo(`/admin/akademik/jadwal/${id}`)
+}
+
+const viewItems = [
+  { label: 'Kalender', value: 'calendar', icon: 'i-lucide-calendar' },
+  { label: 'Daftar', value: 'list', icon: 'i-lucide-list' },
+]
 </script>
 
 <template>
@@ -100,36 +110,60 @@ function dayLabel(d: string): string {
       <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Pola pelaksanaan kegiatan (sekali, harian, mingguan, bulanan, tahunan).</p>
     </div>
 
-    <div class="mb-4 max-w-xs">
-      <USelect v-model="periodFilter" :items="periodOptions" size="sm" class="w-full" />
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+      <div class="max-w-xs flex-1">
+        <USelect v-model="periodFilter" :items="periodOptions" size="sm" class="w-full" />
+      </div>
+      <div class="flex items-center gap-1 rounded-lg border border-gray-200 p-0.5 dark:border-gray-700/50">
+        <button
+          v-for="item in viewItems"
+          :key="item.value"
+          class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition"
+          :class="viewMode === item.value
+            ? 'bg-teal-600 text-white'
+            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'"
+          @click="viewMode = item.value as 'list' | 'calendar'"
+        >
+          <UIcon :name="item.icon" class="h-3.5 w-3.5" />
+          {{ item.label }}
+        </button>
+      </div>
     </div>
 
-    <div v-if="loading" class="flex justify-center py-16">
+    <div v-if="loading && viewMode === 'list'" class="flex justify-center py-16">
       <UIcon name="i-lucide-loader-circle" class="h-8 w-8 animate-spin text-teal-600" />
     </div>
 
-    <div v-else-if="schedules.length === 0" class="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500 dark:border-gray-600 dark:text-gray-400">
+    <div v-else-if="viewMode === 'list' && schedules.length === 0" class="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-500 dark:border-gray-600 dark:text-gray-400">
       Belum ada jadwal untuk filter ini.
     </div>
 
-    <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <NuxtLink
-        v-for="s in schedules"
-        :key="s.id"
-        :to="`/admin/akademik/jadwal/${s.id}`"
-        class="rounded-lg border border-gray-200 bg-white p-5 transition hover:shadow-md dark:border-gray-700/50 dark:bg-gray-900"
-      >
-        <div class="mb-2 flex items-center justify-between">
-          <AkademikScheduleTypeBadge :type="s.type" />
-          <span class="text-sm font-medium text-teal-600 dark:text-teal-400">{{ s.activity_code }}</span>
-        </div>
-        <h3 class="font-semibold text-gray-900 dark:text-gray-100">{{ s.activity_name }}</h3>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ recurrenceLabel(s) }}</p>
-        <div class="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 text-sm dark:border-gray-700/50">
-          <AkademikTimeDisplay :start-time="s.start_time" :end-time="s.end_time" />
-          <span class="text-xs text-gray-400">{{ fmtDate(s.start_date) }} → {{ fmtDate(s.end_date) }}</span>
-        </div>
-      </NuxtLink>
-    </div>
+    <template v-else>
+      <AkademikScheduleCalendar
+        v-if="viewMode === 'calendar'"
+        :period-filter="periodFilter"
+        @schedule-click="onScheduleClick"
+      />
+
+      <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <NuxtLink
+          v-for="s in schedules"
+          :key="s.id"
+          :to="`/admin/akademik/jadwal/${s.id}`"
+          class="rounded-lg border border-gray-200 bg-white p-5 transition hover:shadow-md dark:border-gray-700/50 dark:bg-gray-900"
+        >
+          <div class="mb-2 flex items-center justify-between">
+            <AkademikScheduleTypeBadge :type="s.type" />
+            <span class="text-sm font-medium text-teal-600 dark:text-teal-400">{{ s.activity_code }}</span>
+          </div>
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100">{{ s.activity_name }}</h3>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ recurrenceLabel(s) }}</p>
+          <div class="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 text-sm dark:border-gray-700/50">
+            <AkademikTimeDisplay :start-time="s.start_time" :end-time="s.end_time" />
+            <span class="text-xs text-gray-400">{{ fmtDate(s.start_date) }} → {{ fmtDate(s.end_date) }}</span>
+          </div>
+        </NuxtLink>
+      </div>
+    </template>
   </div>
 </template>

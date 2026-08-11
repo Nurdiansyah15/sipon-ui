@@ -101,6 +101,27 @@ export interface ActivitySchedule {
   updated_at: string
 }
 
+export interface ScheduleCalendarItem {
+  id: string
+  activity_period_id: string
+  activity_name?: string
+  activity_code?: string
+  type: ActivityScheduleType
+  start_time: string
+  end_time: string
+}
+
+export interface ScheduleCalendarDay {
+  date: string
+  items: ScheduleCalendarItem[]
+}
+
+export interface ScheduleCalendarResponse {
+  from: string
+  to: string
+  days: ScheduleCalendarDay[]
+}
+
 export interface AttendanceSummary {
   total: number
   present: number
