@@ -173,6 +173,15 @@ async function openSessionRun() {
           Buka Sesi
         </UButton>
         <UButton
+          v-if="can('manage_akademik') && canRecord"
+          color="primary"
+          icon="i-lucide-scan-line"
+          :to="`/presensi/${session.id}`"
+          target="_blank"
+        >
+          Buka Presensi
+        </UButton>
+        <UButton
           v-if="can('manage_akademik') && canComplete"
           color="success"
           variant="outline"

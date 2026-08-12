@@ -1,6 +1,10 @@
 import { useAuthStore } from '~/stores/auth'
 
-const PUBLIC_ROUTES = ['/auth/login', '/auth/register', '/auth/forgot-password']
+// Halaman yang hanya untuk pengguna yang TIDAK login (redirect ke dashboard jika sudah login).
+const AUTH_ROUTES = ['/auth/login', '/auth/register', '/auth/forgot-password']
+
+// Halaman publik yang bisa diakses siapa saja (login maupun tidak).
+const PUBLIC_PREFIXES = ['/presensi']
 
 export default defineNuxtRouteMiddleware((to) => {
   if (import.meta.server) return
@@ -12,13 +16,18 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo(authStore.isLoggedIn ? '/dashboard' : '/auth/login')
   }
 
-  const isPublic = PUBLIC_ROUTES.includes(to.path)
+  // Publik untuk semua (mis. halaman presensi) — tidak redirect.
+  if (PUBLIC_PREFIXES.some(prefix => to.path.startsWith(prefix + '/'))) {
+    return
+  }
 
-  if (!authStore.isLoggedIn && !isPublic) {
+  const isAuthPage = AUTH_ROUTES.includes(to.path)
+
+  if (!authStore.isLoggedIn && !isAuthPage) {
     return navigateTo({ path: '/auth/login', query: { redirect: to.fullPath } })
   }
 
-  if (authStore.isLoggedIn && isPublic) {
+  if (authStore.isLoggedIn && isAuthPage) {
     return navigateTo('/dashboard')
   }
 })

@@ -115,3 +115,63 @@ export interface HerregistrasiDocumentDownload {
   download_url: string
   expires_in: number
 }
+
+// ── Riwayat absensi santri & presensi ────────────────────────────────────────
+
+export type MyAttendanceStatus = 'present' | 'absent' | 'excused' | 'unrecorded'
+
+export interface MyAttendanceSessionItem {
+  session_id: string
+  activity_name: string
+  activity_code: string
+  schedule_type: string
+  starts_at: string
+  ends_at: string
+  status: MyAttendanceStatus
+  recorded_at?: string
+}
+
+export interface MyAttendanceSummary {
+  total_sessions: number
+  present: number
+  absent: number
+  excused: number
+  unrecorded: number
+}
+
+export interface MyAttendanceResponse {
+  academic_period: AcademicPeriod | null
+  summary: MyAttendanceSummary
+  sessions: MyAttendanceSessionItem[]
+}
+
+export interface PresensiSessionInfo {
+  id: string
+  activity_name: string
+  activity_code: string
+  schedule_type: string
+  starts_at: string
+  ends_at: string
+  status: string
+  period_name: string
+  total_eligible: number
+  total_present: number
+}
+
+export interface PresensiAttendanceItem {
+  santri_id: string
+  nis?: string
+  fullname?: string
+  status: string
+  recorded_at: string
+}
+
+export interface CheckinResponse {
+  attendance: {
+    id: string
+    santri_id: string
+    status: string
+    recorded_at: string
+  }
+  message: string
+}

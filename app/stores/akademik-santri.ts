@@ -2,16 +2,20 @@ import { defineStore } from 'pinia'
 import { useApi } from '~/composables/useApi'
 import { parseApiError } from '~/utils/errorParser'
 import type { ApiSuccess } from '#shared/types/ApiResponse'
-import type { SantriRegistration } from '#shared/types/Akademik'
+import type { AcademicPeriod, SantriRegistration } from '#shared/types/Akademik'
 import type {
+  CheckinResponse,
   HerregistrasiDocument,
   HerregistrasiDocumentConfirmRequest,
   HerregistrasiDocumentDownload,
   HerregistrasiDocumentPresignResponse,
   MyActivity,
+  MyAttendanceResponse,
   MyHerregistrasiDetail,
   MySchedule,
   MySummary,
+  PresensiAttendanceItem,
+  PresensiSessionInfo,
 } from '#shared/types/AkademikSantri'
 
 interface AkademikSantriState {
@@ -19,6 +23,7 @@ interface AkademikSantriState {
   activities: MyActivity[]
   schedules: MySchedule[]
   myHerreg: MyHerregistrasiDetail | null
+  myAttendance: MyAttendanceResponse | null
   isLoading: boolean
   isSubmitting: boolean
   error: string | null
@@ -30,6 +35,7 @@ export const useAkademikSantriStore = defineStore('akademik-santri', {
     activities: [],
     schedules: [],
     myHerreg: null,
+    myAttendance: null,
     isLoading: false,
     isSubmitting: false,
     error: null,
@@ -206,11 +212,61 @@ export const useAkademikSantriStore = defineStore('akademik-santri', {
       }
     },
 
+    // ── Riwayat absensi santri ────────────────────────────────────────────────
+    async fetchMyAttendance(query: { academic_period_id?: string; activity_schedule_id?: string } = {}) {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<MyAttendanceResponse>>('/api/v1/web/akademik/my/absensi', {
+          query: {
+            academic_period_id: query.academic_period_id,
+            activity_schedule_id: query.activity_schedule_id,
+          },
+        })
+        this.myAttendance = res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat riwayat absensi.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async fetchAttendancePeriods(): Promise<AcademicPeriod[]> {
+      const api = useApi()
+      const res = await api.get<ApiSuccess<AcademicPeriod[]>>('/api/v1/web/akademik/my/absensi/periods')
+      return res.data ?? []
+    },
+
+    // ── Presensi (check-in via NIS, tanpa auth) ──────────────────────────────
+    async fetchPresensiSessionInfo(sessionId: string): Promise<PresensiSessionInfo> {
+      const config = useRuntimeConfig()
+      const res = await $fetch<ApiSuccess<PresensiSessionInfo>>(`${config.public.apiBase}/api/v1/web/akademik/presensi/${sessionId}`)
+      return res.data
+    },
+
+    async checkinPresensi(sessionId: string, nis: string): Promise<CheckinResponse> {
+      const config = useRuntimeConfig()
+      const res = await $fetch<ApiSuccess<CheckinResponse>>(`${config.public.apiBase}/api/v1/web/akademik/presensi/${sessionId}/checkin`, {
+        method: 'POST',
+        body: { nis },
+      })
+      return res.data
+    },
+
+    async fetchPresensiAttendance(sessionId: string): Promise<PresensiAttendanceItem[]> {
+      const config = useRuntimeConfig()
+      const res = await $fetch<ApiSuccess<PresensiAttendanceItem[]>>(`${config.public.apiBase}/api/v1/web/akademik/presensi/${sessionId}/attendance`)
+      return res.data ?? []
+    },
+
     reset() {
       this.summary = null
       this.activities = []
       this.schedules = []
       this.myHerreg = null
+      this.myAttendance = null
       this.isLoading = false
       this.isSubmitting = false
       this.error = null

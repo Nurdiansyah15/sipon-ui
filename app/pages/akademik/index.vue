@@ -90,7 +90,12 @@ onMounted(loadAll)
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Akademik</h1>
         <p class="mt-1 text-sm text-gray-500">Periode akademik, herregistrasi, program, dan kegiatan wajib Anda.</p>
       </div>
-      <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" class="shrink-0" @click="router.push('/')">Kembali</UButton>
+      <div class="flex shrink-0 items-center gap-2">
+        <UButton color="neutral" variant="outline" icon="i-lucide-clipboard-list" size="sm" to="/akademik/absensi">
+          Riwayat Absensi
+        </UButton>
+        <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" size="sm" class="shrink-0" @click="router.push('/')">Kembali</UButton>
+      </div>
     </div>
 
     <!-- Not a santri -->
