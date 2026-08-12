@@ -43,6 +43,7 @@ import type {
   RequestProgramTransferRequest,
   RejectProgramTransferRequest,
   ProgramTransferRequestListQuery,
+  SyncFingerprintResponse,
 } from '#shared/types/Akademik'
 import type {
   HerregistrasiDocument,
@@ -55,6 +56,11 @@ interface AkademikState {
   programsMeta: ApiMeta | null
   periods: AcademicPeriod[]
   periodsMeta: ApiMeta | null
+  // Daftar periode kerja lengkap untuk konteks operasional (dropdown pemilihan
+  // periode kerja). Dipisah dari `periods` karena daftar `periods` bisa
+  // tertimpa daftar terfilter/halaman dari halaman manajemen periode maupun
+  // ringkasan dashboard (fetch dengan limit kecil).
+  workPeriods: AcademicPeriod[]
   registrations: SantriRegistration[]
   registrationsMeta: ApiMeta | null
   activities: Activity[]
@@ -91,6 +97,7 @@ export const useAkademikStore = defineStore('akademik', {
     programsMeta: null,
     periods: [],
     periodsMeta: null,
+    workPeriods: [],
     registrations: [],
     registrationsMeta: null,
     activities: [],
@@ -337,6 +344,26 @@ export const useAkademikStore = defineStore('akademik', {
         this.periodsMeta = res.meta
       } catch (err) {
         this.error = parseApiError(err, 'Gagal memuat daftar periode akademik.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    // List periode kerja lengkap (limit 100, tanpa filter) untuk konteks
+    // operasional. Selalu fetch penuh supaya dropdown pemilihan periode tidak
+    // kehilangan opsi akibat daftar `periods` yang tertimpa daftar terfilter.
+    async fetchWorkPeriods() {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<AcademicPeriod[]>>(`${base}/periods`, {
+          query: { page: 1, limit: 100 },
+        })
+        this.workPeriods = res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat daftar periode kerja.')
         throw err
       } finally {
         this.isLoading = false
@@ -1054,6 +1081,26 @@ export const useAkademikStore = defineStore('akademik', {
         return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal memperbarui absensi.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    // ── Sinkronisasi absensi dari fingerprint ────────────────────────────────
+    async syncFingerprintAttendance(sessionId: string): Promise<SyncFingerprintResponse> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<SyncFingerprintResponse>>(
+          `${base}/sessions/${sessionId}/sync-fingerprint`,
+        )
+        // Backend mengirim `errors: null` saat tidak ada error (nil slice di
+        // Go di-marshal jadi null) — normalisasi ke array agar UI tidak crash.
+        return { ...res.data, errors: res.data.errors ?? [] }
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal sinkronisasi absensi dari fingerprint.')
         throw err
       } finally {
         this.isSubmitting = false

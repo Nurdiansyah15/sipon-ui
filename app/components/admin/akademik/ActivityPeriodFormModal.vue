@@ -35,7 +35,7 @@ const activityOptions = computed(() =>
 )
 
 const periodOptions = computed(() =>
-  store.periods.map((p: AcademicPeriod) => ({ label: `${p.code} — ${p.name}`, value: p.id })),
+  store.workPeriods.map((p: AcademicPeriod) => ({ label: `${p.code} — ${p.name}`, value: p.id })),
 )
 
 watch(() => props.open, async (val) => {
@@ -45,8 +45,8 @@ watch(() => props.open, async (val) => {
     if (store.activities.length === 0) {
       try { await store.fetchActivities({ limit: 100 }) } catch { /* ignore */ }
     }
-    if (store.periods.length === 0) {
-      try { await store.fetchPeriods({ limit: 100 }) } catch { /* ignore */ }
+    if (store.workPeriods.length === 0) {
+      try { await store.fetchWorkPeriods() } catch { /* ignore */ }
     }
   }
 })

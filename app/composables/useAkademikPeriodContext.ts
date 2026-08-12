@@ -37,22 +37,31 @@ export function useAkademikPeriodContext() {
 
   const selectedPeriod = computed<AcademicPeriod | null>(() => {
     if (!selectedPeriodId.value) return null
-    return store.periods.find(p => p.id === selectedPeriodId.value) ?? null
+    return store.workPeriods.find(p => p.id === selectedPeriodId.value) ?? null
   })
+
+  // Daftar periode kerja lengkap + opsi dropdown. Menggunakan `workPeriods`
+  // (list terpisah dari `store.periods`) agar tidak kehilangan opsi ketika
+  // halaman lain menimpa `store.periods` dengan daftar terfilter/halaman.
+  const periods = computed(() => store.workPeriods)
+
+  const periodOptions = computed(() =>
+    periods.value.map(p => ({ label: `${p.code} — ${p.name}`, value: p.id })),
+  )
 
   // Jika periode tersimpan sudah tidak ada lagi (dihapus dari DB), bersihkan.
   watch(
-    () => store.periods,
-    (periods) => {
-      if (periods.length > 0 && selectedPeriodId.value && !periods.some(p => p.id === selectedPeriodId.value)) {
+    () => store.workPeriods,
+    (list) => {
+      if (list.length > 0 && selectedPeriodId.value && !list.some(p => p.id === selectedPeriodId.value)) {
         clearPeriod()
       }
     },
   )
 
   async function loadPeriods() {
-    if (store.periods.length === 0) {
-      try { await store.fetchPeriods({ limit: 100 }) } catch { /* ignore */ }
+    if (store.workPeriods.length === 0) {
+      try { await store.fetchWorkPeriods() } catch { /* ignore */ }
     }
   }
 
@@ -78,6 +87,8 @@ export function useAkademikPeriodContext() {
   return {
     selectedPeriodId,
     selectedPeriod,
+    periods,
+    periodOptions,
     isOperasionalRoute,
     loadPeriods,
     setPeriod,

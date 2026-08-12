@@ -166,6 +166,45 @@ export interface EligibleSantri {
   fullname?: string
 }
 
+// ── Integrasi absensi mesin fingerprint ───────────────────────────────────────
+
+// SyncFingerprintError adalah satu scan yang gagal dicatat, dengan alasan error.
+export interface SyncFingerprintError {
+  pin: string
+  reason: string
+}
+
+// SyncFingerprintResponse ringkasan sinkronisasi absensi dari scan fingerprint.
+// Scan yang NIS-nya sudah tercatat hadir dihitung sebagai skipped (idempotent).
+export interface SyncFingerprintResponse {
+  total_scans: number
+  recorded: number
+  skipped: number
+  errors: SyncFingerprintError[]
+}
+
+// FingerprintScanLog satu baris scan mentah (skema identik dengan mesin).
+export interface FingerprintScanLog {
+  id: string
+  sn: string
+  scan_date: string
+  pin: string
+  verifymode: number
+  inoutmode: number
+  deviceip: string
+  created_at: string
+}
+
+// SimulateScanRequest payload sandbox — hanya pin wajib diisi.
+export interface SimulateScanRequest {
+  sn?: string
+  pin: string
+  scan_date?: string
+  verifymode?: number
+  inoutmode?: number
+  deviceip?: string
+}
+
 // Program ringkas untuk nested response (program santri, request transfer).
 export interface ProgramBrief {
   id: string

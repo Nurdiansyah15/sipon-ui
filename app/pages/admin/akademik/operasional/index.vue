@@ -7,7 +7,7 @@ import { useAkademikStore } from '~/stores/akademik'
 definePageMeta({ layout: 'akademik' })
 
 const store = useAkademikStore()
-const { selectedPeriodId, selectedPeriod, setPeriod, loadPeriods } = useAkademikPeriodContext()
+const { selectedPeriodId, selectedPeriod, setPeriod, loadPeriods, periods, periodOptions } = useAkademikPeriodContext()
 
 const loadingCounts = ref(false)
 const counts = ref({
@@ -16,10 +16,6 @@ const counts = ref({
   schedules: 0,
   sessions: 0,
 })
-
-const periodOptions = computed(() =>
-  store.periods.map(p => ({ label: `${p.code} — ${p.name}`, value: p.id })),
-)
 
 const cards = computed(() => [
   {
@@ -117,7 +113,7 @@ function onPick(id: string) {
     <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">
       <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Periode Kerja</label>
 
-      <div v-if="store.periods.length === 0" class="flex items-center justify-between gap-3 rounded-lg border border-dashed border-gray-300 p-4 dark:border-gray-600">
+      <div v-if="periods.length === 0" class="flex items-center justify-between gap-3 rounded-lg border border-dashed border-gray-300 p-4 dark:border-gray-600">
         <p class="text-sm text-gray-500 dark:text-gray-400">Belum ada periode akademik. Buat periode terlebih dahulu di Master › Periode Akademik.</p>
         <UButton variant="outline" size="sm" color="primary" to="/admin/akademik/periode">Buat Periode</UButton>
       </div>

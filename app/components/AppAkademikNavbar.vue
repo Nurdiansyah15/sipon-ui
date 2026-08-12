@@ -30,6 +30,10 @@ const masterDataItems: NavItem[] = [
   { label: 'Pengaturan', icon: 'i-lucide-settings', to: '/admin/akademik/settings' },
 ]
 
+const integrasiItems: NavItem[] = [
+  { label: 'Fingerprint', icon: 'i-lucide-fingerprint-pattern', to: '/admin/akademik/fingerprint' },
+]
+
 // Menu operasional & pelaksanaan dipindah ke landing page
 // "/admin/akademik/operasional" dan dikontrol oleh pemilihan periode kerja.
 // const operasionalItems: NavItem[] = [
@@ -46,6 +50,7 @@ const sections = computed<NavSection[]>(() => {
   if (!can('manage_akademik')) return []
   return [
     { title: 'Master', items: masterDataItems },
+    { title: 'Integrasi', items: integrasiItems },
     // Operasional & Pelaksanaan kini dikelola lewat pemilihan periode kerja
     // (landing page /admin/akademik/operasional).
     // { title: 'Operasional', items: operasionalItems },

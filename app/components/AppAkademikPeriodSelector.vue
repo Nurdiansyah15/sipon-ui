@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { useAkademikPeriodContext } from '~/composables/useAkademikPeriodContext'
-import { useAkademikStore } from '~/stores/akademik'
 
-const store = useAkademikStore()
-const { selectedPeriodId, selectedPeriod, setPeriod, clearPeriod, loadPeriods } = useAkademikPeriodContext()
+const { selectedPeriodId, selectedPeriod, setPeriod, clearPeriod, loadPeriods, periods } = useAkademikPeriodContext()
 
 onMounted(() => {
   loadPeriods()
 })
 
 const items = computed<DropdownMenuItem[]>(() => {
-  const list: DropdownMenuItem[] = store.periods.map((p) => ({
+  const list: DropdownMenuItem[] = periods.value.map((p) => ({
     label: `${p.code} — ${p.name}`,
     icon: p.id === selectedPeriodId.value ? 'i-lucide-check' : 'i-lucide-calendar-range',
     onSelect: () => setPeriod(p.id),
@@ -30,7 +28,7 @@ const label = computed(() => {
   return 'Pilih Periode'
 })
 
-const empty = computed(() => store.periods.length === 0)
+const empty = computed(() => periods.value.length === 0)
 </script>
 
 <template>

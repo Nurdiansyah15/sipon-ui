@@ -34,7 +34,7 @@ const form = reactive({
 })
 
 const santriList = computed<SantriItem[]>(() => kesantrianStore.santriList)
-const periods = computed<AcademicPeriod[]>(() => store.periods.filter(p => p.status === 'open'))
+const periods = computed<AcademicPeriod[]>(() => store.workPeriods.filter(p => p.status === 'open'))
 
 const santriOptions = computed(() =>
   santriList.value.map((s) => ({
@@ -55,7 +55,7 @@ watch(() => props.open, async (val) => {
       try { await kesantrianStore.fetchSantriList({ limit: 100 }) } catch { /* ignore */ }
     }
     if (periods.value.length === 0) {
-      try { await store.fetchPeriods({ limit: 100 }) } catch { /* ignore */ }
+      try { await store.fetchWorkPeriods() } catch { /* ignore */ }
     }
   }
 })

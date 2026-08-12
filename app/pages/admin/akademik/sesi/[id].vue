@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SyncFingerprintResponse } from '#shared/types/Akademik'
 import { useAkademikStore } from '~/stores/akademik'
 import { usePermission } from '~/composables/usePermission'
 
@@ -107,6 +108,24 @@ function onAttendanceChanged() {
   load()
 }
 
+const syncOpen = ref(false)
+const syncRunning = ref(false)
+const syncResult = ref<SyncFingerprintResponse | null>(null)
+
+async function syncFingerprint() {
+  syncRunning.value = true
+  try {
+    syncResult.value = await store.syncFingerprintAttendance(id.value)
+    syncOpen.value = true
+    await loadAttendance()
+    await load()
+  } catch {
+    toast.add({ title: store.error ?? 'Gagal sinkronisasi absensi dari fingerprint', color: 'error' })
+  } finally {
+    syncRunning.value = false
+  }
+}
+
 const summaryCards = computed(() => {
   const s = session.value?.attendance_summary
   if (!s) return null
@@ -180,6 +199,16 @@ async function openSessionRun() {
           target="_blank"
         >
           Buka Presensi
+        </UButton>
+        <UButton
+          v-if="can('manage_akademik') && canRecord"
+          color="primary"
+          variant="outline"
+          icon="i-lucide-fingerprint-pattern"
+          :loading="syncRunning"
+          @click="syncFingerprint"
+        >
+          Sync Fingerprint
         </UButton>
         <UButton
           v-if="can('manage_akademik') && canComplete"
@@ -273,5 +302,64 @@ async function openSessionRun() {
       @update:open="confirmOpen = $event"
       @confirm="confirmRun"
     />
+
+    <UModal v-model:open="syncOpen">
+      <template #content>
+        <div class="p-6">
+          <div class="mb-5 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Hasil Sinkronisasi Fingerprint</h3>
+            <UButton
+              color="neutral"
+              variant="ghost"
+              icon="i-lucide-x"
+              size="sm"
+              square
+              @click="syncOpen = false"
+            />
+          </div>
+
+          <div v-if="syncResult" class="grid grid-cols-3 gap-3">
+            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 text-center dark:border-gray-700/50 dark:bg-gray-800">
+              <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ syncResult.total_scans }}</p>
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Total Scan</p>
+            </div>
+            <div class="rounded-lg border border-green-200 bg-green-50 p-4 text-center dark:border-green-900 dark:bg-green-950">
+              <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ syncResult.recorded }}</p>
+              <p class="mt-1 text-xs text-green-600 dark:text-green-400">Tercatat</p>
+            </div>
+            <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-center dark:border-amber-900 dark:bg-amber-950">
+              <p class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ syncResult.skipped }}</p>
+              <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">Dilewati</p>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              Scan gagal ({{ syncResult?.errors?.length ?? 0 }})
+            </p>
+            <div v-if="(syncResult?.errors?.length ?? 0) > 0" class="max-h-64 space-y-2 overflow-y-auto pr-1">
+              <div
+                v-for="(e, i) in syncResult?.errors ?? []"
+                :key="i"
+                class="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 dark:border-red-900 dark:bg-red-950"
+              >
+                <UIcon name="i-lucide-circle-x" class="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                <div class="min-w-0">
+                  <p class="font-mono text-sm font-medium text-gray-900 dark:text-gray-100">{{ e.pin }}</p>
+                  <p class="text-xs text-gray-600 dark:text-gray-400">{{ e.reason }}</p>
+                </div>
+              </div>
+            </div>
+            <p v-else class="rounded-lg border border-dashed border-gray-300 p-3 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+              Semua scan berhasil diproses.
+            </p>
+          </div>
+
+          <div class="mt-5 flex justify-end gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
+            <UButton color="primary" @click="syncOpen = false">Tutup</UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
