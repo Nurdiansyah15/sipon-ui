@@ -25,6 +25,8 @@ import type {
   CreateScheduleRequest,
   UpdateScheduleRequest,
   CreateSessionRequest,
+  GenerateSessionsRequest,
+  GenerateSessionsResponse,
   RecordAttendanceRequest,
   UpdateAttendanceRequest,
   ProgramListQuery,
@@ -795,6 +797,24 @@ export const useAkademikStore = defineStore('akademik', {
         return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal membuat sesi.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async generateSessions(scheduleId: string, payload: GenerateSessionsRequest): Promise<GenerateSessionsResponse> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<GenerateSessionsResponse>>(
+          `${base}/schedules/${scheduleId}/generate-sessions`,
+          payload,
+        )
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal mengenerate sesi dari jadwal.')
         throw err
       } finally {
         this.isSubmitting = false

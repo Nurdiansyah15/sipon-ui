@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
+import type { ApiSuccess } from '#shared/types/ApiResponse'
 import { useAkademikStore } from '~/stores/akademik'
 import { usePermission } from '~/composables/usePermission'
 import { useAkademikPeriodContext } from '~/composables/useAkademikPeriodContext'
-import type { ActivitySession } from '#shared/types/Akademik'
+import type { ActivitySchedule, ActivityPeriod, ActivitySession } from '#shared/types/Akademik'
 
 definePageMeta({ layout: 'akademik' })
 
@@ -22,6 +23,34 @@ const statusFilter = ref<string>('all')
 const scheduleParam = route.query.activity_schedule_id as string | undefined
 if (scheduleParam) scheduleFilter.value = scheduleParam
 
+// Opsi filter jadwal (semua jadwal pada periode terpilih).
+const scheduleOptionsData = ref<ActivitySchedule[]>([])
+
+async function loadScheduleOptions() {
+  if (!selectedPeriodId.value) return
+  try {
+    const api = useApi()
+    const apRes = await api.get<ApiSuccess<ActivityPeriod[]>>('/api/v1/web/akademik/activity-periods', {
+      query: { page: 1, limit: 100, academic_period_id: selectedPeriodId.value },
+    })
+    const all: ActivitySchedule[] = []
+    for (const p of apRes.data) {
+      const r = await api.get<ApiSuccess<ActivitySchedule[]>>(`/api/v1/web/akademik/activity-periods/${p.id}/schedules`)
+      all.push(...r.data)
+    }
+    scheduleOptionsData.value = all
+  } catch {
+    scheduleOptionsData.value = []
+  }
+}
+
+const scheduleOptions = computed(() =>
+  scheduleOptionsData.value.map((s) => ({
+    label: `${s.activity_name ?? s.activity_code ?? 'Jadwal'} — ${s.type} (${s.start_time?.slice(0, 5) ?? ''})`,
+    value: s.id,
+  })),
+)
+
 watch([page, limit, selectedPeriodId, scheduleFilter, statusFilter], () => load())
 
 async function load() {
@@ -39,8 +68,15 @@ async function load() {
   }
 }
 
+watch(selectedPeriodId, () => {
+  scheduleFilter.value = undefined
+  page.value = 1
+  loadScheduleOptions()
+})
+
 onMounted(() => {
   loadPeriods()
+  loadScheduleOptions()
   load()
 })
 
@@ -72,6 +108,13 @@ const formOpen = ref(false)
 function openCreate() {
   formOpen.value = true
 }
+
+// Saat dibuka dari halaman jadwal (?activity_schedule_id=xxx), jadwal terkait
+// di-pass agar waktu otomatis terisi dari jadwal.
+const prefillSchedule = computed(() => {
+  if (!scheduleFilter.value) return null
+  return scheduleOptionsData.value.find(s => s.id === scheduleFilter.value) ?? null
+})
 
 function onSessionCreated() {
   formOpen.value = false
@@ -117,6 +160,15 @@ function handleRowSelect(_e: any, row: any) {
       </div>
 
       <div class="mb-4 flex flex-wrap gap-3">
+        <USelect
+          v-model="scheduleFilter"
+          :items="scheduleOptions"
+          placeholder="Semua jadwal"
+          clearable
+          searchable
+          size="sm"
+          class="w-60"
+        />
         <USelect v-model="statusFilter" :items="statusOptions" size="sm" class="w-40" />
       </div>
 
@@ -174,6 +226,7 @@ function handleRowSelect(_e: any, row: any) {
 
   <AdminAkademikSessionFormModal
     v-model:open="formOpen"
+    :schedule="prefillSchedule"
     @success="onSessionCreated"
   />
 </template>

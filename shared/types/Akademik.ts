@@ -253,6 +253,18 @@ export interface CreateSessionRequest {
   ends_at: string
 }
 
+export interface GenerateSessionsRequest {
+  from_date: string
+  to_date?: string
+}
+
+export interface GenerateSessionsResponse {
+  total_dates_expanded: number
+  total_created: number
+  total_skipped: number
+  sessions: ActivitySession[]
+}
+
 export interface AttendanceRecordInput {
   santri_id: string
   status: AttendanceStatus

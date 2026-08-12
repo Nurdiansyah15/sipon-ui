@@ -5,9 +5,11 @@ import type { ApiSuccess } from '#shared/types/ApiResponse'
 import type { ActivitySchedule, ActivityPeriod } from '#shared/types/Akademik'
 import { useAkademikStore } from '~/stores/akademik'
 import { useAkademikPeriodContext } from '~/composables/useAkademikPeriodContext'
+import { toRFC3339WithOffset } from '~/utils/akademikSchedule'
 
 const props = defineProps<{
   open: boolean
+  schedule?: ActivitySchedule | null
 }>()
 
 const emit = defineEmits<{
@@ -58,8 +60,13 @@ async function loadSchedules() {
       all.push(...res.data)
     }
     schedules.value = all
+    // Pastikan jadwal yang sedang diedit ada di daftar opsi (mungkin activity
+    // period-nya tidak status active pada periode terpilih).
+    if (props.schedule && !schedules.value.some(s => s.id === props.schedule!.id)) {
+      schedules.value.unshift(props.schedule)
+    }
   } catch {
-    schedules.value = []
+    schedules.value = props.schedule ? [props.schedule] : []
   } finally {
     loadingSchedules.value = false
   }
@@ -74,19 +81,18 @@ const scheduleOptions = computed(() =>
 
 watch(() => props.open, (val) => {
   if (val) {
-    form.activity_schedule_id = schedules.value[0]?.id ?? ''
+    form.activity_schedule_id = props.schedule?.id ?? schedules.value[0]?.id ?? ''
     form.starts_at_date = ''
-    form.starts_at_time = ''
+    form.starts_at_time = props.schedule?.start_time?.slice(0, 5) ?? ''
     form.ends_at_date = ''
-    form.ends_at_time = ''
+    form.ends_at_time = props.schedule?.end_time?.slice(0, 5) ?? ''
     loadSchedules()
   }
 })
 
-// "2026-08-10" + "19:30" → RFC3339 "2026-08-10T19:30:00Z"
+// "2026-08-10" + "19:30" → RFC3339 "2026-08-10T19:30:00+07:00"
 function toRFC3339(date: string, time: string) {
-  if (!date || !time) return ''
-  return `${date}T${time}:00Z`
+  return toRFC3339WithOffset(date, time)
 }
 
 async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {

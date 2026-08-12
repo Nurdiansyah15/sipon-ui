@@ -1,5 +1,19 @@
 import type { DayOfWeek } from '#shared/types/Akademik'
-import type { MySchedule } from '#shared/types/AkademikSantri'
+
+/**
+ * Bentuk minimal jadwal yang dipakai helper di file ini. Diterima dari
+ * ActivitySchedule (admin) maupun MySchedule (portal santri).
+ */
+export interface ScheduleLike {
+  type: string
+  start_date?: string
+  end_date?: string
+  start_time: string
+  end_time: string
+  weekly_days?: DayOfWeek[]
+  monthly_days?: number[]
+  yearly_dates?: { month: number; day: number }[]
+}
 
 const DAY_ORDER: Record<DayOfWeek, number> = {
   monday: 1,
@@ -34,7 +48,7 @@ export function scheduleTypeLabel(type: string): string {
 }
 
 /** Sort schedules by type (daily → weekly → monthly → yearly → once) then start time. */
-export function sortSchedules(schedules: MySchedule[]): MySchedule[] {
+export function sortSchedules<T extends ScheduleLike>(schedules: T[]): T[] {
   const order: Record<string, number> = { daily: 1, weekly: 2, monthly: 3, yearly: 4, once: 5 }
   return [...schedules].sort((a, b) => {
     const oa = order[a.type] ?? 9
@@ -50,7 +64,7 @@ function formatHHMM(t: string): string {
 }
 
 /** Human-friendly recurrence description, e.g. "Senin, Kamis" or "Tanggal 5, 20". */
-export function scheduleRecurrenceLabel(schedule: MySchedule): string {
+export function scheduleRecurrenceLabel(schedule: ScheduleLike): string {
   switch (schedule.type) {
     case 'weekly':
       return (schedule.weekly_days ?? []).map(d => DAY_LABEL[d]).join(', ')
@@ -87,7 +101,7 @@ export function formatTimeRange(start: string, end: string): string {
  * Whether a schedule occurs on the given date. `date` must be a local
  * Date; its weekday and day/month are matched against recurrence rules.
  */
-export function occursOn(schedule: MySchedule, date: Date): boolean {
+export function occursOn(schedule: ScheduleLike, date: Date): boolean {
   const y = date.getFullYear()
   const m = date.getMonth() + 1
   const d = date.getDate()
@@ -115,7 +129,51 @@ export function occursOn(schedule: MySchedule, date: Date): boolean {
 }
 
 /** Schedules that occur today (local time). */
-export function schedulesForToday(schedules: MySchedule[]): MySchedule[] {
+export function schedulesForToday<T extends ScheduleLike>(schedules: T[]): T[] {
   const today = new Date()
   return sortSchedules(schedules.filter(s => occursOn(s, today)))
+}
+
+/**
+ * Offset timezone platform (sama untuk semua user, mengikuti backend).
+ * Backend menyimpan TIMESTAMPTZ dalam UTC dan menampilkan dalam platform
+ * timezone (Asia/Jakarta). Input RFC3339 harus menyertakan offset ini agar
+ * instant yang tersimpan sesuai maksud wall-clock user.
+ */
+export const PLATFORM_TZ_OFFSET = '+07:00'
+
+/** "2026-08-10" + "19:30" → RFC3339 "2026-08-10T19:30:00+07:00". */
+export function toRFC3339WithOffset(date: string, time: string): string {
+  if (!date || !time) return ''
+  return `${date}T${time}:00${PLATFORM_TZ_OFFSET}`
+}
+
+function formatYMD(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+/**
+ * Daftar tanggal (YYYY-MM-DD) di mana jadwal terjadi dalam rentang
+ * [from, to], dibatasi start_date/end_date jadwal bila ada. Pola sama dengan
+ * ExpandScheduleDates di backend.
+ */
+export function scheduleDatesInRange(schedule: ScheduleLike, from: string, to: string): string[] {
+  if (!from) return []
+  const effFrom = schedule.start_date && schedule.start_date > from ? schedule.start_date : from
+  const effTo = schedule.end_date && schedule.end_date < to ? schedule.end_date : to
+  if (effFrom > effTo) return []
+
+  const result: string[] = []
+  const cur = new Date(`${effFrom}T00:00:00`)
+  const end = new Date(`${effTo}T00:00:00`)
+  while (cur <= end) {
+    if (occursOn(schedule, cur)) {
+      result.push(formatYMD(cur))
+    }
+    cur.setDate(cur.getDate() + 1)
+  }
+  return result
 }
