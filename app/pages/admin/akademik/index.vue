@@ -84,6 +84,24 @@ function cardValue(key: string) {
 
       <div class="mt-8">
         <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">Modul Akademik</h2>
+
+        <NuxtLink
+          v-if="can('manage_akademik')"
+          to="/admin/akademik/operasional"
+          class="group mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-teal-200 bg-teal-50 p-5 transition hover:shadow-md dark:border-teal-900 dark:bg-teal-950"
+        >
+          <div class="flex items-center gap-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-teal-600 dark:bg-teal-500">
+              <UIcon name="i-lucide-calendar-range" class="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-900 dark:text-gray-100">Ruang Kerja Operasional</h3>
+              <p class="mt-0.5 text-sm text-gray-600 dark:text-gray-300">Pilih periode akademik, lalu kelola herregistrasi, aktivasi, jadwal, sesi & absensi.</p>
+            </div>
+          </div>
+          <UIcon name="i-lucide-arrow-right" class="h-5 w-5 text-teal-600 transition group-hover:translate-x-0.5 dark:text-teal-400" />
+        </NuxtLink>
+
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <FeatureModuleCard
             v-if="can('manage_akademik')"

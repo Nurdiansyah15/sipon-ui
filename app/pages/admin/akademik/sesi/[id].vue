@@ -143,20 +143,25 @@ async function openSessionRun() {
 
 <template>
   <div class="mx-auto max-w-5xl px-4 py-8">
-    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <NuxtLink to="/admin/akademik/sesi" class="text-sm text-teal-600 hover:underline dark:text-teal-400">
-          ← Kembali ke Sesi
-        </NuxtLink>
-        <h1 class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">
-          {{ session?.activity_name ?? 'Detail Sesi' }}
-        </h1>
-        <p v-if="session" class="mt-1 text-sm text-gray-700 dark:text-gray-300">
-          {{ session.activity_code }} · {{ fmtDateTime(session.starts_at) }}
-        </p>
-      </div>
-      <div v-if="session" class="flex items-center gap-2">
-        <AkademikStatusBadge :status="session.status as any" type="session" />
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {{ session?.activity_name ?? 'Detail Sesi' }}
+          </h1>
+          <p v-if="session" class="mt-1 text-sm text-gray-700 dark:text-gray-300">
+            {{ session.activity_code }} · {{ fmtDateTime(session.starts_at) }}
+          </p>
+        </div>
+        <div v-if="session" class="flex items-center gap-2">
+          <UButton
+            to="/admin/akademik/sesi"
+            icon="i-lucide-arrow-left"
+            color="neutral"
+            variant="outline"
+          >
+            Kembali
+          </UButton>
+          <AkademikStatusBadge :status="session.status as any" type="session" />
         <UButton
           v-if="can('manage_akademik') && canOpen"
           color="primary"

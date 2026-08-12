@@ -147,40 +147,45 @@ async function reloadPrograms() {
 
 <template>
   <div class="mx-auto max-w-7xl px-4 py-8">
-    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <NuxtLink to="/admin/akademik/aktivasi" class="text-sm text-teal-600 hover:underline dark:text-teal-400">
-          ← Kembali ke Aktivasi Kegiatan
-        </NuxtLink>
-        <h1 class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">
-          {{ period?.activity_name ?? 'Detail Aktivasi' }}
-        </h1>
-        <p v-if="period" class="mt-1 text-sm text-gray-700 dark:text-gray-300">
-          {{ period.activity_code }} · {{ period.period_name }}
-        </p>
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {{ period?.activity_name ?? 'Detail Aktivasi' }}
+          </h1>
+          <p v-if="period" class="mt-1 text-sm text-gray-700 dark:text-gray-300">
+            {{ period.activity_code }} · {{ period.period_name }}
+          </p>
+        </div>
+        <div v-if="period" class="flex items-center gap-2">
+          <UButton
+            to="/admin/akademik/aktivasi"
+            icon="i-lucide-arrow-left"
+            color="neutral"
+            variant="outline"
+          >
+            Kembali
+          </UButton>
+          <AkademikStatusBadge :status="period.status" type="activity_period" />
+          <UButton
+            v-if="period.status === 'active'"
+            color="warning"
+            variant="outline"
+            icon="i-lucide-pause"
+            @click="requestStatusChange('deactivate')"
+          >
+            Nonaktifkan
+          </UButton>
+          <UButton
+            v-else
+            color="success"
+            variant="outline"
+            icon="i-lucide-play"
+            @click="requestStatusChange('activate')"
+          >
+            Aktifkan
+          </UButton>
+        </div>
       </div>
-      <div v-if="period" class="flex items-center gap-2">
-        <AkademikStatusBadge :status="period.status" type="activity_period" />
-        <UButton
-          v-if="period.status === 'active'"
-          color="warning"
-          variant="outline"
-          icon="i-lucide-pause"
-          @click="requestStatusChange('deactivate')"
-        >
-          Nonaktifkan
-        </UButton>
-        <UButton
-          v-else
-          color="success"
-          variant="outline"
-          icon="i-lucide-play"
-          @click="requestStatusChange('activate')"
-        >
-          Aktifkan
-        </UButton>
-      </div>
-    </div>
 
     <div v-if="loading" class="flex justify-center py-16">
       <UIcon name="i-lucide-loader-circle" class="h-8 w-8 animate-spin text-teal-600" />

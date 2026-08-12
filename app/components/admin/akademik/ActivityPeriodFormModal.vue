@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { Activity, AcademicPeriod } from '#shared/types/Akademik'
 import { useAkademikStore } from '~/stores/akademik'
+import { useAkademikPeriodContext } from '~/composables/useAkademikPeriodContext'
 
 const props = defineProps<{
   open: boolean
@@ -14,6 +15,7 @@ const emit = defineEmits<{
 }>()
 
 const store = useAkademikStore()
+const { selectedPeriodId } = useAkademikPeriodContext()
 const toast = useToast()
 
 const isSubmitting = computed(() => store.isSubmitting)
@@ -39,7 +41,7 @@ const periodOptions = computed(() =>
 watch(() => props.open, async (val) => {
   if (val) {
     form.activity_id = ''
-    form.academic_period_id = ''
+    form.academic_period_id = selectedPeriodId.value ?? ''
     if (store.activities.length === 0) {
       try { await store.fetchActivities({ limit: 100 }) } catch { /* ignore */ }
     }

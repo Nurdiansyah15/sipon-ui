@@ -4,6 +4,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import type { ApiSuccess } from '#shared/types/ApiResponse'
 import type { ActivitySchedule, ActivityPeriod } from '#shared/types/Akademik'
 import { useAkademikStore } from '~/stores/akademik'
+import { useAkademikPeriodContext } from '~/composables/useAkademikPeriodContext'
 
 const props = defineProps<{
   open: boolean
@@ -15,6 +16,7 @@ const emit = defineEmits<{
 }>()
 
 const store = useAkademikStore()
+const { selectedPeriodId } = useAkademikPeriodContext()
 const toast = useToast()
 
 const isSubmitting = computed(() => store.isSubmitting)
@@ -38,11 +40,12 @@ const loadingSchedules = ref(false)
 const schedules = ref<ActivitySchedule[]>([])
 
 async function loadSchedules() {
+  if (!selectedPeriodId.value) return
   loadingSchedules.value = true
   try {
     const api = useApi()
     const apRes = await api.get<ApiSuccess<ActivityPeriod[]>>('/api/v1/web/akademik/activity-periods', {
-      query: { page: 1, limit: 100, status: 'active' },
+      query: { page: 1, limit: 100, academic_period_id: selectedPeriodId.value, status: 'active' },
     })
     const all: ActivitySchedule[] = []
     for (const ap of apRes.data) {

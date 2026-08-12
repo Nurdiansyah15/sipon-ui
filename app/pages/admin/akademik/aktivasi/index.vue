@@ -2,6 +2,7 @@
 import type { TableColumn, DropdownMenuItem } from '@nuxt/ui'
 import { useAkademikStore } from '~/stores/akademik'
 import { usePermission } from '~/composables/usePermission'
+import { useAkademikPeriodContext } from '~/composables/useAkademikPeriodContext'
 import type { ActivityPeriod } from '#shared/types/Akademik'
 
 definePageMeta({ layout: 'akademik' })
@@ -9,20 +10,21 @@ definePageMeta({ layout: 'akademik' })
 const store = useAkademikStore()
 const toast = useToast()
 const { can } = usePermission()
+const { selectedPeriodId, loadPeriods } = useAkademikPeriodContext()
 
 const page = ref(1)
 const limit = ref(10)
-const periodFilter = ref<string>('all')
 const statusFilter = ref<string>('all')
 
-watch([page, limit, periodFilter, statusFilter], () => load())
+watch([page, limit, selectedPeriodId, statusFilter], () => load())
 
 async function load() {
+  if (!selectedPeriodId.value) return
   try {
     await store.fetchActivityPeriods({
       page: page.value,
       limit: limit.value,
-      academic_period_id: periodFilter.value === 'all' ? undefined : periodFilter.value,
+      academic_period_id: selectedPeriodId.value,
       status: statusFilter.value === 'all' ? undefined : statusFilter.value as any,
     })
   } catch {
@@ -30,15 +32,9 @@ async function load() {
   }
 }
 
-async function loadPeriods() {
-  if (store.periods.length === 0) {
-    try { await store.fetchPeriods({ limit: 100 }) } catch { /* ignore */ }
-  }
-}
-
 onMounted(() => {
-  load()
   loadPeriods()
+  load()
 })
 
 const totalPages = computed(() => store.activityPeriodsMeta?.total_pages ?? 1)
@@ -53,11 +49,6 @@ const columns: TableColumn<ActivityPeriod>[] = [
 ]
 
 const formOpen = ref(false)
-
-const periodOptions = computed(() => [
-  { label: 'Semua Periode', value: 'all' },
-  ...store.periods.map(p => ({ label: `${p.code} — ${p.name}`, value: p.id })),
-])
 
 const statusOptions = [
   { label: 'Semua Status', value: 'all' },
@@ -126,85 +117,97 @@ function rowActions(row: ActivityPeriod): DropdownMenuItem[] {
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl px-4 py-8">
-    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Aktivasi Kegiatan</h1>
-        <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Tentukan kegiatan apa saja yang aktif pada tiap periode akademik.</p>
-      </div>
-      <UButton
-        v-if="can('manage_akademik')"
-        icon="i-lucide-plus"
-        class="bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-400"
-        @click="formOpen = true"
-      >
-        Aktivasi Kegiatan
-      </UButton>
-    </div>
-
-    <div class="mb-4 flex flex-wrap gap-3">
-      <USelect v-model="periodFilter" :items="periodOptions" size="sm" class="w-64" />
-      <USelect v-model="statusFilter" :items="statusOptions" size="sm" class="w-40" />
-    </div>
-
-    <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900">
-      <UTable
-        :data="store.activityPeriods"
-        :columns="columns"
-        :loading="store.isLoading"
-        class="w-full"
-        :ui="{ th: 'text-gray-900 font-bold dark:text-gray-100' }"
-      >
-        <template #activity_code-cell="{ row }">
-          <span class="font-mono text-sm font-medium text-gray-900 dark:text-gray-100">{{ row.original.activity_code }}</span>
-        </template>
-
-        <template #status-cell="{ row }">
-          <AkademikStatusBadge :status="row.original.status" type="activity_period" size="sm" />
-        </template>
-
-        <template #actions-cell="{ row }">
-          <AppRowActions v-if="can('manage_akademik')" :items="rowActions(row.original)" />
-        </template>
-      </UTable>
-    </div>
-
-    <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-      <p class="text-sm text-gray-700 dark:text-gray-300">
-        Total {{ totalItems }} aktivasi · hal. {{ page }} / {{ totalPages }}
-      </p>
-      <UPagination
-        v-model:page="page"
-        :total="totalItems"
-        :items-per-page="limit"
-        :sibling-count="1"
-        show-edges
-      >
-        <template #item="{ item, page: curPage }">
+  <AkademikPeriodGuard v-if="!selectedPeriodId" />
+  <template v-else>
+    <div class="mx-auto max-w-7xl px-4 py-8">
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Aktivasi Kegiatan</h1>
+          <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Tentukan kegiatan apa saja yang aktif pada tiap periode akademik.</p>
+        </div>
+        <div class="flex items-center gap-2">
           <UButton
-            v-if="item.type === 'page'"
-            :color="curPage === item.value ? 'primary' : 'neutral'"
-            :variant="curPage === item.value ? 'solid' : 'outline'"
-            :label="String(item.value)"
-            size="sm"
-          />
-        </template>
-      </UPagination>
+            to="/admin/akademik/operasional"
+            icon="i-lucide-arrow-left"
+            color="neutral"
+            variant="outline"
+          >
+            Kembali
+          </UButton>
+          <UButton
+            v-if="can('manage_akademik')"
+            icon="i-lucide-plus"
+            class="bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-400"
+            @click="formOpen = true"
+          >
+            Aktivasi Kegiatan
+          </UButton>
+        </div>
+      </div>
+
+      <div class="mb-4 flex flex-wrap gap-3">
+        <USelect v-model="statusFilter" :items="statusOptions" size="sm" class="w-40" />
+      </div>
+
+      <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900">
+        <UTable
+          :data="store.activityPeriods"
+          :columns="columns"
+          :loading="store.isLoading"
+          class="w-full"
+          :ui="{ th: 'text-gray-900 font-bold dark:text-gray-100' }"
+        >
+          <template #activity_code-cell="{ row }">
+            <span class="font-mono text-sm font-medium text-gray-900 dark:text-gray-100">{{ row.original.activity_code }}</span>
+          </template>
+
+          <template #status-cell="{ row }">
+            <AkademikStatusBadge :status="row.original.status" type="activity_period" size="sm" />
+          </template>
+
+          <template #actions-cell="{ row }">
+            <AppRowActions v-if="can('manage_akademik')" :items="rowActions(row.original)" />
+          </template>
+        </UTable>
+      </div>
+
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm text-gray-700 dark:text-gray-300">
+          Total {{ totalItems }} aktivasi · hal. {{ page }} / {{ totalPages }}
+        </p>
+        <UPagination
+          v-model:page="page"
+          :total="totalItems"
+          :items-per-page="limit"
+          :sibling-count="1"
+          show-edges
+        >
+          <template #item="{ item, page: curPage }">
+            <UButton
+              v-if="item.type === 'page'"
+              :color="curPage === item.value ? 'primary' : 'neutral'"
+              :variant="curPage === item.value ? 'solid' : 'outline'"
+              :label="String(item.value)"
+              size="sm"
+            />
+          </template>
+        </UPagination>
+      </div>
     </div>
+  </template>
 
-    <AdminAkademikActivityPeriodFormModal
-      v-model:open="formOpen"
-      @success="load"
-    />
+  <AdminAkademikActivityPeriodFormModal
+    v-model:open="formOpen"
+    @success="load"
+  />
 
-    <AdminConfirmActionModal
-      :open="confirmOpen"
-      :title="confirmTitle"
-      :message="confirmMessage"
-      confirm-label="Ya, Lanjutkan"
-      :loading="confirmRunning"
-      @update:open="confirmOpen = $event"
-      @confirm="confirmTransition"
-    />
-  </div>
+  <AdminConfirmActionModal
+    :open="confirmOpen"
+    :title="confirmTitle"
+    :message="confirmMessage"
+    confirm-label="Ya, Lanjutkan"
+    :loading="confirmRunning"
+    @update:open="confirmOpen = $event"
+    @confirm="confirmTransition"
+  />
 </template>

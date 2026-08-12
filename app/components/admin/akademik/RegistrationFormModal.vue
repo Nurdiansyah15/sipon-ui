@@ -5,6 +5,7 @@ import type { AcademicPeriod } from '#shared/types/Akademik'
 import type { SantriItem } from '#shared/types/Kesantrian'
 import { useAkademikStore } from '~/stores/akademik'
 import { useKesantrianStore } from '~/stores/kesantrian'
+import { useAkademikPeriodContext } from '~/composables/useAkademikPeriodContext'
 
 const props = defineProps<{
   open: boolean
@@ -17,6 +18,7 @@ const emit = defineEmits<{
 
 const store = useAkademikStore()
 const kesantrianStore = useKesantrianStore()
+const { selectedPeriodId } = useAkademikPeriodContext()
 const toast = useToast()
 
 const isSubmitting = computed(() => store.isSubmitting)
@@ -48,7 +50,7 @@ const periodOptions = computed(() =>
 watch(() => props.open, async (val) => {
   if (val) {
     form.santri_id = ''
-    form.academic_period_id = ''
+    form.academic_period_id = selectedPeriodId.value ?? ''
     if (santriList.value.length === 0) {
       try { await kesantrianStore.fetchSantriList({ limit: 100 }) } catch { /* ignore */ }
     }

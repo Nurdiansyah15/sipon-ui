@@ -4,6 +4,7 @@ import { usePermission } from '~/composables/usePermission'
 const route = useRoute()
 const { can } = usePermission()
 const { collapsed, toggleCollapsed } = useAkademikSidebar()
+const { isOperasionalRoute } = useAkademikPeriodContext()
 
 const sidebarOpen = ref(false)
 
@@ -27,22 +28,26 @@ const masterDataItems: NavItem[] = [
   { label: 'Pengaturan', icon: 'i-lucide-settings', to: '/admin/akademik/settings' },
 ]
 
-const operasionalItems: NavItem[] = [
-  { label: 'Herregistrasi', icon: 'i-lucide-clipboard-check', to: '/admin/akademik/herregistrasi' },
-  { label: 'Aktivasi Kegiatan', icon: 'i-lucide-power', to: '/admin/akademik/aktivasi' },
-  { label: 'Jadwal', icon: 'i-lucide-calendar-clock', to: '/admin/akademik/jadwal' },
-]
-
-const pelaksanaanItems: NavItem[] = [
-  { label: 'Sesi', icon: 'i-lucide-users', to: '/admin/akademik/sesi' },
-]
+// Menu operasional & pelaksanaan dipindah ke landing page
+// "/admin/akademik/operasional" dan dikontrol oleh pemilihan periode kerja.
+// const operasionalItems: NavItem[] = [
+//   { label: 'Herregistrasi', icon: 'i-lucide-clipboard-check', to: '/admin/akademik/herregistrasi' },
+//   { label: 'Aktivasi Kegiatan', icon: 'i-lucide-power', to: '/admin/akademik/aktivasi' },
+//   { label: 'Jadwal', icon: 'i-lucide-calendar-clock', to: '/admin/akademik/jadwal' },
+// ]
+//
+// const pelaksanaanItems: NavItem[] = [
+//   { label: 'Sesi', icon: 'i-lucide-users', to: '/admin/akademik/sesi' },
+// ]
 
 const sections = computed<NavSection[]>(() => {
   if (!can('manage_akademik')) return []
   return [
     { title: 'Master', items: masterDataItems },
-    { title: 'Operasional', items: operasionalItems },
-    { title: 'Pelaksanaan', items: pelaksanaanItems },
+    // Operasional & Pelaksanaan kini dikelola lewat pemilihan periode kerja
+    // (landing page /admin/akademik/operasional).
+    // { title: 'Operasional', items: operasionalItems },
+    // { title: 'Pelaksanaan', items: pelaksanaanItems },
   ]
 })
 
@@ -78,6 +83,8 @@ watch(() => route.path, () => {
         <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Akademik</span>
 
         <div class="flex-1" />
+
+        <AppAkademikPeriodSelector v-if="isOperasionalRoute" class="mr-2 hidden sm:block" />
 
         <button
           class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 md:hidden dark:text-gray-400 dark:hover:bg-gray-800"
@@ -169,6 +176,8 @@ watch(() => route.path, () => {
         <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Akademik</span>
       </div>
       <div class="flex flex-col gap-6 px-4 py-4">
+        <AppAkademikPeriodSelector v-if="isOperasionalRoute" class="sm:hidden" />
+
         <NuxtLink
           :to="dashboardItem.to"
           :class="isActive(dashboardItem.to)
