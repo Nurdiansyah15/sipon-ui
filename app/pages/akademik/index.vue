@@ -20,12 +20,16 @@ const applying = ref(false)
 
 const herregistrasiStatus = computed(() => store.herregistrasi?.status ?? 'none')
 
-const herregMeta = computed<{ label: string; color: 'success' | 'warning' | 'error' | 'neutral' }>(() => {
+const herregMeta = computed<{ label: string; color: 'success' | 'warning' | 'error' | 'info' | 'neutral' }>(() => {
   switch (herregistrasiStatus.value) {
     case 'completed':
       return { label: 'Sudah herregistrasi', color: 'success' }
     case 'pending':
       return { label: 'Menunggu konfirmasi', color: 'warning' }
+    case 'revision':
+      return { label: 'Perlu revisi', color: 'info' }
+    case 'draft':
+      return { label: 'Draft', color: 'neutral' }
     case 'cancelled':
       return { label: 'Dibatalkan', color: 'error' }
     default:
@@ -33,7 +37,14 @@ const herregMeta = computed<{ label: string; color: 'success' | 'warning' | 'err
   }
 })
 
-const canApply = computed(() => herregistrasiStatus.value === 'none' || herregistrasiStatus.value === 'cancelled')
+// Mulai herreg (buat draft) atau ajukan ulang setelah dibatalkan.
+const canStart = computed(() => herregistrasiStatus.value === 'none' || herregistrasiStatus.value === 'cancelled')
+// Draft: santri sedang mengisi dokumen.
+const isDraft = computed(() => herregistrasiStatus.value === 'draft')
+// Setelah diajukan (pending/revision/completed): sudah ada herreg aktif.
+const hasActiveHerreg = computed(() =>
+  ['pending', 'revision', 'completed'].includes(herregistrasiStatus.value),
+)
 
 const kegiatanPreview = computed(() => store.activities.slice(0, 5))
 const todaySchedules = computed(() => schedulesForToday(store.schedules))
@@ -59,10 +70,11 @@ async function handleApplyHerreg() {
   applying.value = true
   try {
     await store.applyHerregistrasi()
-    toast.add({ title: 'Herregistrasi berhasil diajukan', color: 'success' })
+    toast.add({ title: 'Herregistrasi dibuat. Silakan isi dokumen.', color: 'success' })
     await store.fetchSummary()
+    router.push('/akademik/herreg')
   } catch (err) {
-    toast.add({ title: 'Gagal mengajukan herregistrasi', description: parseApiError(err), color: 'error' })
+    toast.add({ title: 'Gagal memulai herregistrasi', description: parseApiError(err), color: 'error' })
   } finally {
     applying.value = false
   }
@@ -118,8 +130,15 @@ onMounted(loadAll)
           <div class="mt-2">
             <UBadge :color="herregMeta.color" variant="subtle">{{ herregMeta.label }}</UBadge>
           </div>
+          <p
+            v-if="herregistrasiStatus === 'revision' && store.herregistrasi"
+            class="mt-2 text-xs text-gray-500 dark:text-gray-400"
+          >
+            <span class="font-medium text-gray-700 dark:text-gray-300">Catatan revisi:</span>
+            {{ store.herregistrasi.revision_notes ?? '—' }}
+          </p>
           <UButton
-            v-if="store.hasActivePeriod && canApply"
+            v-if="store.hasActivePeriod && canStart"
             class="mt-3"
             size="sm"
             :loading="applying || store.isSubmitting"
@@ -127,7 +146,26 @@ onMounted(loadAll)
             icon="i-lucide-file-plus"
             @click="handleApplyHerreg"
           >
-            Ajukan Herregistrasi
+            Mulai Herregistrasi
+          </UButton>
+          <UButton
+            v-else-if="store.hasActivePeriod && isDraft"
+            class="mt-3"
+            size="sm"
+            icon="i-lucide-upload"
+            to="/akademik/herreg"
+          >
+            Isi Dokumen
+          </UButton>
+          <UButton
+            v-else-if="store.hasActivePeriod && hasActiveHerreg"
+            class="mt-3"
+            size="sm"
+            variant="outline"
+            icon="i-lucide-upload"
+            to="/akademik/herreg"
+          >
+            Kelola Dokumen
           </UButton>
         </div>
 

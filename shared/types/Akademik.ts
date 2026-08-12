@@ -1,7 +1,7 @@
 // ── Enums ────────────────────────────────────────────────────────────────────
 export type ProgramStatus = 'active' | 'inactive'
 export type AcademicPeriodStatus = 'draft' | 'open' | 'closed' | 'archived'
-export type SantriRegistrationStatus = 'pending' | 'completed' | 'cancelled'
+export type SantriRegistrationStatus = 'draft' | 'pending' | 'revision' | 'completed' | 'cancelled'
 export type ActivityStatus = 'active' | 'inactive'
 export type ActivityPeriodStatus = 'active' | 'inactive'
 export type ActivityScheduleType = 'once' | 'daily' | 'weekly' | 'monthly' | 'yearly'
@@ -46,6 +46,7 @@ export interface SantriRegistration {
   academic_period_id: string
   period_name?: string
   status: SantriRegistrationStatus
+  revision_notes?: string
   registered_at: string | null
   created_at: string
   updated_at: string

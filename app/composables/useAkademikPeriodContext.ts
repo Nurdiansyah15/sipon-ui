@@ -18,7 +18,6 @@ const OPERATIONAL_PREFIXES = [
   '/admin/akademik/jadwal',
   '/admin/akademik/sesi',
 ]
-
 export function useAkademikPeriodContext() {
   const store = useAkademikStore()
   const route = useRoute()

@@ -30,7 +30,7 @@ const props = defineProps<{
 const colorMap: Record<StatusType, Record<string, BadgeColor>> = {
   program: { active: 'success', inactive: 'neutral' },
   period: { draft: 'neutral', open: 'success', closed: 'warning', archived: 'neutral' },
-  registration: { pending: 'warning', completed: 'success', cancelled: 'error' },
+  registration: { draft: 'neutral', pending: 'warning', revision: 'info', completed: 'success', cancelled: 'error' },
   activity: { active: 'success', inactive: 'neutral' },
   activity_period: { active: 'success', inactive: 'neutral' },
   session: { scheduled: 'info', open: 'success', completed: 'neutral', cancelled: 'error' },
@@ -40,7 +40,7 @@ const colorMap: Record<StatusType, Record<string, BadgeColor>> = {
 const labelMap: Record<StatusType, Record<string, string>> = {
   program: { active: 'Aktif', inactive: 'Nonaktif' },
   period: { draft: 'Draft', open: 'Buka', closed: 'Tutup', archived: 'Arsip' },
-  registration: { pending: 'Menunggu', completed: 'Selesai', cancelled: 'Dibatalkan' },
+  registration: { draft: 'Draft', pending: 'Menunggu', revision: 'Perlu Revisi', completed: 'Selesai', cancelled: 'Dibatalkan' },
   activity: { active: 'Aktif', inactive: 'Nonaktif' },
   activity_period: { active: 'Aktif', inactive: 'Nonaktif' },
   session: { scheduled: 'Terjadwal', open: 'Berlangsung', completed: 'Selesai', cancelled: 'Dibatalkan' },

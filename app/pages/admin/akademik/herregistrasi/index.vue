@@ -117,7 +117,9 @@ async function confirmActionRun() {
 
 function rowActions(row: SantriRegistration): DropdownMenuItem[] {
   const items: DropdownMenuItem[] = []
-  if (row.status === 'pending') {
+  items.push({ label: 'Detail', icon: 'i-lucide-eye', onSelect: () => navigateTo(`/admin/akademik/herregistrasi/${row.id}`) })
+  if (row.status === 'pending' || row.status === 'revision') {
+    items.push({ type: 'separator' })
     items.push({ label: 'Selesaikan', icon: 'i-lucide-check-circle', onSelect: () => completeRegistration(row) })
     items.push({ type: 'separator' })
     items.push({ label: 'Batalkan', icon: 'i-lucide-x-circle', color: 'error', onSelect: () => cancelRegistration(row) })
@@ -143,6 +145,14 @@ function rowActions(row: SantriRegistration): DropdownMenuItem[] {
             variant="outline"
           >
             Kembali
+          </UButton>
+          <UButton
+            to="/admin/akademik/herregistrasi/dokumen"
+            icon="i-lucide-files"
+            color="neutral"
+            variant="outline"
+          >
+            Dokumen
           </UButton>
           <UButton
             v-if="can('manage_akademik')"

@@ -36,6 +36,10 @@ import type {
   AkademikSettingResponse,
   UpdateAkademikSettingRequest,
 } from '#shared/types/Akademik'
+import type {
+  HerregistrasiDocument,
+  HerregistrasiDocumentRequirement,
+} from '#shared/types/AkademikSantri'
 
 interface AkademikState {
   settings: AkademikSettingResponse | null
@@ -57,6 +61,8 @@ interface AkademikState {
   currentSession: ActivitySession | null
   attendances: Attendance[]
   eligibleSantri: EligibleSantri[]
+  periodDocRequirements: HerregistrasiDocumentRequirement[]
+  registrationDocuments: HerregistrasiDocument[]
   isLoading: boolean
   isLoadingSantri: boolean
   isSubmitting: boolean
@@ -86,6 +92,8 @@ export const useAkademikStore = defineStore('akademik', {
     currentSession: null,
     attendances: [],
     eligibleSantri: [],
+    periodDocRequirements: [],
+    registrationDocuments: [],
     isLoading: false,
     isLoadingSantri: false,
     isSubmitting: false,
@@ -304,6 +312,21 @@ export const useAkademikStore = defineStore('akademik', {
       }
     },
 
+    async fetchRegistration(id: string): Promise<SantriRegistration> {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<SantriRegistration>>(`${base}/registrations/${id}`)
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat detail registrasi.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
     async completeRegistration(id: string): Promise<SantriRegistration> {
       this.isSubmitting = true
       this.error = null
@@ -328,6 +351,140 @@ export const useAkademikStore = defineStore('akademik', {
         return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal membatalkan registrasi.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async requestRevision(id: string, notes: string): Promise<SantriRegistration> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<SantriRegistration>>(`${base}/registrations/${id}/revision`, { notes })
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal meminta revisi.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    // ── Blueprint dokumen herregistrasi (admin) ───────────────────────────────
+    async fetchPeriodDocRequirements(periodId: string) {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<HerregistrasiDocumentRequirement[]>>(
+          `${base}/periods/${periodId}/dokumen-requirements`,
+        )
+        this.periodDocRequirements = res.data ?? []
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat dokumen herregistrasi.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async createDocRequirement(periodId: string, payload: { kind: string; label: string; is_required?: boolean; description?: string }): Promise<HerregistrasiDocumentRequirement> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<HerregistrasiDocumentRequirement>>(
+          `${base}/periods/${periodId}/dokumen-requirements`,
+          payload,
+        )
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal menambahkan dokumen herregistrasi.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async updateDocRequirement(id: string, payload: { label?: string; is_required?: boolean; description?: string }): Promise<HerregistrasiDocumentRequirement> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.put<ApiSuccess<HerregistrasiDocumentRequirement>>(
+          `${base}/periods/dokumen-requirements/${id}`,
+          payload,
+        )
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memperbarui dokumen herregistrasi.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async deleteDocRequirement(id: string) {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        await api.delete(`${base}/periods/dokumen-requirements/${id}`)
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal menghapus dokumen herregistrasi.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    // ── Review dokumen herreg (admin) ─────────────────────────────────────────
+    async fetchRegistrationDocuments(regId: string) {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<HerregistrasiDocument[]>>(`${base}/registrations/${regId}/dokumen`)
+        this.registrationDocuments = res.data ?? []
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat dokumen herregistrasi.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async verifyRegistrationDocument(regId: string, docId: string): Promise<HerregistrasiDocument> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<HerregistrasiDocument>>(
+          `${base}/registrations/${regId}/dokumen/${docId}/verify`,
+        )
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memverifikasi dokumen.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async rejectRegistrationDocument(regId: string, docId: string, notes: string): Promise<HerregistrasiDocument> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<HerregistrasiDocument>>(
+          `${base}/registrations/${regId}/dokumen/${docId}/reject`,
+          { notes },
+        )
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal menolak dokumen.')
         throw err
       } finally {
         this.isSubmitting = false

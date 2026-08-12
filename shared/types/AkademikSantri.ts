@@ -3,17 +3,19 @@ import type {
   ActivityScheduleType,
   DayOfWeek,
   ProgramStatus,
+  SantriRegistration,
   YearlyDate,
 } from './Akademik'
 
 // ── Santri Portal Akademik (non-admin) ───────────────────────────────────────
 
-export type HerregistrasiStatus = 'none' | 'pending' | 'completed' | 'cancelled'
+export type HerregistrasiStatus = 'none' | 'draft' | 'pending' | 'completed' | 'cancelled' | 'revision'
 
 export interface MyHerregistrasi {
   status: HerregistrasiStatus
   registration_id?: string
   registered_at?: string
+  revision_notes?: string
 }
 
 export interface MyProgram {
@@ -53,4 +55,63 @@ export interface MySchedule {
   weekly_days?: DayOfWeek[]
   monthly_days?: number[]
   yearly_dates?: YearlyDate[]
+}
+
+// ── Herregistrasi dokumen & blueprint ────────────────────────────────────────
+
+export type HerregistrasiDocumentStatus = 'pending' | 'verified' | 'rejected'
+
+export interface HerregistrasiDocumentRequirement {
+  id: string
+  academic_period_id: string
+  kind: string
+  label: string
+  is_required: boolean
+  description?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface HerregistrasiDocument {
+  id: string
+  santri_registration_id: string
+  kind: string
+  kind_label?: string
+  key: string
+  original_filename?: string
+  mime_type?: string
+  size?: number
+  status: HerregistrasiDocumentStatus
+  notes?: string
+  verified_by?: string
+  verified_at?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface MyHerregistrasiDetail {
+  academic_period: AcademicPeriod | null
+  registration: SantriRegistration | null
+  requirements: HerregistrasiDocumentRequirement[]
+  documents: HerregistrasiDocument[]
+}
+
+export interface HerregistrasiDocumentPresignResponse {
+  presign_url: string
+  key: string
+  public_url?: string
+  expires_in: number
+}
+
+export interface HerregistrasiDocumentConfirmRequest {
+  key: string
+  kind: string
+  original_filename?: string
+  mime_type?: string
+  size?: number
+}
+
+export interface HerregistrasiDocumentDownload {
+  download_url: string
+  expires_in: number
 }
