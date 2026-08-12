@@ -8,6 +8,7 @@ export type ActivityScheduleType = 'once' | 'daily' | 'weekly' | 'monthly' | 'ye
 export type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
 export type ActivitySessionStatus = 'scheduled' | 'open' | 'completed' | 'cancelled'
 export type AttendanceStatus = 'present' | 'absent' | 'excused'
+export type ProgramTransferRequestStatus = 'pending' | 'approved' | 'rejected'
 
 // Meta response sesuai backend akademik: {page, limit, total, total_pages}
 export interface AkademikMeta {
@@ -165,6 +166,44 @@ export interface EligibleSantri {
   fullname?: string
 }
 
+// Program ringkas untuk nested response (program santri, request transfer).
+export interface ProgramBrief {
+  id: string
+  code: string
+  name: string
+}
+
+export interface SantriProgramAdminResponse {
+  santri_id: string
+  program_id: string
+  program: ProgramBrief
+  is_active: boolean
+}
+
+export interface SantriProgramListItem {
+  santri_id: string
+  nis?: string | null
+  fullname?: string | null
+  program_id: string
+  program?: ProgramBrief | null
+}
+
+export interface ProgramTransferRequest {
+  id: string
+  santri_id: string
+  santri_name?: string | null
+  from_program_id: string
+  from_program?: ProgramBrief | null
+  to_program_id: string
+  to_program?: ProgramBrief | null
+  status: ProgramTransferRequestStatus
+  notes?: string | null
+  admin_notes?: string | null
+  reviewed_by?: string | null
+  reviewed_at?: string | null
+  created_at: string
+}
+
 // ── Request DTOs ─────────────────────────────────────────────────────────────
 export interface AkademikSettingResponse {
   default_program_id?: string | null
@@ -278,6 +317,15 @@ export interface UpdateAttendanceRequest {
   status: AttendanceStatus
 }
 
+export interface RequestProgramTransferRequest {
+  to_program_id: string
+  notes?: string
+}
+
+export interface RejectProgramTransferRequest {
+  admin_notes?: string
+}
+
 // ── Query params ─────────────────────────────────────────────────────────────
 export interface ProgramListQuery {
   status?: ProgramStatus
@@ -322,6 +370,12 @@ export interface ActivitySessionListQuery {
   status?: ActivitySessionStatus
   start_date?: string
   end_date?: string
+  page?: number
+  limit?: number
+}
+
+export interface ProgramTransferRequestListQuery {
+  status?: ProgramTransferRequestStatus
   page?: number
   limit?: number
 }

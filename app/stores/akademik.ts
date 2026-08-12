@@ -37,6 +37,12 @@ import type {
   ActivitySessionListQuery,
   AkademikSettingResponse,
   UpdateAkademikSettingRequest,
+  SantriProgramAdminResponse,
+  SantriProgramListItem,
+  ProgramTransferRequest,
+  RequestProgramTransferRequest,
+  RejectProgramTransferRequest,
+  ProgramTransferRequestListQuery,
 } from '#shared/types/Akademik'
 import type {
   HerregistrasiDocument,
@@ -65,6 +71,11 @@ interface AkademikState {
   eligibleSantri: EligibleSantri[]
   periodDocRequirements: HerregistrasiDocumentRequirement[]
   registrationDocuments: HerregistrasiDocument[]
+  santriProgram: SantriProgramAdminResponse | null
+  santriProgramList: SantriProgramListItem[]
+  santriProgramListMeta: ApiMeta | null
+  programTransferRequests: ProgramTransferRequest[]
+  programTransferRequestsMeta: ApiMeta | null
   isLoading: boolean
   isLoadingSantri: boolean
   isSubmitting: boolean
@@ -96,6 +107,11 @@ export const useAkademikStore = defineStore('akademik', {
     eligibleSantri: [],
     periodDocRequirements: [],
     registrationDocuments: [],
+    santriProgram: null,
+    santriProgramList: [],
+    santriProgramListMeta: null,
+    programTransferRequests: [],
+    programTransferRequestsMeta: null,
     isLoading: false,
     isLoadingSantri: false,
     isSubmitting: false,
@@ -184,6 +200,119 @@ export const useAkademikStore = defineStore('akademik', {
         return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal memperbarui program.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    // ── Santri Program Management (Admin) ───────────────────────────────────
+    async fetchSantriProgram(santriId: string): Promise<SantriProgramAdminResponse> {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<SantriProgramAdminResponse>>(`${base}/admin/santri/${santriId}/program`)
+        this.santriProgram = res.data
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat program santri.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async assignSantriProgram(santriId: string, programId: string): Promise<SantriProgramAdminResponse> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.put<ApiSuccess<SantriProgramAdminResponse>>(
+          `${base}/admin/santri/${santriId}/program`,
+          { program_id: programId },
+        )
+        this.santriProgram = res.data
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal mengubah program santri.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async fetchSantriProgramList(query: { search?: string; page?: number; limit?: number } = {}) {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<SantriProgramListItem[]>>(`${base}/admin/santri`, {
+          query: {
+            search: query.search,
+            page: query.page ?? 1,
+            limit: query.limit ?? 10,
+          },
+        })
+        this.santriProgramList = res.data ?? []
+        this.santriProgramListMeta = res.meta
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat daftar santri.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async fetchProgramTransferRequests(query: ProgramTransferRequestListQuery = {}) {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<ProgramTransferRequest[]>>(`${base}/admin/program-transfer-requests`, {
+          query: {
+            status: query.status,
+            page: query.page ?? 1,
+            limit: query.limit ?? 10,
+          },
+        })
+        this.programTransferRequests = res.data ?? []
+        this.programTransferRequestsMeta = res.meta
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat daftar permintaan pindah program.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async approveProgramTransferRequest(id: string): Promise<ProgramTransferRequest> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<ProgramTransferRequest>>(`${base}/admin/program-transfer-requests/${id}/approve`)
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal menyetujui permintaan pindah program.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async rejectProgramTransferRequest(id: string, adminNotes?: string): Promise<ProgramTransferRequest> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<ProgramTransferRequest>>(
+          `${base}/admin/program-transfer-requests/${id}/reject`,
+          { admin_notes: adminNotes || undefined },
+        )
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal menolak permintaan pindah program.')
         throw err
       } finally {
         this.isSubmitting = false

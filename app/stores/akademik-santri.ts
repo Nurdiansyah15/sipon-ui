@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { useApi } from '~/composables/useApi'
 import { parseApiError } from '~/utils/errorParser'
 import type { ApiSuccess } from '#shared/types/ApiResponse'
-import type { AcademicPeriod, SantriRegistration } from '#shared/types/Akademik'
+import type { AcademicPeriod, SantriRegistration, ProgramTransferRequest } from '#shared/types/Akademik'
 import type {
   CheckinResponse,
   HerregistrasiDocument,
@@ -24,6 +24,7 @@ interface AkademikSantriState {
   schedules: MySchedule[]
   myHerreg: MyHerregistrasiDetail | null
   myAttendance: MyAttendanceResponse | null
+  myProgramTransferRequests: ProgramTransferRequest[]
   isLoading: boolean
   isSubmitting: boolean
   error: string | null
@@ -36,6 +37,7 @@ export const useAkademikSantriStore = defineStore('akademik-santri', {
     schedules: [],
     myHerreg: null,
     myAttendance: null,
+    myProgramTransferRequests: [],
     isLoading: false,
     isSubmitting: false,
     error: null,
@@ -239,6 +241,42 @@ export const useAkademikSantriStore = defineStore('akademik-santri', {
       return res.data ?? []
     },
 
+    // ── Program transfer requests (santri) ───────────────────────────────────
+    async requestProgramTransfer(toProgramId: string, notes?: string): Promise<ProgramTransferRequest> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<ProgramTransferRequest>>(
+          '/api/v1/web/akademik/my/program-transfer-requests',
+          { to_program_id: toProgramId, notes: notes || undefined },
+        )
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal mengajukan permintaan pindah program.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async fetchMyProgramTransferRequests() {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<ProgramTransferRequest[]>>(
+          '/api/v1/web/akademik/my/program-transfer-requests',
+        )
+        this.myProgramTransferRequests = res.data ?? []
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat riwayat permintaan pindah program.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
     // ── Presensi (check-in via NIS, tanpa auth) ──────────────────────────────
     async fetchPresensiSessionInfo(sessionId: string): Promise<PresensiSessionInfo> {
       const config = useRuntimeConfig()
@@ -267,6 +305,7 @@ export const useAkademikSantriStore = defineStore('akademik-santri', {
       this.schedules = []
       this.myHerreg = null
       this.myAttendance = null
+      this.myProgramTransferRequests = []
       this.isLoading = false
       this.isSubmitting = false
       this.error = null

@@ -186,6 +186,15 @@ onMounted(loadAll)
             </div>
           </template>
           <p v-else class="mt-2 text-sm text-gray-500">Belum terdaftar di program manapun.</p>
+          <UButton
+            class="mt-3"
+            size="sm"
+            variant="outline"
+            icon="i-lucide-arrow-right-left"
+            to="/akademik/program"
+          >
+            Kelola Program
+          </UButton>
         </div>
       </div>
 

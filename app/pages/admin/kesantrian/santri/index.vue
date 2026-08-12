@@ -41,13 +41,29 @@ const createSantriOpen = ref(false)
 const importSantriOpen = ref(false)
 
 function rowActions(row: SantriItem): DropdownMenuItem[] {
-  return [
+  const items: DropdownMenuItem[] = [
     {
       label: 'Lihat Dokumen',
       icon: 'i-lucide-file-text',
       onSelect: () => navigateTo(`/admin/kesantrian/${row.id}`),
     },
   ]
+  if (can('manage_akademik')) {
+    items.push({
+      label: 'Ubah Program',
+      icon: 'i-lucide-graduation-cap',
+      onSelect: () => openAssignProgram(row),
+    })
+  }
+  return items
+}
+
+const assignOpen = ref(false)
+const assignTarget = ref<{ id: string; name: string } | null>(null)
+
+function openAssignProgram(row: SantriItem) {
+  assignTarget.value = { id: row.id, name: row.fullname || row.username || row.nis || row.id }
+  assignOpen.value = true
 }
 
 const columns: TableColumn<SantriItem>[] = [
@@ -166,5 +182,11 @@ function statusBadgeColor(status: string) {
 
     <AdminCreateSantriModal v-model:open="createSantriOpen" @created="load" />
     <AdminImportSantriModal v-model:open="importSantriOpen" @imported="load" />
+    <AdminAkademikAssignProgramModal
+      v-model:open="assignOpen"
+      :santri-id="assignTarget?.id ?? ''"
+      :santri-name="assignTarget?.name"
+      @success="load"
+    />
   </div>
 </template>

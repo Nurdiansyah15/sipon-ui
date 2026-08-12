@@ -23,8 +23,10 @@ const dashboardItem: NavItem = { label: 'Dashboard', icon: 'i-lucide-gauge', to:
 
 const masterDataItems: NavItem[] = [
   { label: 'Program', icon: 'i-lucide-graduation-cap', to: '/admin/akademik/program' },
+  { label: 'Kelola Program Santri', icon: 'i-lucide-users', to: '/admin/akademik/santri-program' },
   { label: 'Periode Akademik', icon: 'i-lucide-calendar-range', to: '/admin/akademik/periode' },
   { label: 'Kegiatan', icon: 'i-lucide-trophy', to: '/admin/akademik/kegiatan' },
+  { label: 'Permintaan Pindah Program', icon: 'i-lucide-arrow-right-left', to: '/admin/akademik/program-transfer-requests' },
   { label: 'Pengaturan', icon: 'i-lucide-settings', to: '/admin/akademik/settings' },
 ]
 
