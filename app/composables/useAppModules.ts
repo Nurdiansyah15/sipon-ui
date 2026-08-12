@@ -28,6 +28,18 @@ export const useAppModules = () => {
       to: '/psb',
     },
     {
+      title: 'Akademik',
+      description: 'Periode akademik, herregistrasi, program, dan jadwal kegiatan Anda.',
+      icon: 'i-lucide-graduation-cap',
+      to: '/akademik',
+    },
+    {
+      title: 'Keuangan',
+      description: 'Lihat tagihan, status pembayaran, dan riwayat transaksi Anda.',
+      icon: 'i-lucide-wallet',
+      to: '/keuangan/tagihan',
+    },
+    {
       title: 'Umpan Balik',
       description: 'Sampaikan saran, pengaduan, pertanyaan, atau apresiasi Anda kepada pengelola.',
       icon: 'i-lucide-message-square',
