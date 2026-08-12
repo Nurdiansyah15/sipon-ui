@@ -48,7 +48,7 @@ const empty = computed(() => store.periods.length === 0)
       </span>
     </UTooltip>
 
-    <UDropdown v-else :items="items" :content="{ align: 'end' }">
+    <UDropdownMenu v-else :items="items" :content="{ align: 'end' }">
       <button
         type="button"
         class="inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition"
@@ -60,6 +60,6 @@ const empty = computed(() => store.periods.length === 0)
         <span class="max-w-56 truncate">{{ label }}</span>
         <UIcon name="i-lucide-chevron-down" class="h-3.5 w-3.5 opacity-70" />
       </button>
-    </UDropdown>
+    </UDropdownMenu>
   </div>
 </template>

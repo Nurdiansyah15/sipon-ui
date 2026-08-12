@@ -23,17 +23,22 @@ const isSubmitting = computed(() => store.isSubmitting)
 
 const schema = z.object({
   activity_schedule_id: z.string().min(1, 'Jadwal wajib dipilih'),
-  starts_at: z.string().min(1, 'Waktu mulai wajib diisi'),
-  ends_at: z.string().min(1, 'Waktu selesai wajib diisi'),
-}).refine(data => !data.ends_at || !data.starts_at || data.ends_at > data.starts_at, {
+  starts_at_date: z.string().min(1, 'Tanggal mulai wajib diisi'),
+  starts_at_time: z.string().min(1, 'Jam mulai wajib diisi'),
+  ends_at_date: z.string().min(1, 'Tanggal selesai wajib diisi'),
+  ends_at_time: z.string().min(1, 'Jam selesai wajib diisi'),
+}).refine(data => !data.starts_at_date || !data.starts_at_time || !data.ends_at_date || !data.ends_at_time
+  || `${data.ends_at_date}T${data.ends_at_time}` > `${data.starts_at_date}T${data.starts_at_time}`, {
   message: 'Waktu selesai harus setelah waktu mulai',
-  path: ['ends_at'],
+  path: ['ends_at_date'],
 })
 
 const form = reactive({
   activity_schedule_id: '',
-  starts_at: '',
-  ends_at: '',
+  starts_at_date: '',
+  starts_at_time: '',
+  ends_at_date: '',
+  ends_at_time: '',
 })
 
 const loadingSchedules = ref(false)
@@ -70,26 +75,26 @@ const scheduleOptions = computed(() =>
 watch(() => props.open, (val) => {
   if (val) {
     form.activity_schedule_id = schedules.value[0]?.id ?? ''
-    form.starts_at = ''
-    form.ends_at = ''
+    form.starts_at_date = ''
+    form.starts_at_time = ''
+    form.ends_at_date = ''
+    form.ends_at_time = ''
     loadSchedules()
   }
 })
 
-// datetime-local value "2026-08-10T19:30" → RFC3339 "2026-08-10T19:30:00Z"
-function toRFC3339(v: string) {
-  if (!v) return ''
-  const parts = v.split('T')
-  if (parts.length !== 2) return ''
-  return `${parts[0]}T${parts[1]}:00Z`
+// "2026-08-10" + "19:30" → RFC3339 "2026-08-10T19:30:00Z"
+function toRFC3339(date: string, time: string) {
+  if (!date || !time) return ''
+  return `${date}T${time}:00Z`
 }
 
 async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
   try {
     await store.createSession({
       activity_schedule_id: form.activity_schedule_id,
-      starts_at: toRFC3339(form.starts_at),
-      ends_at: toRFC3339(form.ends_at),
+      starts_at: toRFC3339(form.starts_at_date, form.starts_at_time),
+      ends_at: toRFC3339(form.ends_at_date, form.ends_at_time),
     })
     toast.add({ title: 'Sesi berhasil dibuat', color: 'success' })
     emit('update:open', false)
@@ -129,12 +134,18 @@ async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
             />
           </UFormField>
 
-          <UFormField label="Waktu Mulai" name="starts_at" required>
-            <UInput v-model="form.starts_at" type="datetime-local" variant="subtle" class="w-full" />
+          <UFormField label="Waktu Mulai" name="starts_at_date" required>
+            <div class="grid grid-cols-2 gap-2">
+              <UInput v-model="form.starts_at_date" type="date" variant="subtle" placeholder="Tanggal" />
+              <UInput v-model="form.starts_at_time" type="time" variant="subtle" placeholder="Jam" />
+            </div>
           </UFormField>
 
-          <UFormField label="Waktu Selesai" name="ends_at" required>
-            <UInput v-model="form.ends_at" type="datetime-local" variant="subtle" class="w-full" />
+          <UFormField label="Waktu Selesai" name="ends_at_date" required>
+            <div class="grid grid-cols-2 gap-2">
+              <UInput v-model="form.ends_at_date" type="date" variant="subtle" placeholder="Tanggal" />
+              <UInput v-model="form.ends_at_time" type="time" variant="subtle" placeholder="Jam" />
+            </div>
           </UFormField>
 
           <div class="flex justify-end gap-2 border-t border-gray-200 pt-4 dark:border-gray-700">
