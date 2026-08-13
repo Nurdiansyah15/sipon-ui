@@ -33,15 +33,15 @@ interface SessionDetail {
   }
 }
 
-async function load() {
-  loading.value = true
+async function load(silent = false) {
+  if (!silent) loading.value = true
   notFound.value = false
   try {
     session.value = await store.fetchSession(id.value)
   } catch {
-    notFound.value = true
+    if (!silent) notFound.value = true
   } finally {
-    loading.value = false
+    if (!silent) loading.value = false
   }
 }
 
@@ -53,10 +53,35 @@ async function loadAttendance() {
   }
 }
 
+let pollTimer: ReturnType<typeof setInterval> | null = null
+
+function stopPolling() {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+}
+
+// Polling ringan tiap 1 menit selama sesi berstatus open (berlangsung) —
+// sinkronisasi fingerprint berjalan di worker BE, halaman ini ikut merefresh
+// detail sesi + daftar absensi agar data terlihat update tanpa reload manual.
+function startPolling() {
+  stopPolling()
+  pollTimer = setInterval(() => {
+    if (document.visibilityState === 'visible' && session.value?.status === 'open') {
+      load(true)
+      loadAttendance()
+    }
+  }, 60_000)
+}
+
 onMounted(async () => {
   await load()
   if (session.value) await loadAttendance()
+  startPolling()
 })
+
+onUnmounted(() => stopPolling())
 
 function fmtDateTime(v: string) {
   return new Date(v).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -168,7 +193,7 @@ async function openSessionRun() {
             {{ session?.activity_name ?? 'Detail Sesi' }}
           </h1>
           <p v-if="session" class="mt-1 text-sm text-gray-700 dark:text-gray-300">
-            {{ session.activity_code }} · {{ fmtDateTime(session.starts_at) }}
+            {{ session.activity_code }}
           </p>
         </div>
         <div v-if="session" class="flex items-center gap-2">
@@ -251,6 +276,27 @@ async function openSessionRun() {
           </div>
           <div>
             <p class="text-xs text-gray-500 dark:text-gray-400">{{ card.label }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        <div class="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700/50 dark:bg-gray-900">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 dark:bg-teal-950">
+            <UIcon name="i-lucide-clock" class="h-5 w-5 text-teal-600 dark:text-teal-400" />
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Mulai Sesi</p>
+            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ fmtDateTime(session.starts_at) }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700/50 dark:bg-gray-900">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-50 dark:bg-red-950">
+            <UIcon name="i-lucide-alarm-clock" class="h-5 w-5 text-red-500 dark:text-red-400" />
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Selesai Sesi</p>
+            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ fmtDateTime(session.ends_at) }}</p>
           </div>
         </div>
       </div>
