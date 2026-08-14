@@ -70,6 +70,24 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    async loginWithGoogle(idToken: string) {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.post<ApiSuccess<LoginResponse>>('/api/v1/web/auth/login/google', {
+          id_token: idToken,
+        })
+        this.setSession(res.data)
+        await this.fetchSession()
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal masuk dengan Google.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
     async register(payload: RegisterRequest) {
       this.isLoading = true
       this.error = null

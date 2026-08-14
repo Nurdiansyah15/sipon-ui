@@ -9,6 +9,9 @@ const authStore = useAuthStore();
 const route = useRoute();
 const toast = useToast();
 
+const gsi = useGoogleIdentity();
+const googleGsiLoaded = computed(() => gsi.isReady);
+
 const schema = z.object({
   identifier: z.string().min(1, "Wajib diisi"),
   password: z.string().min(1, "Wajib diisi"),
@@ -39,6 +42,46 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     isSubmitting.value = false;
   }
 }
+
+async function initGoogleGsi() {
+  if (!gsi.clientId) return;
+  const ok = await gsi.init(gsi.clientId, handleCredentialResponse);
+  if (ok) {
+    gsi.renderButton("google-btn-container", {
+      theme: "outline",
+      size: "large",
+      width: "380",
+      type: "standard",
+    });
+  } else {
+    toast.add({
+      title: "Google Sign-In gagal dimuat",
+      description: gsi.error ?? undefined,
+      color: "warning",
+    });
+  }
+}
+
+async function handleCredentialResponse(response: { credential?: string }) {
+  const idToken = response?.credential;
+  if (!idToken) return;
+  try {
+    await authStore.loginWithGoogle(idToken);
+    toast.add({ title: "Berhasil masuk dengan Google", color: "success" });
+    const redirect = (route.query.redirect as string) || "/dashboard";
+    await navigateTo(redirect);
+  } catch {
+    toast.add({
+      title: "Gagal masuk dengan Google",
+      description: authStore.error ?? undefined,
+      color: "error",
+    });
+  }
+}
+
+onMounted(() => {
+  initGoogleGsi();
+});
 </script>
 
 <template>
@@ -158,13 +201,26 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           </UButton>
         </UForm>
 
-        <div class="my-5 flex items-center gap-3">
+        <div v-if="gsi.clientId" class="my-5 flex items-center gap-3">
           <div class="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
           <span class="text-xs text-gray-400 dark:text-gray-500">atau masuk dengan</span>
           <div class="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
         </div>
 
-        <UButton variant="outline" block size="lg" class="text-gray-700 dark:text-gray-300">
+        <div v-if="gsi.clientId" v-show="googleGsiLoaded" class="flex w-full min-h-[40px] justify-center">
+          <div id="google-btn-container" class="flex w-full justify-center"></div>
+        </div>
+
+        <UButton
+          v-if="gsi.clientId"
+          v-show="!googleGsiLoaded"
+          variant="outline"
+          block
+          size="lg"
+          class="text-gray-700 dark:text-gray-300"
+          :loading="authStore.isLoading"
+          @click="initGoogleGsi"
+        >
           <svg class="h-5 w-5" viewBox="0 0 24 24">
             <path
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"

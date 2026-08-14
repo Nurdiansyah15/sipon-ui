@@ -25,6 +25,7 @@ onMounted(async () => {
 
 const tabItems: TabsItem[] = [
   { label: 'Informasi Akun', icon: 'i-lucide-user', value: 'account' },
+  { label: 'Akun Tertaut', icon: 'i-lucide-link', value: 'linked' },
   { label: 'Data Santri', icon: 'i-lucide-graduation-cap', value: 'santri' },
   { label: 'Roles & Permissions', icon: 'i-lucide-shield', value: 'roles' },
   { label: 'Keamanan', icon: 'i-lucide-lock', value: 'security' },
@@ -44,6 +45,7 @@ const activeTab = ref('account')
       <template #content="{ item }">
         <div class="mt-4 rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">
           <ProfileAccountInfoPanel v-if="item.value === 'account'" />
+          <ProfileLinkedAccountsPanel v-else-if="item.value === 'linked'" />
           <ProfileSantriProfilePanel v-else-if="item.value === 'santri'" />
           <ProfileRolesPermissionsPanel v-else-if="item.value === 'roles'" />
           <template v-else-if="item.value === 'security'">

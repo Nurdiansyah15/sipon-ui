@@ -82,3 +82,12 @@ export interface AvatarPresignResponse {
 export interface AvatarConfirmResponse {
   avatar_url: string
 }
+
+export interface GoogleLoginRequest {
+  id_token: string
+  device_id?: string
+}
+
+export interface LinkGoogleRequest {
+  id_token: string
+}
