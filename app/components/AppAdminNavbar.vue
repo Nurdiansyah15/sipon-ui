@@ -6,6 +6,7 @@ const links = [
   { label: 'Kelola User', icon: 'i-lucide-users', to: '/admin/users' },
   { label: 'Kelola Role', icon: 'i-lucide-shield', to: '/admin/roles' },
   { label: 'Dokumen Aset', icon: 'i-lucide-folder-open', to: '/admin/dokumen-aset' },
+  { label: 'Kelola Scope', icon: 'i-lucide-tags', to: '/admin/scopes' },
 ]
 
 function isActive(to: string) {

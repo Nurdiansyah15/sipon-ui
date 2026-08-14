@@ -40,8 +40,21 @@ onMounted(load)
 const createSantriOpen = ref(false)
 const importSantriOpen = ref(false)
 
+const detailOpen = ref(false)
+const detailTargetId = ref('')
+
+function openDetail(row: SantriItem) {
+  detailTargetId.value = row.id
+  detailOpen.value = true
+}
+
 function rowActions(row: SantriItem): DropdownMenuItem[] {
   const items: DropdownMenuItem[] = [
+    {
+      label: 'Lihat Detail',
+      icon: 'i-lucide-user-round',
+      onSelect: () => openDetail(row),
+    },
     {
       label: 'Lihat Dokumen',
       icon: 'i-lucide-file-text',
@@ -182,6 +195,7 @@ function statusBadgeColor(status: string) {
 
     <AdminCreateSantriModal v-model:open="createSantriOpen" @created="load" />
     <AdminImportSantriModal v-model:open="importSantriOpen" @imported="load" />
+    <AdminSantriDetailModal v-model:open="detailOpen" :santri-id="detailTargetId" />
     <AdminAkademikAssignProgramModal
       v-model:open="assignOpen"
       :santri-id="assignTarget?.id ?? ''"

@@ -30,6 +30,9 @@ interface KesantrianState {
   santriListMeta: ApiMeta | null
   isLoadingSantri: boolean
 
+  santriDetail: SantriProfile | null
+  isLoadingSantriDetail: boolean
+
   requests: SantriRequestItem[]
   requestsMeta: ApiMeta | null
   isLoadingRequests: boolean
@@ -57,6 +60,9 @@ export const useKesantrianStore = defineStore('kesantrian', {
     santriList: [],
     santriListMeta: null,
     isLoadingSantri: false,
+
+    santriDetail: null,
+    isLoadingSantriDetail: false,
 
     requests: [],
     requestsMeta: null,
@@ -119,6 +125,23 @@ export const useKesantrianStore = defineStore('kesantrian', {
 
     clearOneTimePassword() {
       this.oneTimePassword = null
+    },
+
+    async fetchSantriDetail(santriId: string) {
+      this.isLoadingSantriDetail = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<SantriProfile>>(`/api/v1/web/santri/admin/${santriId}`)
+        this.santriDetail = res.data
+        return res.data
+      } catch (err) {
+        this.santriDetail = null
+        this.error = parseApiError(err, 'Gagal memuat detail santri.')
+        throw err
+      } finally {
+        this.isLoadingSantriDetail = false
+      }
     },
 
     // importSantri bypasses useApi() deliberately — that composable always
