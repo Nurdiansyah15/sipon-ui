@@ -10,11 +10,25 @@ const form = defineModel<UpsertFormulirRequest>({ required: true })
 const emit = defineEmits<{ next: [] }>()
 
 const schema = z.object({
+  gender: z.string().min(1, 'Jenis kelamin wajib dipilih'),
   nickname: z.string().min(1, 'Nama panggilan wajib diisi'),
   program_id: z.string().min(1, 'Program wajib dipilih'),
 })
 
-const state = reactive({ nickname: form.value.nickname || '', program_id: form.value.program_id || '' })
+const genderOptions = [
+  { label: 'Laki-laki', value: '1' },
+  { label: 'Perempuan', value: '2' },
+]
+
+const state = reactive({
+  gender: form.value.gender || '',
+  nickname: form.value.nickname || '',
+  program_id: form.value.program_id || '',
+})
+
+watch(() => form.value.gender, (val) => {
+  state.gender = val || ''
+})
 
 watch(() => form.value.nickname, (val) => {
   state.nickname = val || ''
@@ -45,6 +59,7 @@ const bloodOptions = [
 ]
 
 function onNext(_e: FormSubmitEvent<z.output<typeof schema>>) {
+  form.value.gender = state.gender
   form.value.nickname = state.nickname
   const selected = programs.value.find((p) => p.id === state.program_id)
   form.value.program_id = state.program_id
@@ -69,6 +84,10 @@ function onNext(_e: FormSubmitEvent<z.output<typeof schema>>) {
 
       <div class="space-y-4">
         <div class="grid gap-4 md:grid-cols-2">
+          <UFormField label="Jenis Kelamin" name="gender" required>
+            <USelect v-model="state.gender" :items="genderOptions" placeholder="Pilih jenis kelamin" variant="subtle" class="w-full" />
+          </UFormField>
+
           <UFormField label="Nama Panggilan" name="nickname" required>
             <UInput v-model="state.nickname" placeholder="cth: Ahmad" variant="subtle" autofocus class="w-full" />
           </UFormField>

@@ -19,6 +19,14 @@ function fromDateInputValue(v: string): string | undefined {
   return `${v}T00:00:00Z`
 }
 
+// Jenis kelamin ('1' laki-laki / '2' perempuan) diturunkan dari digit gender
+// NIS dan tidak bisa diubah lewat profil.
+function genderLabel(option?: string | null): string {
+  if (option === '1') return 'Laki-laki'
+  if (option === '2') return 'Perempuan'
+  return '-'
+}
+
 const form = reactive<Record<string, string>>({
   fullname: '',
   nickname: '',
@@ -227,6 +235,12 @@ async function onSubmit() {
     <section>
       <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Data Pribadi</h3>
       <div class="grid gap-4 sm:grid-cols-2">
+        <UFormField
+          label="Jenis Kelamin"
+          :hint="store.myProfile?.option ? 'Tergantung NIS, tidak dapat diubah' : undefined"
+        >
+          <UInput :model-value="genderLabel(store.myProfile?.option)" class="w-full" variant="subtle" disabled />
+        </UFormField>
         <UFormField label="Nama Lengkap" name="fullname">
           <UInput v-model="form.fullname" class="w-full" variant="subtle" />
         </UFormField>

@@ -104,11 +104,14 @@ function fields(items: Field[]) {
         <div v-else class="flex-1 overflow-y-auto px-6 py-5">
           <!-- Ringkasan -->
           <div class="mb-6 flex items-center gap-4">
-            <div
-              class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300"
+            <UAvatar
+              :src="detail.avatar_url || undefined"
+              :alt="detail.fullname || detail.username"
+              size="lg"
+              class="shrink-0"
             >
               <UIcon name="i-lucide-graduation-cap" class="h-7 w-7" />
-            </div>
+            </UAvatar>
             <div class="min-w-0">
               <p class="truncate text-base font-semibold text-gray-900 dark:text-gray-100">
                 {{ detail.fullname || detail.username || '-' }}
@@ -128,10 +131,11 @@ function fields(items: Field[]) {
           </div>
 
           <!-- Data Pribadi -->
-          <SantriDetailSection title="Data Pribadi">
-            <SantriDetailGrid
+          <AdminSantriDetailSection title="Data Pribadi">
+            <AdminSantriDetailGrid
               :fields="
                 fields([
+                  { label: 'Nama Lengkap', value: detail.fullname },
                   { label: 'Jenis Kelamin', value: genderLabel(detail.option) },
                   { label: 'Nama Panggilan', value: detail.nickname },
                   { label: 'Program', value: detail.program },
@@ -145,11 +149,11 @@ function fields(items: Field[]) {
                 ])
               "
             />
-          </SantriDetailSection>
+          </AdminSantriDetailSection>
 
           <!-- Alamat -->
-          <SantriDetailSection title="Alamat">
-            <SantriDetailGrid
+          <AdminSantriDetailSection title="Alamat">
+            <AdminSantriDetailGrid
               :fields="
                 fields([
                   { label: 'Alamat', value: detail.address },
@@ -160,11 +164,11 @@ function fields(items: Field[]) {
                 ])
               "
             />
-          </SantriDetailSection>
+          </AdminSantriDetailSection>
 
           <!-- Identitas -->
-          <SantriDetailSection title="Nomor Identitas">
-            <SantriDetailGrid
+          <AdminSantriDetailSection title="Nomor Identitas">
+            <AdminSantriDetailGrid
               :fields="
                 fields([
                   { label: 'NIK', value: detail.nik },
@@ -176,11 +180,11 @@ function fields(items: Field[]) {
                 ])
               "
             />
-          </SantriDetailSection>
+          </AdminSantriDetailSection>
 
           <!-- Pondok Sebelumnya -->
-          <SantriDetailSection title="Pondok Sebelumnya">
-            <SantriDetailGrid
+          <AdminSantriDetailSection title="Pondok Sebelumnya">
+            <AdminSantriDetailGrid
               :fields="
                 fields([
                   { label: 'Nama Pondok', value: detail.previous_pondok_name },
@@ -190,11 +194,11 @@ function fields(items: Field[]) {
                 ])
               "
             />
-          </SantriDetailSection>
+          </AdminSantriDetailSection>
 
           <!-- Pekerjaan -->
-          <SantriDetailSection title="Pekerjaan / Departemen">
-            <SantriDetailGrid
+          <AdminSantriDetailSection title="Pekerjaan / Departemen">
+            <AdminSantriDetailGrid
               :fields="
                 fields([
                   { label: 'Tempat Kerja', value: detail.workplace },
@@ -202,11 +206,11 @@ function fields(items: Field[]) {
                 ])
               "
             />
-          </SantriDetailSection>
+          </AdminSantriDetailSection>
 
           <!-- Ayah -->
-          <SantriDetailSection title="Ayah">
-            <SantriDetailGrid
+          <AdminSantriDetailSection title="Ayah">
+            <AdminSantriDetailGrid
               :fields="
                 fields([
                   { label: 'Nama', value: detail.father },
@@ -218,11 +222,11 @@ function fields(items: Field[]) {
                 ])
               "
             />
-          </SantriDetailSection>
+          </AdminSantriDetailSection>
 
           <!-- Ibu -->
-          <SantriDetailSection title="Ibu">
-            <SantriDetailGrid
+          <AdminSantriDetailSection title="Ibu">
+            <AdminSantriDetailGrid
               :fields="
                 fields([
                   { label: 'Nama', value: detail.mother },
@@ -234,11 +238,11 @@ function fields(items: Field[]) {
                 ])
               "
             />
-          </SantriDetailSection>
+          </AdminSantriDetailSection>
 
           <!-- Wali -->
-          <SantriDetailSection title="Wali">
-            <SantriDetailGrid
+          <AdminSantriDetailSection title="Wali">
+            <AdminSantriDetailGrid
               :fields="
                 fields([
                   { label: 'Hubungan', value: detail.guardian_relationship },
@@ -251,7 +255,7 @@ function fields(items: Field[]) {
                 ])
               "
             />
-          </SantriDetailSection>
+          </AdminSantriDetailSection>
 
           <div class="mt-4 flex items-center justify-between border-t border-gray-200 pt-4 text-xs text-gray-500 dark:border-gray-700/50 dark:text-gray-400">
             <span>Dibuat: {{ formatDateTime(detail.created_at) }}</span>

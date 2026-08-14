@@ -13,6 +13,8 @@ export interface SantriItem {
 
 export interface CreateSantriRequest {
   nis: string
+  // '1' laki-laki / '2' perempuan — opsional, harus cocok dengan digit gender NIS.
+  gender?: string
   program_id?: string | null
 }
 
@@ -70,6 +72,8 @@ export interface ListSantriRequestsQuery {
 
 export interface ApproveSantriRequestPayload {
   nis: string
+  // '1' laki-laki / '2' perempuan — opsional, harus cocok dengan digit gender NIS.
+  gender?: string
   program_id?: string | null
 }
 

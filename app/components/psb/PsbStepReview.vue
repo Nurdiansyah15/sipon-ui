@@ -71,7 +71,7 @@ function previewPendingDoc(kind: string) {
         </div>
       </div>
 
-      <PsbProfileSummary :profile="props.form" />
+      <PsbProfileSummary :profile="props.form" :gender="props.form.gender ?? undefined" />
     </div>
 
     <div class="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700/50 dark:bg-gray-900">

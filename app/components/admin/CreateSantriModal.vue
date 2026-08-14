@@ -19,15 +19,31 @@ const akademikStore = useAkademikStore()
 const toast = useToast()
 
 const schema = z.object({
+  gender: z.string().min(1, 'Jenis kelamin wajib dipilih'),
   nis: z
     .string()
     .regex(/^1000[12][0-9]{5}$/, 'Format NIS tidak valid (mis. 1000112345)'),
 })
 type Schema = z.output<typeof schema>
 
+const genderOptions = [
+  { label: 'Laki-laki', value: '1' },
+  { label: 'Perempuan', value: '2' },
+]
+
 const state = reactive<Partial<Schema>>({
+  gender: '',
   nis: '',
 })
+
+// Mengisi prefix NIS sesuai gender: '1000' + digit gender ('1'/'2').
+function applyGenderPrefix() {
+  if (!state.gender) return
+  const digit = state.gender === '2' ? '2' : '1'
+  const cur = (state.nis || '').trim()
+  const rest = /^1000[12]/.test(cur) ? cur.slice(5) : ''
+  state.nis = `1000${digit}${rest}`
+}
 
 const programs = ref<Program[]>([])
 const programId = ref<string>('')
@@ -52,6 +68,7 @@ async function loadPrograms() {
 }
 
 function resetState() {
+  state.gender = ''
   state.nis = ''
   programId.value = ''
   stage.value = 'form'
@@ -79,6 +96,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   try {
     const res = await store.createSantri({
       nis: event.data.nis,
+      gender: event.data.gender,
       program_id: programId.value || undefined,
     })
     generatedPassword.value = res.generated_password
@@ -130,6 +148,17 @@ function onPasswordConfirmed() {
           class="space-y-4"
           @submit="onSubmit"
         >
+          <UFormField label="Jenis Kelamin" name="gender" required>
+            <USelect
+              v-model="state.gender"
+              :items="genderOptions"
+              placeholder="Pilih jenis kelamin"
+              variant="subtle"
+              class="w-full"
+              @change="applyGenderPrefix"
+            />
+          </UFormField>
+
           <UFormField label="NIS" name="nis" required description="Nomor Induk Santri, 10 digit (mis. 1000112345)">
             <UInput v-model="state.nis" class="w-full" variant="subtle" placeholder="1000112345" />
           </UFormField>

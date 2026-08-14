@@ -89,6 +89,8 @@ export interface FormulirDokumenItem {
 // ===== Pendaftaran =====
 
 export type UpsertFormulirRequest = PendaftarProfileFields & {
+  // '1' laki-laki / '2' perempuan — wajib, menentukan prefix NIS saat generate.
+  gender: string | null
   dokumen?: FormulirDokumenItem[]
 }
 
