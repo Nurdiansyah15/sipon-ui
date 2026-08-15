@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { useApi } from '~/composables/useApi'
+import { apiFetch, useApi } from '~/composables/useApi'
 import { useAuthStore } from '~/stores/auth'
 import { getErrorStatus, parseApiError } from '~/utils/errorParser'
 import type { ApiSuccess, ApiMeta } from '#shared/types/ApiResponse'
@@ -157,7 +157,7 @@ export const useKesantrianStore = defineStore('kesantrian', {
         const formData = new FormData()
         formData.append('file', file)
 
-        const res = await $fetch<ApiSuccess<ImportSantriResponse>>(
+        const res = await apiFetch<ApiSuccess<ImportSantriResponse>>(
           `${config.public.apiBase}/api/v1/web/santri/admin/import`,
           {
             method: 'POST',
@@ -179,7 +179,7 @@ export const useKesantrianStore = defineStore('kesantrian', {
     async downloadImportTemplate(): Promise<Blob> {
       const config = useRuntimeConfig()
       const authStore = useAuthStore()
-      return await $fetch<Blob>(`${config.public.apiBase}/api/v1/web/santri/admin/import/template`, {
+      return await apiFetch<Blob>(`${config.public.apiBase}/api/v1/web/santri/admin/import/template`, {
         method: 'GET',
         responseType: 'blob',
         headers: authStore.token ? { Authorization: `Bearer ${authStore.token}` } : {},

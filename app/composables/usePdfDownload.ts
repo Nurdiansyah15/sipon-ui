@@ -1,8 +1,8 @@
-import { useApi } from '~/composables/useApi'
+import { apiFetch } from '~/composables/useApi'
 
 /**
  * Unduh file PDF dari backend (endpoint mengembalikan application/pdf).
- * Gunakan $fetch dengan responseType blob supaya hasilnya bisa di-save.
+ * Gunakan apiFetch dengan responseType blob supaya hasilnya bisa di-save.
  */
 export function usePdfDownload() {
   const config = useRuntimeConfig()
@@ -19,7 +19,7 @@ export function usePdfDownload() {
       if (authStore.token) {
         headers.Authorization = `Bearer ${authStore.token}`
       }
-      const blob = await $fetch<Blob>(`${config.public.apiBase}${cleanUrl}`, {
+      const blob = await apiFetch<Blob>(`${config.public.apiBase}${cleanUrl}`, {
         method: 'GET',
         headers,
         responseType: 'blob',

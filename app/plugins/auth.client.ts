@@ -1,29 +1,15 @@
 import { useAuthStore } from '~/stores/auth'
+import { resetSessionExpiredGuard } from '~/composables/useApi'
 
 export default defineNuxtPlugin(() => {
   const authStore = useAuthStore()
   if (!authStore.isHydrated) authStore.hydrate()
 
-  let sessionExpiredHandled = false
+  // Sesi baru (login) → izinkan penanganan 401 lagi untuk sesi berikutnya.
   watch(
     () => authStore.token,
     (token) => {
-      if (token) sessionExpiredHandled = false
+      if (token) resetSessionExpiredGuard()
     },
   )
-
-  globalThis.$fetch = $fetch.create({
-    onResponseError({ response }) {
-      if (response.status === 401 && authStore.isLoggedIn && !sessionExpiredHandled) {
-        sessionExpiredHandled = true
-        useToast().add({
-          title: 'Sesi berakhir',
-          description: 'Silakan masuk kembali untuk melanjutkan.',
-          color: 'error',
-        })
-        authStore.clearUser()
-        navigateTo('/auth/login')
-      }
-    },
-  })
 })

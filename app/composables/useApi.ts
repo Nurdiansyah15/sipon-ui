@@ -6,6 +6,34 @@ interface RequestOptions {
   query?: Record<string, unknown>
 }
 
+let sessionExpiredHandled = false
+
+export function resetSessionExpiredGuard() {
+  sessionExpiredHandled = false
+}
+
+// Shared $fetch instance with centralized 401 handling so an invalid/expired
+// access token always kicks the user back to the login page.
+export const apiFetch = $fetch.create({
+  onResponseError({ response }) {
+    if (!import.meta.client || response.status !== 401 || sessionExpiredHandled) return
+    const authStore = useAuthStore()
+    if (!authStore.isLoggedIn) return
+    sessionExpiredHandled = true
+    try {
+      useToast().add({
+        title: 'Sesi berakhir',
+        description: 'Silakan masuk kembali untuk melanjutkan.',
+        color: 'error',
+      })
+    } catch {
+      // toast may be unavailable in this context — still force logout below
+    }
+    authStore.clearUser()
+    navigateTo('/auth/login')
+  },
+})
+
 export const useApi = () => {
   const config = useRuntimeConfig()
   const authStore = useAuthStore()
@@ -22,7 +50,7 @@ export const useApi = () => {
     if (authStore.token) {
       ;(opt.headers as Record<string, string>).Authorization = `Bearer ${authStore.token}`
     }
-    return $fetch<T>(`${apiBase}${cleanUrl}`, opt as never)
+    return apiFetch<T>(`${apiBase}${cleanUrl}`, opt as never)
   }
 
   return {

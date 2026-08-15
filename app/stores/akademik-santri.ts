@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { useApi } from '~/composables/useApi'
+import { apiFetch, useApi } from '~/composables/useApi'
 import { parseApiError } from '~/utils/errorParser'
 import type { ApiSuccess } from '#shared/types/ApiResponse'
 import type { AcademicPeriod, SantriRegistration, ProgramTransferRequest } from '#shared/types/Akademik'
@@ -280,13 +280,13 @@ export const useAkademikSantriStore = defineStore('akademik-santri', {
     // ── Presensi (check-in via NIS, tanpa auth) ──────────────────────────────
     async fetchPresensiSessionInfo(sessionId: string): Promise<PresensiSessionInfo> {
       const config = useRuntimeConfig()
-      const res = await $fetch<ApiSuccess<PresensiSessionInfo>>(`${config.public.apiBase}/api/v1/web/akademik/presensi/${sessionId}`)
+      const res = await apiFetch<ApiSuccess<PresensiSessionInfo>>(`${config.public.apiBase}/api/v1/web/akademik/presensi/${sessionId}`)
       return res.data
     },
 
     async checkinPresensi(sessionId: string, nis: string): Promise<CheckinResponse> {
       const config = useRuntimeConfig()
-      const res = await $fetch<ApiSuccess<CheckinResponse>>(`${config.public.apiBase}/api/v1/web/akademik/presensi/${sessionId}/checkin`, {
+      const res = await apiFetch<ApiSuccess<CheckinResponse>>(`${config.public.apiBase}/api/v1/web/akademik/presensi/${sessionId}/checkin`, {
         method: 'POST',
         body: { nis },
       })
@@ -295,7 +295,7 @@ export const useAkademikSantriStore = defineStore('akademik-santri', {
 
     async fetchPresensiAttendance(sessionId: string): Promise<PresensiAttendanceItem[]> {
       const config = useRuntimeConfig()
-      const res = await $fetch<ApiSuccess<PresensiAttendanceItem[]>>(`${config.public.apiBase}/api/v1/web/akademik/presensi/${sessionId}/attendance`)
+      const res = await apiFetch<ApiSuccess<PresensiAttendanceItem[]>>(`${config.public.apiBase}/api/v1/web/akademik/presensi/${sessionId}/attendance`)
       return res.data ?? []
     },
 
