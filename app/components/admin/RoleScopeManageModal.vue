@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useRolePermissionStore } from '~/stores/rolePermission'
+import { useScopeStore } from '~/stores/scope'
 import type { RoleScope } from '#shared/types/RolePermission'
+import type { ScopeItem } from '#shared/types/Scope'
 
 const props = defineProps<{
   open: boolean
@@ -14,24 +16,34 @@ const emit = defineEmits<{
 }>()
 
 const store = useRolePermissionStore()
+const scopeStore = useScopeStore()
 const toast = useToast()
 
 const isLoading = ref(false)
 const scopes = ref<RoleScope[]>([])
 const isSubmitting = ref(false)
 
-const scopeTypes = [
-  { label: 'Gender', value: 'gender' },
-]
-const scopeValues = {
-  gender: [
-    { label: 'Putra (Male)', value: 'male' },
-    { label: 'Putri (Female)', value: 'female' },
-  ],
-}
+// Master scope sebagai sumber kebenaran tunggal — opsi tipe/nilai diambil dari
+// API master scope (module identity), bukan hardcoded di UI.
+const masterScopes = ref<ScopeItem[]>([])
+const scopeTypes = computed(() => {
+  const seen = new Map<string, string>()
+  for (const s of masterScopes.value) {
+    if (!seen.has(s.scope_type)) seen.set(s.scope_type, s.scope_type)
+  }
+  return Array.from(seen.entries()).map(([value, key]) => ({ label: key, value }))
+})
+const scopeValues = computed<Record<string, { label: string; value: string }[]>>(() => {
+  const grouped: Record<string, { label: string; value: string }[]> = {}
+  for (const s of masterScopes.value) {
+    if (!grouped[s.scope_type]) grouped[s.scope_type] = []
+    grouped[s.scope_type].push({ label: s.name, value: s.code })
+  }
+  return grouped
+})
 
-const selectedScopeType = ref('gender')
-const selectedScopeValue = ref('male')
+const selectedScopeType = ref('')
+const selectedScopeValue = ref('')
 
 function close() {
   emit('update:open', false)
@@ -41,12 +53,25 @@ watch(
   () => props.open,
   async (open) => {
     if (open && props.roleId) {
-      selectedScopeType.value = 'gender'
-      selectedScopeValue.value = 'male'
+      await loadMasterScopes()
+      selectedScopeType.value = scopeTypes.value[0]?.value ?? ''
+      selectedScopeValue.value = scopeValues.value[selectedScopeType.value]?.[0]?.value ?? ''
       await loadScopes()
     }
   },
 )
+
+async function loadMasterScopes() {
+  try {
+    masterScopes.value = await scopeStore.fetchList({ include_inactive: true })
+  } catch {
+    masterScopes.value = []
+  }
+}
+
+watch(selectedScopeType, (type) => {
+  selectedScopeValue.value = scopeValues.value[type]?.[0]?.value ?? ''
+})
 
 async function loadScopes() {
   isLoading.value = true
@@ -96,8 +121,8 @@ async function removeScope(scopeId: string) {
 }
 
 function scopeLabel(type: string, value: string): string {
-  if (type === 'gender') return value === 'male' ? 'Putra' : 'Putri'
-  return value
+  const m = masterScopes.value.find((s) => s.scope_type === type && s.code === value)
+  return m?.name ?? value
 }
 </script>
 
@@ -151,7 +176,7 @@ function scopeLabel(type: string, value: string): string {
               <p class="mb-1 text-xs text-gray-500 dark:text-gray-400">Nilai</p>
               <USelect
                 v-model="selectedScopeValue"
-                :items="scopeValues[selectedScopeType as keyof typeof scopeValues] ?? []"
+                :items="scopeValues[selectedScopeType] ?? []"
                 class="w-full"
               />
             </div>

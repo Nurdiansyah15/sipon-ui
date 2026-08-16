@@ -25,18 +25,19 @@ export const useScopeStore = defineStore('scope', {
   }),
 
   actions: {
-    async fetchList(query: ListScopesQuery = {}) {
+    async fetchList(query: ListScopesQuery = {}): Promise<ScopeItem[]> {
       this.isLoading = true
       this.error = null
       try {
         const api = useApi()
-        const res = await api.get<ApiSuccess<ScopeItem[]>>('/api/v1/web/system/scopes', {
+        const res = await api.get<ApiSuccess<ScopeItem[]>>('/api/v1/web/identity/scopes', {
           query: {
             scope_type: query.scope_type,
             include_inactive: query.include_inactive,
           },
         })
         this.items = res.data
+        return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal memuat daftar scope.')
         throw err
@@ -50,7 +51,7 @@ export const useScopeStore = defineStore('scope', {
       this.error = null
       try {
         const api = useApi()
-        const res = await api.post<ApiSuccess<ScopeItem>>('/api/v1/web/system/scopes', payload)
+        const res = await api.post<ApiSuccess<ScopeItem>>('/api/v1/web/identity/scopes', payload)
         return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal membuat scope.')
@@ -65,7 +66,7 @@ export const useScopeStore = defineStore('scope', {
       this.error = null
       try {
         const api = useApi()
-        await api.put(`/api/v1/web/system/scopes/${id}`, payload)
+        await api.put(`/api/v1/web/identity/scopes/${id}`, payload)
       } catch (err) {
         this.error = parseApiError(err, 'Gagal memperbarui scope.')
         throw err
@@ -79,7 +80,7 @@ export const useScopeStore = defineStore('scope', {
       this.error = null
       try {
         const api = useApi()
-        await api.delete(`/api/v1/web/system/scopes/${id}`)
+        await api.delete(`/api/v1/web/identity/scopes/${id}`)
       } catch (err) {
         this.error = parseApiError(err, 'Gagal menghapus scope.')
         throw err
