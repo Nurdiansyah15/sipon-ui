@@ -19,6 +19,7 @@ export interface SuratItem {
   keterangan?: string | null
   tanggal: string
   created_by: string
+  scope_id?: string | null
   created_at: string
 }
 
@@ -31,6 +32,7 @@ export interface SuratDetail {
   keterangan?: string | null
   tanggal: string
   created_by: string
+  scope_id?: string | null
   created_at: string
   dokumen_aset_ids: string[]
 }
