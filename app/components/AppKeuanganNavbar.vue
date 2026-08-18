@@ -4,6 +4,7 @@ import { usePermission } from '~/composables/usePermission'
 const route = useRoute()
 const { can } = usePermission()
 const { collapsed, toggleCollapsed } = useKeuanganSidebar()
+const { isOperasionalRoute } = useKeuanganPeriodContext()
 
 const sidebarOpen = ref(false)
 
@@ -21,52 +22,37 @@ interface NavSection {
 const dashboardItem: NavItem = { label: 'Dashboard', icon: 'i-lucide-gauge', to: '/admin/keuangan' }
 
 const masterDataItems: NavItem[] = [
-  { label: 'Periode Tagihan', icon: 'i-lucide-calendar-range', to: '/admin/keuangan/periode-tagihan' },
+  { label: 'Periode Akuntansi', icon: 'i-lucide-calendar', to: '/admin/keuangan/periode' },
+  { label: 'Chart of Accounts', icon: 'i-lucide-list-tree', to: '/admin/keuangan/akun' },
   { label: 'Komponen Biaya', icon: 'i-lucide-coins', to: '/admin/keuangan/komponen' },
   { label: 'Skema Tagihan', icon: 'i-lucide-package', to: '/admin/keuangan/skema' },
   { label: 'Skema Santri', icon: 'i-lucide-users', to: '/admin/keuangan/santri' },
   { label: 'Pengaturan', icon: 'i-lucide-settings', to: '/admin/keuangan/settings' },
 ]
 
-const transaksiItems: NavItem[] = [
-  { label: 'Tagihan', icon: 'i-lucide-receipt', to: '/admin/keuangan/tagihan' },
-  { label: 'Pembayaran', icon: 'i-lucide-credit-card', to: '/admin/keuangan/pembayaran' },
-]
-
-const akuntansiItems: NavItem[] = [
-  { label: 'Chart of Accounts', icon: 'i-lucide-list-tree', to: '/admin/keuangan/akun' },
-  { label: 'Jurnal', icon: 'i-lucide-book-open', to: '/admin/keuangan/jurnal' },
-  { label: 'Periode', icon: 'i-lucide-calendar', to: '/admin/keuangan/periode' },
-]
-
-const laporanItems: NavItem[] = [
-  { label: 'Rekap Tagihan', icon: 'i-lucide-bar-chart-3', to: '/admin/keuangan/laporan/rekap' },
-  { label: 'Tunggakan', icon: 'i-lucide-alert-circle', to: '/admin/keuangan/laporan/tunggakan' },
-  { label: 'Buku Besar', icon: 'i-lucide-book', to: '/admin/keuangan/laporan/buku-besar' },
-  { label: 'Neraca Saldo', icon: 'i-lucide-scale', to: '/admin/keuangan/laporan/neraca-saldo' },
-  { label: 'Neraca', icon: 'i-lucide-file-text', to: '/admin/keuangan/laporan/neraca' },
-  { label: 'Laba Rugi', icon: 'i-lucide-trending-up', to: '/admin/keuangan/laporan/laba-rugi' },
-]
+// Menu transaksi, jurnal, laporan, dan periode tagihan dipindah ke landing
+// page "/admin/keuangan/operasional" dan dikontrol oleh pemilihan periode
+// akuntansi (periode kerja). COA menjadi bagian master data.
+const ruangKerjaItem: NavItem = {
+  label: 'Ruang Kerja',
+  icon: 'i-lucide-layout-grid',
+  to: '/admin/keuangan/operasional',
+}
 
 const sections = computed<NavSection[]>(() => {
   const result: NavSection[] = []
-  if (can('manage_keuangan')) {
-    result.push({ title: 'Master Data', items: masterDataItems })
-    result.push({ title: 'Transaksi', items: transaksiItems })
+  if (can('manage_keuangan') || can('manage_journal') || can('view_keuangan_reports')) {
+    result.push({ title: 'Ruang Kerja', items: [ruangKerjaItem] })
   }
-  if (can('manage_accounts') || can('manage_journal') || can('close_period')) {
-    const filtered = akuntansiItems.filter((item) => {
-      if (item.to.includes('/akun')) return can('manage_accounts')
-      if (item.to.includes('/jurnal')) return can('manage_journal')
+  if (can('manage_keuangan') || can('close_period') || can('manage_accounts')) {
+    const filtered = masterDataItems.filter((item) => {
       if (item.to.includes('/periode')) return can('close_period')
-      return false
+      if (item.to.includes('/akun')) return can('manage_accounts')
+      return can('manage_keuangan')
     })
     if (filtered.length) {
-      result.push({ title: 'Akuntansi', items: filtered })
+      result.push({ title: 'Master Data', items: filtered })
     }
-  }
-  if (can('view_keuangan_reports')) {
-    result.push({ title: 'Laporan', items: laporanItems })
   }
   return result
 })
@@ -104,6 +90,8 @@ watch(() => route.path, () => {
         <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Keuangan</span>
 
         <div class="flex-1" />
+
+        <AppKeuanganPeriodSelector v-if="isOperasionalRoute" class="mr-2 hidden sm:block" />
 
         <button
           class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 md:hidden dark:text-gray-400 dark:hover:bg-gray-800"
@@ -195,6 +183,8 @@ watch(() => route.path, () => {
         <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Keuangan</span>
       </div>
       <div class="flex flex-col gap-6 px-4 py-4">
+        <AppKeuanganPeriodSelector v-if="isOperasionalRoute" />
+
         <NuxtLink
           :to="dashboardItem.to"
           :class="isActive(dashboardItem.to)

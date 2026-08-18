@@ -21,6 +21,7 @@ const isEdit = computed(() => !!props.component)
 
 const periodOptions = [
   { label: 'Bulanan', value: 'monthly' as PeriodType },
+  { label: 'Mingguan', value: 'weekly' as PeriodType },
   { label: 'Semester', value: 'semesterly' as PeriodType },
   { label: 'Tahunan', value: 'yearly' as PeriodType },
   { label: 'Sekali', value: 'once' as PeriodType },
@@ -33,7 +34,7 @@ const schema = z.object({
   receivable_account_id: z.string().min(1, 'Akun piutang wajib dipilih'),
   amount: z.number().positive('Jumlah harus lebih dari 0'),
   is_periodic: z.boolean(),
-  period_type: z.enum(['monthly', 'semesterly', 'yearly', 'once']),
+  period_type: z.enum(['monthly', 'semesterly', 'yearly', 'once', 'weekly']),
   description: z.string().optional(),
 })
 

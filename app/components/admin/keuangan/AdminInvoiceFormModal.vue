@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useKeuanganStore } from '~/stores/keuangan'
 import { useKesantrianStore } from '~/stores/kesantrian'
+import { useKeuanganPeriodContext } from '~/composables/useKeuanganPeriodContext'
 
 const props = defineProps<{
   open: boolean
@@ -16,6 +17,7 @@ const emit = defineEmits<{
 const store = useKeuanganStore()
 const santriStore = useKesantrianStore()
 const toast = useToast()
+const { selectedPeriodId } = useKeuanganPeriodContext()
 
 const santriOptions = computed(() =>
   santriStore.santriList.map((s) => ({
@@ -88,7 +90,7 @@ watch(
       try {
         await Promise.all([
           store.fetchFeeComponents({ is_active: true, limit: 100 }),
-          store.fetchBillingPeriods({ status: 'open', limit: 100 }),
+          store.fetchBillingPeriods({ status: 'open', limit: 100, accounting_period_id: selectedPeriodId.value ?? undefined }),
           santriStore.fetchSantriList({ limit: 100 }),
         ])
       } catch {

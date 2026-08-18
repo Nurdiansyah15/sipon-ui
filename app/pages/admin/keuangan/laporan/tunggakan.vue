@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import { useKeuanganReportsStore } from '~/stores/keuanganReports'
-import { useKeuanganStore } from '~/stores/keuangan'
 import { usePermission } from '~/composables/usePermission'
+import { useKeuanganPeriodContext } from '~/composables/useKeuanganPeriodContext'
 import type { OutstandingBySantri } from '#shared/types/Keuangan'
 
 definePageMeta({ layout: 'keuangan' })
 
 const store = useKeuanganReportsStore()
-const keuanganStore = useKeuanganStore()
 const { can } = usePermission()
 const { isDownloading, downloadPdf } = usePdfDownload()
+const { selectedPeriodId, loadPeriods, loadBillingPeriods, billingPeriodsInScope } = useKeuanganPeriodContext()
 
 const filterBillingPeriodId = useQueryParamRef('billing_period_id', 'all', {
   serialize: (v) => (v === 'all' || v === '' ? undefined : v),
@@ -20,8 +20,16 @@ const limit = ref(10)
 
 const billingPeriodOptions = computed(() => [
   { label: 'Semua periode', value: 'all' },
-  ...keuanganStore.billingPeriods.map((p) => ({ label: p.name, value: p.id })),
+  ...billingPeriodsInScope.value.map((p) => ({ label: p.name, value: p.id })),
 ])
+
+// Saat periode akuntansi berubah, pastikan filter billing period tetap valid.
+watch(selectedPeriodId, () => {
+  if (filterBillingPeriodId.value !== 'all' && !billingPeriodsInScope.value.some(p => p.id === filterBillingPeriodId.value)) {
+    filterBillingPeriodId.value = 'all'
+  }
+  loadData()
+})
 
 const sortField = ref<'total_outstanding' | null>('total_outstanding')
 const sortDir = ref<'asc' | 'desc'>('desc')
@@ -30,6 +38,7 @@ async function loadData() {
   try {
     await store.fetchOutstanding({
       billing_period_id: filterBillingPeriodId.value && filterBillingPeriodId.value !== 'all' ? filterBillingPeriodId.value : undefined,
+      period_id: selectedPeriodId.value ?? undefined,
     })
   } catch {
     // error handled in store
@@ -39,8 +48,10 @@ async function loadData() {
 async function onDownloadPdf() {
   try {
     const bp = filterBillingPeriodId.value && filterBillingPeriodId.value !== 'all' ? filterBillingPeriodId.value : ''
+    const periodId = selectedPeriodId.value ?? ''
+    const params = [bp ? `billing_period_id=${bp}` : '', periodId ? `period_id=${periodId}` : ''].filter(Boolean).join('&')
     await downloadPdf(
-      `/api/v1/web/keuangan/admin/reports/outstanding/pdf${bp ? `?billing_period_id=${bp}` : ''}`,
+      `/api/v1/web/keuangan/admin/reports/outstanding/pdf${params ? `?${params}` : ''}`,
       'tunggakan-santri.pdf',
     )
   } catch {
@@ -49,7 +60,7 @@ async function onDownloadPdf() {
 }
 
 onMounted(async () => {
-  await Promise.all([keuanganStore.fetchBillingPeriods({ limit: 100 }), loadData()])
+  await Promise.all([loadPeriods(), loadBillingPeriods(), loadData()])
 })
 
 function toggleSort() {
@@ -97,101 +108,114 @@ const columns: TableColumn<OutstandingBySantri>[] = [
 </script>
 
 <template>
-  <div class="bg-gray-50 dark:bg-gray-950">
-    <div class="mx-auto max-w-7xl px-4 py-8">
-      <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Laporan Tunggakan per Santri</h1>
-        <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Daftar santri dengan tunggakan tagihan.</p>
-      </div>
-
-      <div class="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700/50 dark:bg-gray-900">
-        <div>
-          <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Periode Tagihan</label>
-          <USelect
-            v-model="filterBillingPeriodId"
-            :items="billingPeriodOptions"
-            placeholder="Semua periode"
-            class="w-52"
-            :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
-          />
-        </div>
-        <UButton color="neutral" variant="outline" icon="i-lucide-search" @click="loadData">
-          Tampilkan
-        </UButton>
-        <UButton color="neutral" variant="ghost" icon="i-lucide-printer" @click="window.print()">
-          Cetak
-        </UButton>
-        <UButton
-          color="teal"
-          variant="soft"
-          icon="i-lucide-file-down"
-          :loading="isDownloading"
-          @click="onDownloadPdf"
-        >
-          Unduh PDF
-        </UButton>
-      </div>
-
-      <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900">
-        <div v-if="store.isLoading" class="flex items-center justify-center py-12">
-          <UIcon name="i-lucide-loader-2" class="h-6 w-6 animate-spin text-gray-400" />
-          <span class="ml-2 text-sm text-gray-500">Memuat data...</span>
+  <KeuanganPeriodGuard v-if="!selectedPeriodId" />
+  <template v-else>
+    <div class="bg-gray-50 dark:bg-gray-950">
+      <div class="mx-auto max-w-7xl px-4 py-8">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Laporan Tunggakan per Santri</h1>
+            <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Daftar santri dengan tunggakan tagihan.</p>
+          </div>
+          <UButton
+            to="/admin/keuangan/operasional"
+            icon="i-lucide-arrow-left"
+            color="neutral"
+            variant="outline"
+          >
+            Kembali
+          </UButton>
         </div>
 
-        <div v-else-if="store.outstanding.length === 0" class="flex flex-col items-center justify-center py-12">
-          <UIcon name="i-lucide-inbox" class="h-10 w-10 text-gray-300 dark:text-gray-600" />
-          <p class="mt-2 text-sm text-gray-500">Belum ada data tunggakan.</p>
-        </div>
-
-        <table v-else class="w-full text-left text-sm">
-          <thead class="border-b border-gray-200 bg-gray-50 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
-            <tr>
-              <th class="px-4 py-3 font-bold">Santri ID</th>
-              <th class="px-4 py-3 font-bold">
-                <button class="inline-flex items-center gap-1 hover:text-teal-600" @click="toggleSort">
-                  Total Outstanding
-                  <UIcon :name="sortIcon()" class="h-4 w-4" />
-                </button>
-              </th>
-              <th class="px-4 py-3 text-right font-bold">Jumlah Invoice</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-            <tr v-for="row in paginatedData" :key="row.santri_id" class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-              <td class="px-4 py-3 font-mono text-sm text-gray-900 dark:text-gray-100">{{ row.santri_id }}</td>
-              <td class="px-4 py-3">
-                <KeuanganAmountDisplay :amount="row.total_outstanding" variant="debit" />
-              </td>
-              <td class="px-4 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">{{ row.invoice_count }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div v-if="totalItems > 0" class="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <p class="text-sm text-gray-700 dark:text-gray-300">
-          Total {{ totalItems }} santri · hal. {{ page }} / {{ totalPages }}
-        </p>
-        <UPagination
-          v-model:page="page"
-          :total="totalItems"
-          :items-per-page="limit"
-          :sibling-count="1"
-          show-edges
-        >
-          <template #item="{ item, page: curPage }">
-            <UButton
-              :color="curPage === item.value ? 'teal' : 'neutral'"
-              :variant="curPage === item.value ? 'solid' : 'outline'"
-              :label="String(item.value)"
-              size="sm"
-              :class="curPage === item.value ? 'bg-teal-600 text-white dark:bg-teal-500' : ''"
+        <div class="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700/50 dark:bg-gray-900">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Periode Tagihan</label>
+            <USelect
+              v-model="filterBillingPeriodId"
+              :items="billingPeriodOptions"
+              placeholder="Semua periode"
+              class="w-52"
+              :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
             />
-          </template>
-        </UPagination>
+          </div>
+          <UButton color="neutral" variant="outline" icon="i-lucide-search" @click="loadData">
+            Tampilkan
+          </UButton>
+          <UButton color="neutral" variant="ghost" icon="i-lucide-printer" @click="window.print()">
+            Cetak
+          </UButton>
+          <UButton
+            color="teal"
+            variant="soft"
+            icon="i-lucide-file-down"
+            :loading="isDownloading"
+            @click="onDownloadPdf"
+          >
+            Unduh PDF
+          </UButton>
+        </div>
+
+        <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900">
+          <div v-if="store.isLoading" class="flex items-center justify-center py-12">
+            <UIcon name="i-lucide-loader-2" class="h-6 w-6 animate-spin text-gray-400" />
+            <span class="ml-2 text-sm text-gray-500">Memuat data...</span>
+          </div>
+
+          <div v-else-if="store.outstanding.length === 0" class="flex flex-col items-center justify-center py-12">
+            <UIcon name="i-lucide-inbox" class="h-10 w-10 text-gray-300 dark:text-gray-600" />
+            <p class="mt-2 text-sm text-gray-500">Belum ada data tunggakan.</p>
+          </div>
+
+          <table v-else class="w-full text-left text-sm">
+            <thead class="border-b border-gray-200 bg-gray-50 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
+              <tr>
+                <th class="px-4 py-3 font-bold">Santri ID</th>
+                <th class="px-4 py-3 font-bold">
+                  <button class="inline-flex items-center gap-1 hover:text-teal-600" @click="toggleSort">
+                    Total Outstanding
+                    <UIcon :name="sortIcon()" class="h-4 w-4" />
+                  </button>
+                </th>
+                <th class="px-4 py-3 text-right font-bold">Jumlah Invoice</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              <tr v-for="row in paginatedData" :key="row.santri_id" class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                <td class="px-4 py-3 font-mono text-sm text-gray-900 dark:text-gray-100">{{ row.santri_id }}</td>
+                <td class="px-4 py-3">
+                  <KeuanganAmountDisplay :amount="row.total_outstanding" variant="debit" />
+                </td>
+                <td class="px-4 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">{{ row.invoice_count }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div v-if="totalItems > 0" class="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <p class="text-sm text-gray-700 dark:text-gray-300">
+            Total {{ totalItems }} santri · hal. {{ page }} / {{ totalPages }}
+          </p>
+          <UPagination
+            v-model:page="page"
+            :total="totalItems"
+            :items-per-page="limit"
+            :sibling-count="1"
+            show-edges
+          >
+            <template #item="{ item, page: curPage }">
+              <UButton
+                :color="curPage === item.value ? 'teal' : 'neutral'"
+                :variant="curPage === item.value ? 'solid' : 'outline'"
+                :label="String(item.value)"
+                size="sm"
+                :class="curPage === item.value ? 'bg-teal-600 text-white dark:bg-teal-500' : ''"
+              />
+            </template>
+          </UPagination>
+        </div>
       </div>
     </div>
-  </div>
+  </template>
 </template>
 
 <style scoped>

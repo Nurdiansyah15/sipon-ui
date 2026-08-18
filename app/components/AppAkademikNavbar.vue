@@ -34,6 +34,14 @@ const integrasiItems: NavItem[] = [
   { label: 'Fingerprint', icon: 'i-lucide-fingerprint-pattern', to: '/admin/akademik/fingerprint' },
 ]
 
+// Entri menuju landing page Ruang Kerja Operasional (dikontrol pemilihan
+// periode kerja).
+const ruangKerjaItem: NavItem = {
+  label: 'Ruang Kerja',
+  icon: 'i-lucide-layout-grid',
+  to: '/admin/akademik/operasional',
+}
+
 // Menu operasional & pelaksanaan dipindah ke landing page
 // "/admin/akademik/operasional" dan dikontrol oleh pemilihan periode kerja.
 // const operasionalItems: NavItem[] = [
@@ -49,6 +57,7 @@ const integrasiItems: NavItem[] = [
 const sections = computed<NavSection[]>(() => {
   if (!can('manage_akademik')) return []
   return [
+    { title: 'Ruang Kerja', items: [ruangKerjaItem] },
     { title: 'Master', items: masterDataItems },
     { title: 'Integrasi', items: integrasiItems },
     // Operasional & Pelaksanaan kini dikelola lewat pemilihan periode kerja

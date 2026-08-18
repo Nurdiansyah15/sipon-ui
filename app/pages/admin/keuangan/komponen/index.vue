@@ -33,6 +33,7 @@ const totalItems = computed(() => store.feeComponentsMeta?.total ?? 0)
 
 const periodLabels: Record<string, string> = {
   monthly: 'Bulanan',
+  weekly: 'Mingguan',
   semesterly: 'Semester',
   yearly: 'Tahunan',
   once: 'Sekali',

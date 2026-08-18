@@ -3,12 +3,14 @@ import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { TableColumn } from '@nuxt/ui'
 import { useKeuanganStore } from '~/stores/keuangan'
+import { useKeuanganPeriodContext } from '~/composables/useKeuanganPeriodContext'
 import type { BillingBatch } from '#shared/types/Keuangan'
 
 definePageMeta({ layout: 'keuangan' })
 
 const store = useKeuanganStore()
 const toast = useToast()
+const { selectedPeriodId, loadPeriods } = useKeuanganPeriodContext()
 
 const schema = z.object({
   billing_scheme_id: z.string().min(1, 'Skema tagihan wajib dipilih'),
@@ -85,8 +87,9 @@ async function loadHistory() {
 onMounted(async () => {
   try {
     await Promise.all([
+      loadPeriods(),
       store.fetchBillingSchemes({ is_active: true, limit: 100 }),
-      store.fetchBillingPeriods({ status: 'open', limit: 100 }),
+      store.fetchBillingPeriods({ status: 'open', limit: 100, accounting_period_id: selectedPeriodId.value ?? undefined }),
       loadHistory(),
     ])
   } catch {

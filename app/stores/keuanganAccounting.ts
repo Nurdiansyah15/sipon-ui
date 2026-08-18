@@ -24,6 +24,11 @@ interface KeuanganAccountingState {
   currentJournalEntry: JournalEntry | null
   periods: AccountingPeriod[]
   periodsMeta: ApiMeta | null
+  // Daftar periode akuntansi lengkap untuk konteks kerja (dropdown pemilihan
+  // periode akuntansi). Dipisah dari `periods` karena daftar `periods` bisa
+  // tertimpa daftar terfilter/halaman dari halaman manajemen periode maupun
+  // ringkasan dashboard (fetch dengan limit kecil).
+  workPeriods: AccountingPeriod[]
   activePeriod: AccountingPeriod | null
   isLoading: boolean
   isSubmitting: boolean
@@ -40,6 +45,7 @@ export const useKeuanganAccountingStore = defineStore('keuanganAccounting', {
     currentJournalEntry: null,
     periods: [],
     periodsMeta: null,
+    workPeriods: [],
     activePeriod: null,
     isLoading: false,
     isSubmitting: false,
@@ -231,6 +237,27 @@ export const useKeuanganAccountingStore = defineStore('keuanganAccounting', {
         this.periodsMeta = res.meta
       } catch (err) {
         this.error = parseApiError(err, 'Gagal memuat periode akuntansi.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    // List periode akuntansi lengkap (limit 100, tanpa filter) untuk konteks
+    // kerja. Selalu fetch penuh supaya dropdown pemilihan periode akuntansi
+    // tidak kehilangan opsi akibat daftar `periods` yang tertimpa daftar
+    // terfilter dari halaman lain.
+    async fetchWorkPeriods() {
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<AccountingPeriod[]>>('/api/v1/web/keuangan/admin/periods', {
+          query: { page: 1, limit: 100 },
+        })
+        this.workPeriods = res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat daftar periode kerja.')
         throw err
       } finally {
         this.isLoading = false

@@ -3,6 +3,7 @@ import type { TableColumn, DropdownMenuItem } from '@nuxt/ui'
 import { useKeuanganStore } from '~/stores/keuangan'
 import { useKesantrianStore } from '~/stores/kesantrian'
 import { usePermission } from '~/composables/usePermission'
+import { useKeuanganPeriodContext } from '~/composables/useKeuanganPeriodContext'
 import type { Invoice, InvoiceStatus } from '#shared/types/Keuangan'
 
 definePageMeta({ layout: 'keuangan' })
@@ -11,6 +12,7 @@ const store = useKeuanganStore()
 const santriStore = useKesantrianStore()
 const toast = useToast()
 const { can } = usePermission()
+const { selectedPeriodId, loadPeriods, loadBillingPeriods, billingPeriodsInScope } = useKeuanganPeriodContext()
 
 const santriNameById = computed(() => {
   const map = new Map<string, string>()
@@ -41,7 +43,7 @@ const billingPeriodFilter = ref<string>('all')
 
 const billingPeriodOptions = computed(() => [
   { label: 'Semua periode', value: 'all' },
-  ...store.billingPeriods.map((p) => ({ label: p.name, value: p.id })),
+  ...billingPeriodsInScope.value.map((p) => ({ label: p.name, value: p.id })),
 ])
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
@@ -54,6 +56,16 @@ watch(search, () => {
 })
 watch([page, limit, statusFilter, billingPeriodFilter], () => load())
 
+// Saat periode akuntansi berubah, pastikan filter billing period tetap valid
+// (opsi dibatasi ke periode tagihan dalam periode akuntansi).
+watch(selectedPeriodId, (id) => {
+  page.value = 1
+  if (billingPeriodFilter.value !== 'all' && !billingPeriodsInScope.value.some(p => p.id === billingPeriodFilter.value)) {
+    billingPeriodFilter.value = 'all'
+  }
+  if (id) load()
+})
+
 async function load() {
   try {
     await store.fetchInvoices({
@@ -61,6 +73,7 @@ async function load() {
       limit: limit.value,
       status: statusFilter.value && statusFilter.value !== 'all' ? (statusFilter.value as InvoiceStatus) : undefined,
       billing_period_id: billingPeriodFilter.value && billingPeriodFilter.value !== 'all' ? billingPeriodFilter.value : undefined,
+      period_id: selectedPeriodId.value ?? undefined,
       santri_id: matchedSantriId.value,
     })
   } catch {
@@ -70,9 +83,10 @@ async function load() {
 
 onMounted(async () => {
   await Promise.all([
+    loadPeriods(),
+    loadBillingPeriods(),
     load(),
     santriStore.fetchSantriList({ limit: 100 }),
-    store.fetchBillingPeriods({ limit: 100 }),
   ])
 })
 
@@ -171,144 +185,155 @@ const statusOptions = [
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl px-4 py-8">
-    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Daftar Tagihan</h1>
-        <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Kelola tagihan santri, buat tagihan individual atau massal.</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <UButton
-          v-if="can('manage_keuangan')"
-          color="neutral"
-          variant="outline"
-          icon="i-lucide-layers"
-          @click="navigateTo('/admin/keuangan/tagihan/batch')"
-        >
-          Generate Massal
-        </UButton>
-        <UButton
-          v-if="can('manage_keuangan')"
-          icon="i-lucide-plus"
-          class="bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-400"
-          @click="createInvoiceOpen = true"
-        >
-          Buat Tagihan
-        </UButton>
-      </div>
-    </div>
-
-    <div class="mb-4 flex flex-wrap items-center gap-2">
-      <UInput
-        v-model="search"
-        icon="i-lucide-search"
-        placeholder="Cari santri…"
-        class="w-full sm:w-80"
-        :ui="{ base: 'bg-gray-50 text-gray-900 placeholder:text-gray-400 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500' }"
-      />
-      <USelect
-        v-model="statusFilter"
-        :items="statusOptions"
-        class="w-44"
-        :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
-      />
-      <USelect
-        v-model="billingPeriodFilter"
-        :items="billingPeriodOptions"
-        placeholder="Periode Tagihan"
-        class="w-52"
-        :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
-      />
-    </div>
-
-    <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900">
-      <UTable
-        :data="store.invoices"
-        :columns="columns"
-        :loading="store.isLoading"
-        class="w-full"
-        :ui="{ th: 'text-gray-900 font-bold dark:text-gray-100' }"
-      >
-        <template #invoice_number-cell="{ row }">
-          <code class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ row.original.invoice_number }}</code>
-        </template>
-
-        <template #santri_id-cell="{ row }">
-          <span class="text-sm text-gray-700 dark:text-gray-300">{{ santriLabel(row.original.santri_id) }}</span>
-        </template>
-
-        <template #fee_component-cell="{ row }">
-          <span class="text-sm text-gray-700 dark:text-gray-300">
-            {{ row.original.fee_component ? `${row.original.fee_component.code} - ${row.original.fee_component.name}` : '-' }}
-          </span>
-        </template>
-
-        <template #billing_period-cell="{ row }">
-          <span class="text-sm text-gray-700 dark:text-gray-300">{{ row.original.billing_period?.name ?? '-' }}</span>
-        </template>
-
-        <template #amount-cell="{ row }">
-          <span class="text-sm font-medium tabular-nums text-gray-900 dark:text-gray-100">
-            {{ formatRupiah(row.original.amount) }}
-          </span>
-        </template>
-
-        <template #paid_amount-cell="{ row }">
-          <span class="text-sm tabular-nums text-gray-700 dark:text-gray-300">
-            {{ formatRupiah(row.original.paid_amount) }}
-          </span>
-        </template>
-
-        <template #status-cell="{ row }">
-          <KeuanganStatusBadge :status="row.original.status" type="invoice" size="sm" />
-        </template>
-
-        <template #due_date-cell="{ row }">
-          <span class="text-xs text-gray-700 dark:text-gray-300">{{ formatDate(row.original.due_date) }}</span>
-        </template>
-
-        <template #actions-cell="{ row }">
-          <AppRowActions :items="rowActions(row.original)" />
-        </template>
-      </UTable>
-    </div>
-
-    <div v-if="totalItems > 0" class="mt-4 flex flex-wrap items-center justify-between gap-3">
-      <p class="text-sm text-gray-700 dark:text-gray-300">
-        Total {{ totalItems }} tagihan · hal. {{ page }} / {{ totalPages }}
-      </p>
-      <UPagination
-        v-model:page="page"
-        :total="totalItems"
-        :items-per-page="limit"
-        :sibling-count="1"
-        show-edges
-      >
-        <template #item="{ item, page: curPage }">
+  <KeuanganPeriodGuard v-if="!selectedPeriodId" />
+  <template v-else>
+    <div class="mx-auto max-w-7xl px-4 py-8">
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Daftar Tagihan</h1>
+          <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">Kelola tagihan santri, buat tagihan individual atau massal.</p>
+        </div>
+        <div class="flex items-center gap-2">
           <UButton
-            :color="curPage === item.value ? 'teal' : 'neutral'"
-            :variant="curPage === item.value ? 'solid' : 'outline'"
-            :label="String(item.value)"
-            size="sm"
-            :class="curPage === item.value ? 'bg-teal-600 text-white dark:bg-teal-500' : ''"
-          />
-        </template>
-      </UPagination>
+            to="/admin/keuangan/operasional"
+            icon="i-lucide-arrow-left"
+            color="neutral"
+            variant="outline"
+          >
+            Kembali
+          </UButton>
+          <UButton
+            v-if="can('manage_keuangan')"
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-layers"
+            @click="navigateTo('/admin/keuangan/tagihan/batch')"
+          >
+            Generate Massal
+          </UButton>
+          <UButton
+            v-if="can('manage_keuangan')"
+            icon="i-lucide-plus"
+            class="bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-400"
+            @click="createInvoiceOpen = true"
+          >
+            Buat Tagihan
+          </UButton>
+        </div>
+      </div>
+
+      <div class="mb-4 flex flex-wrap items-center gap-2">
+        <UInput
+          v-model="search"
+          icon="i-lucide-search"
+          placeholder="Cari santri…"
+          class="w-full sm:w-80"
+          :ui="{ base: 'bg-gray-50 text-gray-900 placeholder:text-gray-400 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500' }"
+        />
+        <USelect
+          v-model="statusFilter"
+          :items="statusOptions"
+          class="w-44"
+          :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
+        />
+        <USelect
+          v-model="billingPeriodFilter"
+          :items="billingPeriodOptions"
+          placeholder="Periode Tagihan"
+          class="w-52"
+          :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
+        />
+      </div>
+
+      <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900">
+        <UTable
+          :data="store.invoices"
+          :columns="columns"
+          :loading="store.isLoading"
+          class="w-full"
+          :ui="{ th: 'text-gray-900 font-bold dark:text-gray-100' }"
+        >
+          <template #invoice_number-cell="{ row }">
+            <code class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ row.original.invoice_number }}</code>
+          </template>
+
+          <template #santri_id-cell="{ row }">
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ santriLabel(row.original.santri_id) }}</span>
+          </template>
+
+          <template #fee_component-cell="{ row }">
+            <span class="text-sm text-gray-700 dark:text-gray-300">
+              {{ row.original.fee_component ? `${row.original.fee_component.code} - ${row.original.fee_component.name}` : '-' }}
+            </span>
+          </template>
+
+          <template #billing_period-cell="{ row }">
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ row.original.billing_period?.name ?? '-' }}</span>
+          </template>
+
+          <template #amount-cell="{ row }">
+            <span class="text-sm font-medium tabular-nums text-gray-900 dark:text-gray-100">
+              {{ formatRupiah(row.original.amount) }}
+            </span>
+          </template>
+
+          <template #paid_amount-cell="{ row }">
+            <span class="text-sm tabular-nums text-gray-700 dark:text-gray-300">
+              {{ formatRupiah(row.original.paid_amount) }}
+            </span>
+          </template>
+
+          <template #status-cell="{ row }">
+            <KeuanganStatusBadge :status="row.original.status" type="invoice" size="sm" />
+          </template>
+
+          <template #due_date-cell="{ row }">
+            <span class="text-xs text-gray-700 dark:text-gray-300">{{ formatDate(row.original.due_date) }}</span>
+          </template>
+
+          <template #actions-cell="{ row }">
+            <AppRowActions :items="rowActions(row.original)" />
+          </template>
+        </UTable>
+      </div>
+
+      <div v-if="totalItems > 0" class="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm text-gray-700 dark:text-gray-300">
+          Total {{ totalItems }} tagihan · hal. {{ page }} / {{ totalPages }}
+        </p>
+        <UPagination
+          v-model:page="page"
+          :total="totalItems"
+          :items-per-page="limit"
+          :sibling-count="1"
+          show-edges
+        >
+          <template #item="{ item, page: curPage }">
+            <UButton
+              :color="curPage === item.value ? 'teal' : 'neutral'"
+              :variant="curPage === item.value ? 'solid' : 'outline'"
+              :label="String(item.value)"
+              size="sm"
+              :class="curPage === item.value ? 'bg-teal-600 text-white dark:bg-teal-500' : ''"
+            />
+          </template>
+        </UPagination>
+      </div>
+
+      <AdminKeuanganAdminInvoiceFormModal
+        v-model:open="createInvoiceOpen"
+        @success="load"
+      />
+
+      <AdminConfirmActionModal
+        v-model:open="cancelOpen"
+        title="Batalkan Tagihan"
+        description="Tagihan yang dibatalkan tidak dapat dipulihkan. Lanjutkan?"
+        confirm-label="Batalkan"
+        color="error"
+        :loading="isCancelling"
+        @confirm="confirmCancel"
+      />
     </div>
-
-    <AdminKeuanganAdminInvoiceFormModal
-      v-model:open="createInvoiceOpen"
-      @success="load"
-    />
-
-    <AdminConfirmActionModal
-      v-model:open="cancelOpen"
-      title="Batalkan Tagihan"
-      description="Tagihan yang dibatalkan tidak dapat dipulihkan. Lanjutkan?"
-      confirm-label="Batalkan"
-      color="error"
-      :loading="isCancelling"
-      @confirm="confirmCancel"
-    />
-  </div>
+  </template>
 </template>

@@ -35,7 +35,7 @@ export const useKeuanganReportsStore = defineStore('keuanganReports', {
   }),
 
   actions: {
-    async fetchSummary(query: { billing_period_id?: string } = {}) {
+    async fetchSummary(query: { billing_period_id?: string; period_id?: string } = {}) {
       this.isLoading = true
       this.error = null
       try {
@@ -43,6 +43,7 @@ export const useKeuanganReportsStore = defineStore('keuanganReports', {
         const res = await api.get<ApiSuccess<InvoiceSummary[]>>('/api/v1/web/keuangan/admin/reports/summary', {
           query: {
             billing_period_id: query.billing_period_id,
+            period_id: query.period_id,
           },
         })
         this.summary = res.data
@@ -54,7 +55,7 @@ export const useKeuanganReportsStore = defineStore('keuanganReports', {
       }
     },
 
-    async fetchOutstanding(query: { billing_period_id?: string } = {}) {
+    async fetchOutstanding(query: { billing_period_id?: string; period_id?: string } = {}) {
       this.isLoading = true
       this.error = null
       try {
@@ -64,6 +65,7 @@ export const useKeuanganReportsStore = defineStore('keuanganReports', {
           {
             query: {
               billing_period_id: query.billing_period_id,
+              period_id: query.period_id,
             },
           },
         )

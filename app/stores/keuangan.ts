@@ -23,6 +23,7 @@ import type {
   CreateInvoiceBatchRequest,
   CreateInvoiceBatchResponse,
   CreateBillingPeriodRequest,
+  UpdateBillingPeriodRequest,
   ApplyAdjustmentRequest,
   CreatePaymentRequest,
   KeuanganSettingResponse,
@@ -47,6 +48,12 @@ interface KeuanganState {
   billingSchemesMeta: ApiMeta | null
   billingPeriods: BillingPeriod[]
   billingPeriodsMeta: ApiMeta | null
+  // Daftar periode tagihan lengkap (limit 100, tanpa filter) untuk konteks
+  // periode akuntansi: membatasi opsi filter di transaksi, laporan, dan daftar
+  // periode tagihan. Dipisah dari `billingPeriods` yang bisa tertimpa daftar
+  // terfilter/halaman. Di-cache per periode akuntansi.
+  allBillingPeriods: BillingPeriod[]
+  allBillingPeriodsPeriodId: string | null
   currentBillingPeriod: BillingPeriod | null
   billingBatches: BillingBatch[]
   billingBatchesMeta: ApiMeta | null
@@ -73,6 +80,8 @@ export const useKeuanganStore = defineStore('keuangan', {
     billingSchemesMeta: null,
     billingPeriods: [],
     billingPeriodsMeta: null,
+    allBillingPeriods: [],
+    allBillingPeriodsPeriodId: null,
     currentBillingPeriod: null,
     billingBatches: [],
     billingBatchesMeta: null,
@@ -332,6 +341,7 @@ export const useKeuanganStore = defineStore('keuangan', {
         const res = await api.get<ApiSuccess<BillingPeriod[]>>('/api/v1/web/keuangan/admin/billing-periods', {
           query: {
             status: query.status,
+            accounting_period_id: query.accounting_period_id,
             page: query.page ?? 1,
             limit: query.limit ?? 10,
           },
@@ -340,6 +350,32 @@ export const useKeuanganStore = defineStore('keuangan', {
         this.billingPeriodsMeta = res.meta
       } catch (err) {
         this.error = parseApiError(err, 'Gagal memuat periode tagihan.')
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    // List periode tagihan lengkap (limit 100) untuk konteks periode akuntansi.
+    // Di-cache per periode akuntansi agar tidak tertimpa daftar terfilter.
+    async fetchAllBillingPeriods(accountingPeriodId?: string) {
+      const periodId = accountingPeriodId ?? null
+      if (periodId && this.allBillingPeriodsPeriodId === periodId && this.allBillingPeriods.length > 0) return
+      this.isLoading = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.get<ApiSuccess<BillingPeriod[]>>('/api/v1/web/keuangan/admin/billing-periods', {
+          query: {
+            accounting_period_id: periodId ?? undefined,
+            page: 1,
+            limit: 100,
+          },
+        })
+        this.allBillingPeriods = res.data
+        this.allBillingPeriodsPeriodId = periodId
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memuat daftar periode tagihan.')
         throw err
       } finally {
         this.isLoading = false
@@ -367,11 +403,45 @@ export const useKeuanganStore = defineStore('keuangan', {
       this.error = null
       try {
         const api = useApi()
-        const res = await api.post<ApiSuccess<BillingPeriod>>('/api/v1/web/keuangan/admin/billing-periods', payload)
+        const res = await api.post<ApiSuccess<BillingPeriod>>('/api/v1/web/keuangan/admin/billing-periods', {
+          name: payload.name,
+          period_type: payload.period_type,
+          accounting_period_id: payload.accounting_period_id,
+          start_date: payload.start_date,
+          end_date: payload.end_date,
+        })
         this.billingPeriods.push(res.data)
+        this.allBillingPeriods.push(res.data)
         return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal membuat periode tagihan.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async updateBillingPeriod(id: string, payload: UpdateBillingPeriodRequest): Promise<BillingPeriod> {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        const res = await api.put<ApiSuccess<BillingPeriod>>(
+          `/api/v1/web/keuangan/admin/billing-periods/${id}`,
+          {
+            name: payload.name,
+            period_type: payload.period_type,
+            start_date: payload.start_date,
+            end_date: payload.end_date,
+          },
+        )
+        const idx = this.billingPeriods.findIndex((p) => p.id === id)
+        if (idx !== -1) this.billingPeriods[idx] = res.data
+        const allIdx = this.allBillingPeriods.findIndex((p) => p.id === id)
+        if (allIdx !== -1) this.allBillingPeriods[allIdx] = res.data
+        return res.data
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal memperbarui periode tagihan.')
         throw err
       } finally {
         this.isSubmitting = false
@@ -388,6 +458,8 @@ export const useKeuanganStore = defineStore('keuangan', {
         )
         const idx = this.billingPeriods.findIndex((p) => p.id === id)
         if (idx !== -1) this.billingPeriods[idx] = res.data
+        const allIdx = this.allBillingPeriods.findIndex((p) => p.id === id)
+        if (allIdx !== -1) this.allBillingPeriods[allIdx] = res.data
         return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal membuka periode tagihan.')
@@ -407,6 +479,8 @@ export const useKeuanganStore = defineStore('keuangan', {
         )
         const idx = this.billingPeriods.findIndex((p) => p.id === id)
         if (idx !== -1) this.billingPeriods[idx] = res.data
+        const allIdx = this.allBillingPeriods.findIndex((p) => p.id === id)
+        if (allIdx !== -1) this.allBillingPeriods[allIdx] = res.data
         return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal menutup periode tagihan.')
@@ -515,6 +589,7 @@ export const useKeuanganStore = defineStore('keuangan', {
             user_id: query.user_id,
             status: query.status,
             billing_period_id: query.billing_period_id,
+            period_id: query.period_id,
             page: query.page ?? 1,
             limit: query.limit ?? 10,
           },
@@ -665,6 +740,7 @@ export const useKeuanganStore = defineStore('keuangan', {
           query: {
             invoice_id: query.invoice_id,
             status: query.status,
+            period_id: query.period_id,
             page: query.page ?? 1,
             limit: query.limit ?? 10,
           },

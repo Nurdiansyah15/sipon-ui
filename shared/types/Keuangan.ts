@@ -1,5 +1,5 @@
 // Enums
-export type PeriodType = 'monthly' | 'semesterly' | 'yearly' | 'once'
+export type PeriodType = 'monthly' | 'semesterly' | 'yearly' | 'once' | 'weekly'
 export type InvoiceStatus = 'draft' | 'issued' | 'partial' | 'paid' | 'expired' | 'cancelled'
 export type PaymentStatus = 'pending' | 'verified' | 'rejected'
 export type PaymentMethod = 'transfer' | 'cash' | 'check'
@@ -167,6 +167,7 @@ export interface BillingPeriod {
   id: string
   name: string
   period_type: PeriodType
+  accounting_period_id: string
   start_date: string
   end_date: string
   status: BillingPeriodStatus
@@ -398,6 +399,14 @@ export interface CreateInvoiceBatchResponse {
 export interface CreateBillingPeriodRequest {
   name: string
   period_type: PeriodType
+  accounting_period_id: string
+  start_date: string
+  end_date: string
+}
+
+export interface UpdateBillingPeriodRequest {
+  name: string
+  period_type: PeriodType
   start_date: string
   end_date: string
 }
@@ -513,12 +522,14 @@ export interface InvoiceListQuery {
   user_id?: string
   status?: InvoiceStatus
   billing_period_id?: string
+  period_id?: string
   page?: number
   limit?: number
 }
 
 export interface BillingPeriodListQuery {
   status?: BillingPeriodStatus
+  accounting_period_id?: string
   page?: number
   limit?: number
 }
@@ -532,6 +543,7 @@ export interface BillingBatchListQuery {
 export interface PaymentListQuery {
   invoice_id?: string
   status?: PaymentStatus
+  period_id?: string
   page?: number
   limit?: number
 }

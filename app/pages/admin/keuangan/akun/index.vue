@@ -184,100 +184,100 @@ function formatNormalBalance(v: string) {
 
 <template>
   <div class="mx-auto max-w-7xl px-4 py-8">
-    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Chart of Accounts</h1>
-        <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">
-          Kelola daftar akun (COA) untuk sistem akuntansi keuangan.
-        </p>
-      </div>
-      <UButton
-        v-if="can('manage_accounts')"
-        icon="i-lucide-plus"
-        @click="openCreate"
-      >
-        Buat Akun
-      </UButton>
-    </div>
-
-    <div class="mb-4 flex flex-wrap items-center gap-2">
-      <USelect
-        v-model="typeFilter"
-        :items="typeOptions"
-        value-key="value"
-        placeholder="Semua Tipe"
-        class="w-full sm:w-48"
-      />
-    </div>
-
-    <div v-if="store.isLoading" class="flex items-center justify-center py-12">
-      <UIcon name="i-lucide-loader-2" class="h-6 w-6 animate-spin text-gray-400" />
-    </div>
-
-    <div v-else class="space-y-4">
-      <div
-        v-for="group in accountsByType"
-        :key="group.type"
-        class="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900"
-      >
-        <button
-          class="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
-          @click="toggleType(group.type)"
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Chart of Accounts</h1>
+          <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">
+            Kelola daftar akun (COA) untuk sistem akuntansi keuangan.
+          </p>
+        </div>
+        <UButton
+          v-if="can('manage_accounts')"
+          icon="i-lucide-plus"
+          @click="openCreate"
         >
-          <div class="flex items-center gap-2">
-            <UIcon
-              :name="expandedTypes.has(group.type) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
-              class="h-4 w-4 text-gray-400"
-            />
-            <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ group.label }}</h3>
-            <UBadge color="neutral" variant="subtle" size="xs">{{ group.accounts.length }}</UBadge>
-          </div>
-        </button>
+          Buat Akun
+        </UButton>
+      </div>
 
-        <div v-if="expandedTypes.has(group.type)" class="border-t border-gray-200 dark:border-gray-700">
-          <div
-            v-for="account in getTreeForType(group.accounts)"
-            :key="account.id"
-            class="divide-y divide-gray-100 dark:divide-gray-800"
+      <div class="mb-4 flex flex-wrap items-center gap-2">
+        <USelect
+          v-model="typeFilter"
+          :items="typeOptions"
+          value-key="value"
+          placeholder="Semua Tipe"
+          class="w-full sm:w-48"
+        />
+      </div>
+
+      <div v-if="store.isLoading" class="flex items-center justify-center py-12">
+        <UIcon name="i-lucide-loader-2" class="h-6 w-6 animate-spin text-gray-400" />
+      </div>
+
+      <div v-else class="space-y-4">
+        <div
+          v-for="group in accountsByType"
+          :key="group.type"
+          class="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900"
+        >
+          <button
+            class="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
+            @click="toggleType(group.type)"
           >
-            <KeuanganAccountTreeRow
-              :account="account"
-              :depth="0"
-              :expanded-accounts="expandedAccounts"
-              @toggle="toggleAccount"
-              @edit="openEdit"
-              @delete="confirmDelete"
-              :can-manage="can('manage_accounts')"
-            />
-          </div>
-          <div v-if="group.accounts.length === 0" class="px-4 py-6 text-center text-sm text-gray-400">
-            Tidak ada akun untuk tipe ini
+            <div class="flex items-center gap-2">
+              <UIcon
+                :name="expandedTypes.has(group.type) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
+                class="h-4 w-4 text-gray-400"
+              />
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ group.label }}</h3>
+              <UBadge color="neutral" variant="subtle" size="xs">{{ group.accounts.length }}</UBadge>
+            </div>
+          </button>
+
+          <div v-if="expandedTypes.has(group.type)" class="border-t border-gray-200 dark:border-gray-700">
+            <div
+              v-for="account in getTreeForType(group.accounts)"
+              :key="account.id"
+              class="divide-y divide-gray-100 dark:divide-gray-800"
+            >
+              <KeuanganAccountTreeRow
+                :account="account"
+                :depth="0"
+                :expanded-accounts="expandedAccounts"
+                @toggle="toggleAccount"
+                @edit="openEdit"
+                @delete="confirmDelete"
+                :can-manage="can('manage_accounts')"
+              />
+            </div>
+            <div v-if="group.accounts.length === 0" class="px-4 py-6 text-center text-sm text-gray-400">
+              Tidak ada akun untuk tipe ini
+            </div>
           </div>
         </div>
       </div>
+
+      <AdminKeuanganAdminAccountFormModal
+        v-model:open="createModalOpen"
+        mode="create"
+        @success="onAccountSuccess"
+      />
+
+      <AdminKeuanganAdminAccountFormModal
+        v-model:open="editModalOpen"
+        mode="edit"
+        :account="selectedAccount"
+        @success="onAccountSuccess"
+      />
+
+      <ConfirmActionModal
+        v-model:open="deleteModalOpen"
+        title="Nonaktifkan Akun"
+        :message="`Apakah Anda yakin ingin menonaktifkan akun ${selectedAccount?.code} - ${selectedAccount?.name}?`"
+        confirm-label="Nonaktifkan"
+        confirm-color="error"
+        :loading="store.isSubmitting"
+        @confirm="handleDelete"
+      />
     </div>
-
-    <AdminKeuanganAdminAccountFormModal
-      v-model:open="createModalOpen"
-      mode="create"
-      @success="onAccountSuccess"
-    />
-
-    <AdminKeuanganAdminAccountFormModal
-      v-model:open="editModalOpen"
-      mode="edit"
-      :account="selectedAccount"
-      @success="onAccountSuccess"
-    />
-
-    <ConfirmActionModal
-      v-model:open="deleteModalOpen"
-      title="Nonaktifkan Akun"
-      :message="`Apakah Anda yakin ingin menonaktifkan akun ${selectedAccount?.code} - ${selectedAccount?.name}?`"
-      confirm-label="Nonaktifkan"
-      confirm-color="error"
-      :loading="store.isSubmitting"
-      @confirm="handleDelete"
-    />
-  </div>
 </template>
