@@ -55,6 +55,13 @@ async function loadAttendance() {
 
 let pollTimer: ReturnType<typeof setInterval> | null = null
 
+// Countdown (detik) sampai refresh berikutnya, hanya berjalan saat sesi open.
+const countdown = ref(0)
+
+function resetCountdown() {
+  countdown.value = 30
+}
+
 function stopPolling() {
   if (pollTimer) {
     clearInterval(pollTimer)
@@ -62,26 +69,49 @@ function stopPolling() {
   }
 }
 
-// Polling ringan tiap 1 menit selama sesi berstatus open (berlangsung) —
+// Polling tiap 30 detik selama sesi berstatus open (berlangsung) —
 // sinkronisasi fingerprint berjalan di worker BE, halaman ini ikut merefresh
 // detail sesi + daftar absensi agar data terlihat update tanpa reload manual.
 function startPolling() {
   stopPolling()
+  resetCountdown()
   pollTimer = setInterval(() => {
     if (document.visibilityState === 'visible' && session.value?.status === 'open') {
       load(true)
       loadAttendance()
+      resetCountdown()
     }
-  }, 60_000)
+  }, 30_000)
+}
+
+// Ticker countdown 1 detik yang tampil ke pengguna sebagai loader berjalan.
+let countdownTimer: ReturnType<typeof setInterval> | null = null
+function startCountdown() {
+  stopCountdown()
+  countdownTimer = setInterval(() => {
+    if (session.value?.status === 'open' && countdown.value > 0) {
+      countdown.value -= 1
+    }
+  }, 1_000)
+}
+function stopCountdown() {
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
 }
 
 onMounted(async () => {
   await load()
   if (session.value) await loadAttendance()
   startPolling()
+  startCountdown()
 })
 
-onUnmounted(() => stopPolling())
+onUnmounted(() => {
+  stopPolling()
+  stopCountdown()
+})
 
 function fmtDateTime(v: string) {
   return new Date(v).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -302,17 +332,31 @@ async function openSessionRun() {
       </div>
 
       <div class="mt-6">
-        <div class="mb-3 flex items-center justify-between">
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Absensi</h2>
-          <UButton
-            v-if="can('manage_akademik') && canRecord"
-            icon="i-lucide-plus"
-            size="sm"
-            class="bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-400"
-            @click="recorderOpen = true"
-          >
-            Catat Absensi
-          </UButton>
+          <div class="flex items-center gap-3">
+            <div
+              v-if="canRecord"
+              class="flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700 dark:border-teal-800 dark:bg-teal-950 dark:text-teal-300"
+              title="Data absensi otomatis dimuat ulang"
+            >
+              <UIcon
+                name="i-lucide-loader-circle"
+                class="h-4 w-4 animate-spin"
+              />
+              Auto-refresh
+              <span class="font-bold tabular-nums">{{ countdown }}s</span>
+            </div>
+            <UButton
+              v-if="can('manage_akademik') && canRecord"
+              icon="i-lucide-plus"
+              size="sm"
+              class="bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-400"
+              @click="recorderOpen = true"
+            >
+              Catat Absensi
+            </UButton>
+          </div>
         </div>
 
         <p v-if="!canRecord" class="mb-3 text-xs text-gray-500 dark:text-gray-400">
