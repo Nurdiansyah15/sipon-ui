@@ -45,7 +45,7 @@ async function handleClick() {
 <template>
   <div
     class="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
-    :class="{ 'bg-blue-50/50 dark:bg-blue-900/10': !item.is_read }"
+    :class="{ 'bg-teal-50/50 dark:bg-teal-900/10': !item.is_read }"
     role="button"
     @click="handleClick"
   >

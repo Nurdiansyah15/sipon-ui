@@ -22,10 +22,6 @@ onMounted(() => loadInbox(1))
 
 watch(filterUnreadOnly, () => loadInbox(1))
 
-async function handleMarkRead(id: string) {
-  await store.markRead(id)
-}
-
 async function handleMarkAllRead() {
   await store.markAllRead()
 }
@@ -89,7 +85,6 @@ const showMarkAll = computed(() => store.unreadCount > 0)
         v-for="item in store.items"
         :key="item.id"
         :item="item"
-        @click="handleMarkRead(item.id)"
       />
     </div>
 
