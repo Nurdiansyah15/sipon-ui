@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { useApi } from '~/composables/useApi'
 import { parseApiError } from '~/utils/errorParser'
+import { DEVICE_STORAGE_KEY } from '~/utils/storageKeys'
 import type { ApiSuccess } from '#shared/types/ApiResponse'
 import type {
   AvatarPresignResponse,
@@ -202,21 +203,26 @@ export const useAuthStore = defineStore('auth', {
       const api = useApi()
       await api.post('/api/v1/web/auth/password/reset', { email, token, password })
     },
-
     async logout() {
       try {
+        if (this.token) {
+          const { usePushNotification } = await import('~/composables/usePushNotification')
+          const push = usePushNotification()
+          await push.unregisterDevice()
+        }
         if (this.token) {
           const api = useApi()
           await api.post('/api/v1/auth/logout')
         }
-      } catch {
+      }
+      catch {
         // best-effort: proceed with local logout even if the API call fails
-      } finally {
+      }
+      finally {
         this.clearUser()
         await navigateTo('/auth/login')
       }
     },
-
     setSession(data: LoginResponse) {
       this.token = data.token
       this.refreshToken = data.refresh_token
@@ -233,6 +239,10 @@ export const useAuthStore = defineStore('auth', {
       this.scopes = []
       if (import.meta.client) {
         localStorage.removeItem(STORAGE_KEY)
+        // The FCM token is tied to the browser install, not the account — clearing it
+        // here forces the next login (possibly a different user, same browser) to
+        // re-register the device instead of silently reusing the stale token.
+        localStorage.removeItem(DEVICE_STORAGE_KEY)
       }
     },
 
