@@ -27,6 +27,11 @@ const items = computed<DropdownMenuItem[][]>(() => [
       onSelect: () => navigateTo('/profile'),
     },
     {
+      label: 'Notifikasi',
+      icon: 'i-lucide-bell',
+      onSelect: () => navigateTo('/notifikasi'),
+    },
+    {
       label: 'Dark Mode',
       icon: isDark.value ? 'i-lucide-moon' : 'i-lucide-sun',
       type: 'checkbox',

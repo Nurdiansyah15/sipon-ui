@@ -44,13 +44,7 @@ function isActive(to: string) {
       <div class="flex-1" />
 
       <div class="flex items-center gap-1">
-        <UButton
-          variant="ghost"
-          square
-          class="text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-        >
-          <UIcon name="i-lucide-bell" class="h-5 w-5" />
-        </UButton>
+        <NotificationBell />
         <AppAppMenu />
         <AppUserMenu />
       </div>
