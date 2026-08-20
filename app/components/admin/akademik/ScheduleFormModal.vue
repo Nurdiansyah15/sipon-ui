@@ -40,6 +40,8 @@ const schema = z.object({
   end_date: z.string().optional(),
   start_time: z.string().min(1, 'Jam mulai wajib diisi'),
   end_time: z.string().min(1, 'Jam selesai wajib diisi'),
+  early_minutes: z.coerce.number().min(0, 'Tidak boleh negatif').optional(),
+  late_minutes: z.coerce.number().min(0, 'Tidak boleh negatif').optional(),
 }).refine(data => !data.end_time || !data.start_time || data.end_time > data.start_time, {
   message: 'Jam selesai harus setelah jam mulai',
   path: ['end_time'],
@@ -51,6 +53,8 @@ const form = reactive({
   end_date: '',
   start_time: '19:30',
   end_time: '21:00',
+  early_minutes: 0,
+  late_minutes: 0,
   weeklyDays: [] as DayOfWeek[],
   monthlyDays: [] as number[],
   yearlyDates: [] as YearlyDate[],
@@ -64,6 +68,8 @@ watch(() => props.open, (val) => {
       form.end_date = props.schedule.end_date ?? ''
       form.start_time = props.schedule.start_time.slice(0, 5)
       form.end_time = props.schedule.end_time.slice(0, 5)
+      form.early_minutes = props.schedule.early_minutes ?? 0
+      form.late_minutes = props.schedule.late_minutes ?? 0
       form.weeklyDays = props.schedule.weekly_days ?? []
       form.monthlyDays = props.schedule.monthly_days ?? []
       form.yearlyDates = props.schedule.yearly_dates ?? []
@@ -73,6 +79,8 @@ watch(() => props.open, (val) => {
       form.end_date = ''
       form.start_time = '19:30'
       form.end_time = '21:00'
+      form.early_minutes = 0
+      form.late_minutes = 0
       form.weeklyDays = []
       form.monthlyDays = []
       form.yearlyDates = []
@@ -86,6 +94,8 @@ async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
     end_date: form.end_date || undefined,
     start_time: `${form.start_time}:00`,
     end_time: `${form.end_time}:00`,
+    early_minutes: form.early_minutes || 0,
+    late_minutes: form.late_minutes || 0,
     weekly_days: form.type === 'weekly' ? form.weeklyDays : undefined,
     monthly_days: form.type === 'monthly' ? form.monthlyDays : undefined,
     yearly_dates: form.type === 'yearly' ? form.yearlyDates : undefined,
@@ -149,6 +159,15 @@ async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
             </UFormField>
             <UFormField label="Jam Selesai" name="end_time" required>
               <UInput v-model="form.end_time" type="time" variant="subtle" class="w-full" />
+            </UFormField>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <UFormField label="Buka Lebih Awal (menit)" name="early_minutes" hint="Opsional — memajukan waktu mulai sesi">
+              <UInput v-model="form.early_minutes" type="number" min="0" variant="subtle" class="w-full" placeholder="0" />
+            </UFormField>
+            <UFormField label="Tutup Lebih Akhir (menit)" name="late_minutes" hint="Opsional — memundurkan waktu selesai sesi">
+              <UInput v-model="form.late_minutes" type="number" min="0" variant="subtle" class="w-full" placeholder="0" />
             </UFormField>
           </div>
 

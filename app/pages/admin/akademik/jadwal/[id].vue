@@ -164,6 +164,17 @@ const sessionColumns = [
             <dd><AkademikTimeDisplay :start-time="schedule.start_time" :end-time="schedule.end_time" /></dd>
           </div>
           <div class="flex items-center justify-between px-6 py-4">
+            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Kompromi Waktu</dt>
+            <dd class="text-sm text-gray-900 dark:text-gray-100">
+              <template v-if="(schedule.early_minutes ?? 0) === 0 && (schedule.late_minutes ?? 0) === 0">Tidak ada</template>
+              <template v-else>
+                <span v-if="(schedule.early_minutes ?? 0) > 0">Buka {{ schedule.early_minutes }} menit lebih awal</span>
+                <span v-if="(schedule.early_minutes ?? 0) > 0 && (schedule.late_minutes ?? 0) > 0"> · </span>
+                <span v-if="(schedule.late_minutes ?? 0) > 0">Tutup {{ schedule.late_minutes }} menit lebih akhir</span>
+              </template>
+            </dd>
+          </div>
+          <div class="flex items-center justify-between px-6 py-4">
             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Berlaku</dt>
             <dd class="text-sm text-gray-900 dark:text-gray-100">
               {{ fmtDate(schedule.start_date) }} → {{ fmtDate(schedule.end_date) }}

@@ -97,6 +97,8 @@ export interface ActivitySchedule {
   end_date?: string
   start_time: string
   end_time: string
+  early_minutes: number
+  late_minutes: number
   weekly_days?: DayOfWeek[]
   monthly_days?: number[]
   yearly_dates?: YearlyDate[]
@@ -310,6 +312,8 @@ export interface CreateScheduleRequest {
   end_date?: string
   start_time: string
   end_time: string
+  early_minutes?: number
+  late_minutes?: number
   weekly_days?: DayOfWeek[]
   monthly_days?: number[]
   yearly_dates?: YearlyDate[]
@@ -320,6 +324,8 @@ export interface UpdateScheduleRequest {
   end_date?: string
   start_time?: string
   end_time?: string
+  early_minutes?: number
+  late_minutes?: number
   weekly_days?: DayOfWeek[]
   monthly_days?: number[]
   yearly_dates?: YearlyDate[]
