@@ -34,6 +34,20 @@ const typeOptions = [
   { label: 'Tahunan', value: 'yearly' },
 ]
 
+// Opsi reminder early yang tersedia untuk user (nilai dalam menit untuk mudah
+// dijadwalkan ke scheduler).
+const reminderOptions = [
+  { label: 'Tidak ada', value: 0 },
+  { label: '10 menit', value: 10 },
+  { label: '15 menit', value: 15 },
+  { label: '30 menit', value: 30 },
+  { label: '60 menit', value: 60 },
+  { label: '1 hari', value: 1440 },
+  { label: '2 hari', value: 2880 },
+  { label: '1 minggu', value: 10080 },
+  { label: '1 bulan', value: 43200 },
+]
+
 const schema = z.object({
   type: z.enum(['once', 'daily', 'weekly', 'monthly', 'yearly']),
   start_date: z.string().optional(),
@@ -42,6 +56,7 @@ const schema = z.object({
   end_time: z.string().min(1, 'Jam selesai wajib diisi'),
   early_minutes: z.coerce.number().min(0, 'Tidak boleh negatif').optional(),
   late_minutes: z.coerce.number().min(0, 'Tidak boleh negatif').optional(),
+  reminder_early_minutes: z.coerce.number().min(0).optional(),
 }).refine(data => !data.end_time || !data.start_time || data.end_time > data.start_time, {
   message: 'Jam selesai harus setelah jam mulai',
   path: ['end_time'],
@@ -55,6 +70,7 @@ const form = reactive({
   end_time: '21:00',
   early_minutes: 0,
   late_minutes: 0,
+  reminder_early_minutes: 0,
   weeklyDays: [] as DayOfWeek[],
   monthlyDays: [] as number[],
   yearlyDates: [] as YearlyDate[],
@@ -70,6 +86,7 @@ watch(() => props.open, (val) => {
       form.end_time = props.schedule.end_time.slice(0, 5)
       form.early_minutes = props.schedule.early_minutes ?? 0
       form.late_minutes = props.schedule.late_minutes ?? 0
+      form.reminder_early_minutes = props.schedule.reminder_early_minutes ?? 0
       form.weeklyDays = props.schedule.weekly_days ?? []
       form.monthlyDays = props.schedule.monthly_days ?? []
       form.yearlyDates = props.schedule.yearly_dates ?? []
@@ -81,6 +98,7 @@ watch(() => props.open, (val) => {
       form.end_time = '21:00'
       form.early_minutes = 0
       form.late_minutes = 0
+      form.reminder_early_minutes = 0
       form.weeklyDays = []
       form.monthlyDays = []
       form.yearlyDates = []
@@ -96,6 +114,7 @@ async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
     end_time: `${form.end_time}:00`,
     early_minutes: form.early_minutes || 0,
     late_minutes: form.late_minutes || 0,
+    reminder_early_minutes: form.reminder_early_minutes || 0,
     weekly_days: form.type === 'weekly' ? form.weeklyDays : undefined,
     monthly_days: form.type === 'monthly' ? form.monthlyDays : undefined,
     yearly_dates: form.type === 'yearly' ? form.yearlyDates : undefined,
@@ -170,6 +189,15 @@ async function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
               <UInput v-model="form.late_minutes" type="number" min="0" variant="subtle" class="w-full" placeholder="0" />
             </UFormField>
           </div>
+
+          <UFormField label="Reminder Awal" name="reminder_early_minutes" hint="Opsional — kirim notifikasi sebelum sesi dimulai ke user yang sudah herregistrasi">
+            <USelect
+              v-model="form.reminder_early_minutes"
+              :items="reminderOptions"
+              class="w-full"
+              :ui="{ base: 'bg-gray-50 dark:bg-gray-800', value: 'text-gray-900 dark:text-gray-100' }"
+            />
+          </UFormField>
 
           <AkademikRecurrenceEditor
             :type="form.type"

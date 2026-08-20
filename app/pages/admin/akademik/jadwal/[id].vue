@@ -56,6 +56,20 @@ function recurrenceLines(s: ActivitySchedule): string[] {
   }
 }
 
+function reminderLabel(minutes: number): string {
+  const opts: Record<number, string> = {
+    10: '10 menit sebelum',
+    15: '15 menit sebelum',
+    30: '30 menit sebelum',
+    60: '60 menit sebelum',
+    1440: '1 hari sebelum',
+    2880: '2 hari sebelum',
+    10080: '1 minggu sebelum',
+    43200: '1 bulan sebelum',
+  }
+  return opts[minutes] ?? `${minutes} menit sebelum`
+}
+
 const editOpen = ref(false)
 
 async function saveEdit() {
@@ -172,6 +186,13 @@ const sessionColumns = [
                 <span v-if="(schedule.early_minutes ?? 0) > 0 && (schedule.late_minutes ?? 0) > 0"> · </span>
                 <span v-if="(schedule.late_minutes ?? 0) > 0">Tutup {{ schedule.late_minutes }} menit lebih akhir</span>
               </template>
+            </dd>
+          </div>
+          <div class="flex items-center justify-between px-6 py-4">
+            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Reminder Awal</dt>
+            <dd class="text-sm text-gray-900 dark:text-gray-100">
+              <template v-if="(schedule.reminder_early_minutes ?? 0) === 0">Tidak aktif</template>
+              <template v-else>{{ reminderLabel(schedule.reminder_early_minutes) }}</template>
             </dd>
           </div>
           <div class="flex items-center justify-between px-6 py-4">
