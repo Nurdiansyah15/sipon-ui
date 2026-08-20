@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useApi } from '~/composables/useApi'
+import { useNotificationStore } from '~/stores/notification'
 import { parseApiError } from '~/utils/errorParser'
 import type { ApiSuccess, ApiMeta } from '#shared/types/ApiResponse'
 import type {
@@ -611,6 +612,7 @@ export const useKeuanganStore = defineStore('keuangan', {
         const api = useApi()
         const res = await api.post<ApiSuccess<Invoice>>('/api/v1/web/keuangan/admin/invoices', payload)
         this.invoices.unshift(res.data)
+        useNotificationStore().fetchUnreadCount()
         return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal membuat tagihan.')
@@ -629,6 +631,7 @@ export const useKeuanganStore = defineStore('keuangan', {
           '/api/v1/web/keuangan/admin/invoices/batch',
           payload,
         )
+        useNotificationStore().fetchUnreadCount()
         return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal membuat tagihan massal.')
@@ -701,6 +704,7 @@ export const useKeuanganStore = defineStore('keuangan', {
         const idx = this.invoices.findIndex((i) => i.id === id)
         if (idx !== -1) this.invoices[idx] = res.data
         if (this.currentInvoice?.id === id) this.currentInvoice = res.data
+        useNotificationStore().fetchUnreadCount()
         return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal membatalkan tagihan.')
@@ -813,6 +817,7 @@ export const useKeuanganStore = defineStore('keuangan', {
         const idx = this.payments.findIndex((p) => p.id === id)
         if (idx !== -1) this.payments[idx] = res.data
         if (this.currentPayment?.id === id) this.currentPayment = res.data
+        useNotificationStore().fetchUnreadCount()
         return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal memverifikasi pembayaran.')
@@ -831,6 +836,7 @@ export const useKeuanganStore = defineStore('keuangan', {
         const idx = this.payments.findIndex((p) => p.id === id)
         if (idx !== -1) this.payments[idx] = res.data
         if (this.currentPayment?.id === id) this.currentPayment = res.data
+        useNotificationStore().fetchUnreadCount()
         return res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal menolak pembayaran.')
