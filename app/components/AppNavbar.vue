@@ -17,13 +17,7 @@ function isActive(to: string) {
   <nav class="sticky top-0 z-50 border-b border-gray-200 bg-white dark:border-gray-700/50 dark:bg-gray-900">
     <div class="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3">
       <div class="flex shrink-0 items-center gap-2">
-        <div class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-teal-600">
-          <div class="flex flex-col items-center gap-0.5">
-            <span class="block h-1.5 w-1.5 rounded-full bg-yellow-400" />
-            <span class="block h-1.5 w-1.5 rounded-full bg-teal-500" />
-            <span class="block h-1.5 w-1.5 rounded-full bg-green-500" />
-          </div>
-        </div>
+        <img src="/logo.png" alt="Logo" class="h-8 w-8 rounded-full object-cover" />
         <span class="text-lg font-extrabold tracking-tight text-gray-900 dark:text-gray-100">Ikhlas</span>
       </div>
 

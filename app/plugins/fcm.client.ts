@@ -22,7 +22,7 @@ export default defineNuxtPlugin(() => {
       const body = payload.notification?.body || ''
 
       if (Notification.permission === 'granted') {
-        new Notification(title, { body, icon: '/favicon.ico' })
+        new Notification(title, { body, icon: '/logo.png' })
       }
     })
   }

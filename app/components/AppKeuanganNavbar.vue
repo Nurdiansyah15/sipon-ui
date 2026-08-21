@@ -73,13 +73,7 @@ watch(() => route.path, () => {
     <nav :class="collapsed ? 'sticky top-0 z-50 border-b border-gray-200 bg-white md:ml-16 dark:border-gray-700/50 dark:bg-gray-900' : 'sticky top-0 z-50 border-b border-gray-200 bg-white md:ml-64 dark:border-gray-700/50 dark:bg-gray-900'">
       <div class="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
         <NuxtLink to="/dashboard" class="flex shrink-0 items-center gap-2">
-          <div class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-teal-600">
-            <div class="flex flex-col items-center gap-0.5">
-              <span class="block h-1.5 w-1.5 rounded-full bg-yellow-400" />
-              <span class="block h-1.5 w-1.5 rounded-full bg-teal-500" />
-              <span class="block h-1.5 w-1.5 rounded-full bg-green-500" />
-            </div>
-          </div>
+          <img src="/logo.png" alt="Logo" class="h-8 w-8 rounded-full object-cover" />
         </NuxtLink>
 
         <NuxtLink to="/admin" class="flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800">
@@ -111,13 +105,7 @@ watch(() => route.path, () => {
       <div :class="collapsed ? 'sticky top-0 flex h-14 items-center justify-center border-b border-gray-200 dark:border-gray-700/50' : 'sticky top-0 flex h-14 items-center gap-2 border-b border-gray-200 px-4 dark:border-gray-700/50'">
         <template v-if="!collapsed">
           <NuxtLink to="/dashboard" class="flex shrink-0 items-center gap-2">
-            <div class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-teal-600">
-              <div class="flex flex-col items-center gap-0.5">
-                <span class="block h-1.5 w-1.5 rounded-full bg-yellow-400" />
-                <span class="block h-1.5 w-1.5 rounded-full bg-teal-500" />
-                <span class="block h-1.5 w-1.5 rounded-full bg-green-500" />
-              </div>
-            </div>
+            <img src="/logo.png" alt="Logo" class="h-8 w-8 rounded-full object-cover" />
           </NuxtLink>
           <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Keuangan</span>
           <div class="flex-1" />
@@ -173,13 +161,7 @@ watch(() => route.path, () => {
       ]"
     >
       <div class="flex h-14 items-center gap-2 border-b border-gray-200 px-4 dark:border-gray-700/50">
-        <div class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-teal-600">
-          <div class="flex flex-col items-center gap-0.5">
-            <span class="block h-1.5 w-1.5 rounded-full bg-yellow-400" />
-            <span class="block h-1.5 w-1.5 rounded-full bg-teal-500" />
-            <span class="block h-1.5 w-1.5 rounded-full bg-green-500" />
-          </div>
-        </div>
+        <img src="/logo.png" alt="Logo" class="h-8 w-8 rounded-full object-cover" />
         <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Keuangan</span>
       </div>
       <div class="flex flex-col gap-6 px-4 py-4">
