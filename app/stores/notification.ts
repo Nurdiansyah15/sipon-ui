@@ -8,6 +8,7 @@ import type {
   NotificationPreference,
   UpdateNotificationPreferenceRequest,
   ListNotificationsQuery,
+  BroadcastRequest,
 } from '#shared/types/Notification'
 
 interface NotificationState {
@@ -120,6 +121,20 @@ export const useNotificationStore = defineStore('notification', {
         this.preference = res.data
       } catch (err) {
         this.error = parseApiError(err, 'Gagal memperbarui preferensi notifikasi.')
+        throw err
+      } finally {
+        this.isSubmitting = false
+      }
+    },
+
+    async sendBroadcast(payload: BroadcastRequest) {
+      this.isSubmitting = true
+      this.error = null
+      try {
+        const api = useApi()
+        await api.post('/api/v1/web/notification/admin/broadcast', payload)
+      } catch (err) {
+        this.error = parseApiError(err, 'Gagal mengirim broadcast notifikasi.')
         throw err
       } finally {
         this.isSubmitting = false

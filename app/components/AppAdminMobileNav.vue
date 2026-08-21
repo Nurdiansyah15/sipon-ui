@@ -8,6 +8,7 @@ const items = [
   { label: 'Santri', icon: 'i-lucide-graduation-cap', to: '/admin/kesantrian' },
   { label: 'Aset', icon: 'i-lucide-folder-open', to: '/admin/dokumen-aset' },
   { label: 'Scope', icon: 'i-lucide-tags', to: '/admin/scopes' },
+  { label: 'Notif', icon: 'i-lucide-megaphone', to: '/admin/notifikasi' },
 ]
 
 function isActive(to: string) {

@@ -42,3 +42,13 @@ export interface ListNotificationsQuery {
   page?: number
   limit?: number
 }
+
+export type NotificationType = 'system' | 'social' | 'content' | 'reminder' | 'security'
+export type NotificationChannel = 'in_app' | 'push' | 'email' | 'sms'
+
+export interface BroadcastRequest {
+  type: NotificationType
+  title: string
+  body: string
+  channels: NotificationChannel[]
+}
